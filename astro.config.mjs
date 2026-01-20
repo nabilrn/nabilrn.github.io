@@ -4,7 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-    site: 'https://nabilrn.github.io',
+    site: 'https://nabilrizkinavisa.me',
     base: '/',
     integrations: [sitemap()],
     build: {
