@@ -1,0 +1,357 @@
+---
+import PortfolioLayout from './PortfolioLayout.astro';
+
+const siteUrl = 'https://nabilrn.github.io';
+const title = 'Nabil Rizki Navisa | Software Engineer';
+const description = 'Portfolio of Nabil Rizki Navisa - Full-Stack Developer & IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia.';
+const ogImage = `${siteUrl}/og-image.png`;
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Primary Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="author" content="Nabil Rizki Navisa" />
+    <meta name="keywords" content="Nabil Rizki Navisa, Software Engineer, Full-Stack Developer, Android Developer, Kotlin, Flutter, React, Node.js, Indonesia, Portfolio" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={siteUrl} />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="Nabil Rizki Navisa" />
+    <meta property="og:locale" content="en_US" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={siteUrl} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+    <meta name="theme-color" content="#09090b" />
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nabil Rizki Navisa",
+        "url": "https://nabilrn.github.io",
+        "jobTitle": "Software Engineer",
+        "description": "Full-Stack Developer & IT Infrastructure Enthusiast",
+        "sameAs": [
+            "https://github.com/nabilrn",
+            "https://www.linkedin.com/in/nabilrizkinavisa2004",
+            "https://www.instagram.com/nabilrizkinavisa"
+        ],
+        "alumniOf": {
+            "@type": "CollegeOrUniversity",
+            "name": "Universitas Andalas"
+        },
+        "knowsAbout": ["JavaScript", "TypeScript", "Kotlin", "Flutter", "React", "Node.js", "Android Development", "DevOps"]
+    }
+    </script>
+</head>
+<body>
+    <PortfolioLayout>
+        <slot />
+    </PortfolioLayout>
+</body>
+</html>
+
+<style is:global>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.7;
+        background: var(--sl-color-bg, #09090b);
+        color: var(--sl-color-white, #ffffff);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* CSS Variables */
+    :root {
+        --sl-color-white: #ffffff;
+        --sl-color-gray-1: #e4e4e7;
+        --sl-color-gray-2: #a1a1aa;
+        --sl-color-gray-3: #71717a;
+        --sl-color-gray-4: #52525b;
+        --sl-color-gray-5: #3f3f46;
+        --sl-color-gray-6: #27272a;
+        --sl-color-black: #18181b;
+        --sl-color-bg: #09090b;
+        --sl-color-hairline: #27272a;
+        --sl-color-accent: #ffffff;
+    }
+    
+    [data-theme='light'] {
+        --sl-color-white: #18181b;
+        --sl-color-gray-1: #27272a;
+        --sl-color-gray-2: #3f3f46;
+        --sl-color-gray-3: #52525b;
+        --sl-color-gray-4: #71717a;
+        --sl-color-gray-5: #a1a1aa;
+        --sl-color-gray-6: #e4e4e7;
+        --sl-color-black: #ffffff;
+        --sl-color-bg: #ffffff;
+        --sl-color-hairline: #e4e4e7;
+        --sl-color-accent: #000000;
+    }
+    
+    a {
+        color: inherit;
+    }
+    
+    /* Typography for main content */
+    h2 {
+        font-size: 1.15rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--sl-color-white);
+        margin: 0 0 2rem 0;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--sl-color-hairline);
+    }
+    
+    h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--sl-color-white);
+        margin: 1.75rem 0 0.5rem 0;
+    }
+    
+    h3:first-of-type {
+        margin-top: 0;
+    }
+    
+    p {
+        color: var(--sl-color-gray-2);
+        margin: 0.75rem 0;
+        font-size: 1.05rem;
+        line-height: 1.8;
+    }
+    
+    strong {
+        color: var(--sl-color-white);
+        font-weight: 600;
+    }
+    
+    ul {
+        list-style: none;
+        padding: 0;
+        margin: 0.75rem 0;
+    }
+    
+    li {
+        color: var(--sl-color-gray-2);
+        padding-left: 1.25rem;
+        position: relative;
+        margin: 0.5rem 0;
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+    
+    li::before {
+        content: "–";
+        position: absolute;
+        left: 0;
+        color: var(--sl-color-gray-4);
+    }
+    
+    hr {
+        border: none;
+        border-top: 1px solid var(--sl-color-hairline);
+        margin: 4rem 0;
+    }
+    
+    /* Section styling */
+    section, 
+    .section {
+        margin-bottom: 4rem;
+    }
+    
+    /* Badge/Tag styling */
+    .badge, .tag {
+        display: inline-block;
+        padding: 0.3rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border-radius: 4px;
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-gray-2);
+        border: 1px solid var(--sl-color-gray-5);
+        margin: 0.2rem;
+    }
+    
+    [data-theme='light'] .badge,
+    [data-theme='light'] .tag {
+        background: var(--sl-color-gray-6);
+        color: var(--sl-color-gray-2);
+        border-color: var(--sl-color-gray-5);
+    }
+    
+    /* Experience item styling */
+    .experience-item {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid var(--sl-color-hairline);
+    }
+    
+    .experience-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .experience-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .experience-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: var(--sl-color-white);
+    }
+    
+    .experience-meta {
+        font-size: 0.95rem;
+        color: var(--sl-color-gray-3);
+    }
+    
+    /* Project Grid */
+    .projects-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+    }
+    
+    .project-card {
+        display: block;
+        padding: 1.25rem;
+        border: 1px solid var(--sl-color-hairline);
+        border-radius: 8px;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+        text-decoration: none;
+    }
+    
+    .project-card:hover {
+        border-color: var(--sl-color-gray-4);
+        transform: translateY(-2px);
+    }
+    
+    .project-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--sl-color-white);
+        margin: 0 0 0.75rem 0;
+    }
+    
+    .project-desc {
+        font-size: 0.95rem;
+        color: var(--sl-color-gray-3);
+        margin: 0 0 1rem 0;
+        line-height: 1.6;
+    }
+    
+    .project-date {
+        font-size: 0.85rem;
+        color: var(--sl-color-gray-4);
+    }
+    
+    .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        margin-top: 0.75rem;
+    }
+    
+    /* Skills Grid */
+    .skills-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .skill-category h4 {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--sl-color-gray-3);
+        margin: 0 0 0.5rem 0;
+    }
+    
+    .skill-category p {
+        font-size: 0.9rem;
+        color: var(--sl-color-gray-2);
+        margin: 0;
+    }
+    
+    /* Certifications */
+    .cert-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .cert-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--sl-color-hairline);
+    }
+    
+    .cert-list li::before {
+        content: none;
+    }
+    
+    .cert-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .cert-list li a {
+        color: var(--sl-color-gray-2);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    
+    .cert-list li a:hover {
+        color: var(--sl-color-white);
+    }
+</style>
+
+<script>
+    // Initialize theme from localStorage
+    const savedTheme = localStorage.getItem('starlight-theme') || 'dark';
+    document.documentElement.dataset.theme = savedTheme;
+</script>

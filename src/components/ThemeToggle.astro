@@ -1,0 +1,88 @@
+---
+---
+
+<theme-toggle>
+	<button class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+		<span class="icon sun-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </span>
+		<span class="icon moon-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </span>
+	</button>
+</theme-toggle>
+
+<style is:global>
+    /* Theme Toggle Button */
+	.theme-toggle {
+		background: none;
+		border: 1px solid var(--sl-color-hairline, #27272a);
+		cursor: pointer;
+		padding: 0.5rem;
+		border-radius: 8px;
+		color: var(--sl-color-gray-3, #71717a);
+		display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        width: 40px;
+        height: 40px;
+	}
+    
+    .theme-toggle:hover {
+        color: var(--sl-color-white, #fff);
+        border-color: var(--sl-color-gray-4, #52525b);
+        transform: scale(1.05);
+    }
+    
+    [data-theme='light'] .theme-toggle {
+        color: var(--sl-color-gray-3, #52525b);
+        border-color: var(--sl-color-hairline, #e4e4e7);
+    }
+    
+    [data-theme='light'] .theme-toggle:hover {
+        color: var(--sl-color-white, #18181b);
+        border-color: var(--sl-color-gray-4, #a1a1aa);
+    }
+
+    .theme-toggle .icon {
+        display: none;
+        line-height: 0;
+    }
+
+    /* Dark mode: show SUN icon (to switch to light) */
+	[data-theme='dark'] .theme-toggle .sun-icon {
+		display: flex;
+	}
+    
+    /* Light mode: show MOON icon (to switch to dark) */
+    [data-theme='light'] .theme-toggle .moon-icon {
+		display: flex;
+	}
+    
+    /* Default (no attribute): show SUN */
+    html:not([data-theme]) .theme-toggle .sun-icon {
+        display: flex;
+    }
+</style>
+
+<script>
+	class ThemeToggle extends HTMLElement {
+		constructor() {
+			super();
+			const button = this.querySelector('button');
+            
+			button?.addEventListener('click', () => {
+				const currentTheme = document.documentElement.dataset.theme || 'dark';
+				const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
+				this.setTheme(nextTheme);
+			});
+		}
+
+		setTheme(theme: string) {
+			document.documentElement.dataset.theme = theme;
+			localStorage.setItem('starlight-theme', theme);
+		}
+	}
+	customElements.define('theme-toggle', ThemeToggle);
+</script>
