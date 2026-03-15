@@ -1,0 +1,58 @@
+---
+import { getCollection, render } from 'astro:content';
+import Page from '../../components/Page.astro';
+import EngagementBar from '../../components/EngagementBarNew.astro';
+import PostMetaBar from '../../components/PostMetaBar.astro';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog', ({ data }) => !data.draft);
+	return posts.map((post) => ({
+		params: { slug: post.slug },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const words = post.body.trim().split(/\s+/).length;
+const readingTime = Math.max(1, Math.ceil(words / 200));
+---
+
+<Page>
+	<article class="blog-post">
+		<p class="back-link"><a href="/blog/">← Back to blog</a></p>
+		<h2>{post.data.title}</h2>
+		<PostMetaBar date={post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} readingTime={readingTime} tags={post.data.tags} />
+		<p class="project-desc">{post.data.description}</p>
+
+		<EngagementBar postId={post.slug} title={post.data.title} />
+
+		<div class="content">
+			<Content />
+		</div>
+	</article>
+</Page>
+
+<style>
+	.blog-post {
+		max-width: 780px;
+	}
+
+	.back-link {
+		margin-bottom: 1rem;
+	}
+
+	.back-link a {
+		text-decoration: none;
+		color: var(--sl-color-gray-2);
+	}
+
+	.back-link a:hover {
+		color: var(--sl-color-white);
+	}
+
+	.content :global(h2) {
+		font-size: 1.3rem;
+		margin-top: 2rem;
+	}
+</style>

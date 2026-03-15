@@ -264,8 +264,8 @@ const ogImage = `${siteUrl}/og-image.png`;
     
     /* Project Grid */
     .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        display: flex;
+        flex-direction: column;
         gap: 1rem;
     }
     
@@ -274,33 +274,20 @@ const ogImage = `${siteUrl}/og-image.png`;
         padding: 1.25rem;
         border: 1px solid var(--sl-color-hairline);
         border-radius: 8px;
-        transition: border-color 0.2s ease, transform 0.2s ease;
+        transition: box-shadow 0.12s ease, transform 0.08s ease;
         text-decoration: none;
+        color: inherit;
     }
     
-    .project-card:hover {
-        border-color: var(--sl-color-gray-4);
-        transform: translateY(-2px);
-    }
+    .card-thumb{width:140px;min-width:140px;background:linear-gradient(135deg,#111 0%, #222 100%);border-radius:6px}
+    .project-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.06); transform: translateY(-3px); }
     
-    .project-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--sl-color-white);
-        margin: 0 0 0.75rem 0;
-    }
     
-    .project-desc {
-        font-size: 0.95rem;
-        color: var(--sl-color-gray-3);
-        margin: 0 0 1rem 0;
-        line-height: 1.6;
-    }
-    
-    .project-date {
-        font-size: 0.85rem;
-        color: var(--sl-color-gray-4);
-    }
+    .project-title{font-size:1.15rem;font-weight:700;color:var(--sl-color-white);margin:0 0 0.5rem 0}
+    .project-desc{font-size:0.95rem;color:var(--sl-color-gray-3);margin:0 0 0.75rem 0;line-height:1.5}
+    .meta-row{display:flex;gap:0.5rem;align-items:center;color:var(--sl-color-gray-3);font-size:0.9rem}
+    .badge.small{display:inline-flex;align-items:center;gap:0.35rem;padding:0.25rem 0.45rem;border-radius:6px;background:var(--sl-color-gray-6);color:var(--sl-color-gray-2);border:1px solid var(--sl-color-gray-5);font-size:0.85rem}
+    .project-date{font-size:0.85rem;color:var(--sl-color-gray-4)}
     
     .explore-more {
         text-align: center;
@@ -347,6 +334,11 @@ const ogImage = `${siteUrl}/og-image.png`;
         color: var(--sl-color-gray-2);
         margin: 0;
     }
+
+    .skill-list{display:flex;flex-wrap:wrap;gap:0.5rem}
+    .skill-badge{height:24px;border-radius:4px;display:inline-block}
+    .skill{display:inline-flex;align-items:center;gap:0.5rem;padding:.15rem .25rem;border-radius:6px;background:transparent;color:var(--sl-color-gray-2);font-size:0.95rem}
+
     
     /* Certifications */
     .cert-list {

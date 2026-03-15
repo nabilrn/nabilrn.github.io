@@ -1,0 +1,93 @@
+---
+import Icon from './Icon.astro';
+interface Props { postId: string; title: string }
+const { postId, title } = Astro.props;
+const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
+---
+<div class="engage-new" data-post-id={postId} data-api-base={apiBase} data-title={title} aria-live="polite">
+  <div class="left">
+    <span class="stat"><Icon name="views" /> <strong data-views>0</strong></span>
+    <span class="stat"><Icon name="heart" /> <strong data-likes>0</strong></span>
+    <span class="stat"><Icon name="share" /> <strong data-shares>0</strong></span>
+  </div>
+  <div class="right">
+    <button class="action like" aria-label="Like post" data-like-btn><Icon name="heart" /></button>
+    <div class="share-group">
+      <button class="action" data-share-btn="copy" aria-label="Copy link"><Icon name="copy" /></button>
+    </div>
+  </div>
+</div>
+<div id="toast-copied" aria-hidden="true" class="toast"></div>
+
+<style>
+.engage-new{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.75rem;border-radius:8px;border:1px solid var(--sl-color-hairline);gap:1rem}
+.engage-new .left{display:flex;gap:0.75rem;align-items:center}
+.engage-new .stat{display:inline-flex;align-items:center;gap:0.35rem;color:var(--sl-color-gray-2)}
+.engage-new .stat strong{color:var(--sl-color-white)}
+.engage-new .right{display:flex;gap:0.5rem;align-items:center}
+.action{background:transparent;border:1px solid var(--sl-color-hairline);padding:0.4rem;border-radius:8px;cursor:pointer;color:var(--sl-color-gray-2)}
+.action:hover{color:var(--sl-color-white);border-color:var(--sl-color-gray-4);transform:translateY(-2px)}
+.action.like.active{background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));border-color:rgba(255,255,255,0.08);}
+.share-group{display:flex;gap:0.35rem}
+</style>
+
+<script>
+const root = document.currentScript?.parentElement ?? document.querySelector('.engage-new');
+(function(){
+  const el = root;
+  if(!el) return;
+  const pid = el.dataset.postId;
+  const api = el.dataset.apiBase || '';
+  const viewsEl = el.querySelector('[data-views]');
+  const likesEl = el.querySelector('[data-likes]');
+  const sharesEl = el.querySelector('[data-shares]');
+  const likeBtn = el.querySelector('[data-like-btn]');
+  const shareBtns = el.querySelectorAll('[data-share-btn]');
+  const visitorKey = 'portfolio:visitor-id';
+  function getVisitor(){let v=localStorage.getItem(visitorKey);if(v) return v; v=crypto.randomUUID();localStorage.setItem(visitorKey,v);return v}
+  const visitor = getVisitor();
+  async function fetchApi(body){
+    const endpoint = api.replace(/\/$/, '') + '/metrics/' + encodeURIComponent(pid);
+    const res = body ? await fetch(endpoint,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}) : await fetch(endpoint);
+    if(!res.ok) throw new Error('bad');
+    return await res.json();
+  }
+  function setCounts(m){ if(viewsEl) viewsEl.textContent = m.views; if(likesEl) likesEl.textContent = m.likes; if(sharesEl) sharesEl.textContent = m.shares }
+  function showToast(msg){ let toast = document.getElementById('toast-copied'); if(!toast){ toast = document.createElement('div'); toast.id='toast-copied'; toast.className='toast'; document.body.appendChild(toast);} toast.textContent = msg; // inline styles to avoid scoping issues
+    toast.style.position = 'fixed'; toast.style.right = '1rem'; toast.style.bottom = '1.25rem'; toast.style.background = 'rgba(0,0,0,0.85)'; toast.style.color = 'white'; toast.style.padding = '0.5rem 0.75rem'; toast.style.borderRadius = '6px'; toast.style.boxShadow = '0 6px 18px rgba(0,0,0,0.4)'; toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; setTimeout(()=>{ try{ toast.style.opacity='0'; toast.style.transform='translateY(8px)'; }catch(e){} },2000);
+  }
+  (async()=>{
+    try{ if(api){ const m = await fetchApi(); setCounts(m); // set like button state if provided
+        if(m.liked){ likeBtn?.classList.add('active'); likeBtn.style.color='#e11d48'; const svg=likeBtn?.querySelector('svg'); if(svg) svg.style.stroke='#e11d48'; }
+      } }catch{}
+    try{ if(api){ const m = await fetchApi({action:'view',visitorId:visitor}); setCounts(m); } }catch{}
+    // fallback local increment if api missing
+    if(!api){ const k='portfolio:views:'+pid; let v=Number(localStorage.getItem(k)||'0'); const seenKey='portfolio:viewed-once:'+pid; if(!localStorage.getItem(seenKey)){ v++; localStorage.setItem(k,String(v)); localStorage.setItem(seenKey,'1'); } if(viewsEl) viewsEl.textContent = String(v);} 
+  })();
+  likeBtn?.addEventListener('click',async()=>{
+    try{
+      if(api){ const m = await fetchApi({action:'like',visitorId:visitor}); setCounts(m); const active = !!m.liked; likeBtn.classList.toggle('active', active); // ensure color
+        if(active){ likeBtn.style.color = '#e11d48'; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke = '#e11d48'; } else { likeBtn.style.color=''; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke=''; }
+        return
+      }
+    }catch{}
+    // fallback local
+    const lk='portfolio:likes:'+pid; const likedKey='portfolio:liked:'+pid; let count=Number(localStorage.getItem(lk)||'0'); let liked = localStorage.getItem(likedKey) === '1'; liked = !liked; if(liked){ count++; } else { count = Math.max(0,count-1)} localStorage.setItem(lk,String(count)); localStorage.setItem(likedKey, liked ? '1' : '0'); if(likesEl) likesEl.textContent = String(count); likeBtn.classList.toggle('active', liked); if(liked){ likeBtn.style.color='#e11d48'; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke='#e11d48'; } else { likeBtn.style.color=''; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke=''; }
+  });
+  shareBtns.forEach(b=>b.addEventListener('click',async(e)=>{
+    const mode = b.dataset.shareBtn;
+    const url = window.location.href; const postTitle = el.dataset.title || document.title; const text = postTitle + ' - ' + url;
+    try{
+      if(mode==='copy'){
+        await navigator.clipboard.writeText(url);
+        showToast('Link copied to clipboard');
+      }
+      if(api){ await fetchApi({action:'share'}); const m= await fetchApi(); setCounts(m); return }
+    }catch{
+      showToast('Copied (fallback)');
+    }
+    // fallback local
+    const sk='portfolio:shares:'+pid; let c=Number(localStorage.getItem(sk)||'0'); c++; localStorage.setItem(sk,String(c)); if(sharesEl) sharesEl.textContent = String(c);
+  }));
+})();
+</script>

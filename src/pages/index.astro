@@ -1,5 +1,10 @@
 ---
 import Page from '../components/Page.astro';
+import { getCollection } from 'astro:content';
+
+const latestPosts = (await getCollection('blog', ({ data }) => !data.draft))
+    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+    .slice(0, 3);
 ---
 
 <Page>
@@ -36,9 +41,9 @@ import Page from '../components/Page.astro';
                 <li>Provided training and upgrading materials for new assistants</li>
             </ul>
             <div class="tags">
-                <span class="tag">Leadership</span>
-                <span class="tag">Curriculum Design</span>
-                <span class="tag">Lab Management</span>
+                <span class="tag">#Leadership</span>
+                <span class="tag">#Curriculum Design</span>
+                <span class="tag">#Lab Management</span>
             </div>
         </div>
         
@@ -54,10 +59,10 @@ import Page from '../components/Page.astro';
                 <li>Learned banking IT practices, internal tech stacks, and system concepts</li>
             </ul>
             <div class="tags">
-                <span class="tag">Express.js</span>
-                <span class="tag">React</span>
-                <span class="tag">PostgreSQL</span>
-                <span class="tag">Git</span>
+                <span class="tag">#Express.js</span>
+                <span class="tag">#React</span>
+                <span class="tag">#PostgreSQL</span>
+                <span class="tag">#Git</span>
             </div>
         </div>
         
@@ -72,8 +77,8 @@ import Page from '../components/Page.astro';
                 <li>Prepared lab environments, materials, and technical setups</li>
             </ul>
             <div class="tags">
-                <span class="tag">IT Infrastructure</span>
-                <span class="tag">Server Management</span>
+                <span class="tag">#IT Infrastructure</span>
+                <span class="tag">#Server Management</span>
             </div>
         </div>
         
@@ -89,9 +94,9 @@ import Page from '../components/Page.astro';
                 <li>Collaborated with 8-person cross-functional team (ML, Cloud, Mobile)</li>
             </ul>
             <div class="tags">
-                <span class="tag">Android</span>
-                <span class="tag">Kotlin</span>
-                <span class="tag">XML</span>
+                <span class="tag">#Android</span>
+                <span class="tag">#Kotlin</span>
+                <span class="tag">#XML</span>
             </div>
         </div>
     </section>
@@ -104,75 +109,66 @@ import Page from '../components/Page.astro';
         
         <div class="projects-grid">
             <a href="https://github.com/nabilrn/Momentum" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Momentum</h3>
-                <p class="project-desc">Cross-platform habit-tracking app (Android, iOS, Web) with real-time sync and notifications.</p>
-                <div class="tags">
-                    <span class="tag">Dart</span>
-                    <span class="tag">Flutter</span>
-                    <span class="tag">Supabase</span>
+                <div class="card-body">
+                    <h3 class="post-title">Momentum</h3>
+                    <div class="tags"><span class="tag">#Dart</span><span class="tag">#Flutter</span><span class="tag">#Supabase</span></div>
+                    <p class="post-desc">Cross-platform habit-tracking app (Android, iOS, Web) with real-time sync and notifications.</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/express-api-starter" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Express API Starter</h3>
-                <p class="project-desc">A boilerplate for building REST APIs with Express.js and TypeScript. ⭐ 4 stars</p>
-                <div class="tags">
-                    <span class="tag">TypeScript</span>
-                    <span class="tag">Express</span>
+                <div class="card-body">
+                    <h3 class="post-title">Express API Starter</h3>
+                    <div class="tags"><span class="tag">#TypeScript</span><span class="tag">#Express</span></div>
+                    <p class="post-desc">A boilerplate for building REST APIs with Express.js and TypeScript. ⭐ 4 stars</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/moviecatalog-kmp" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Movie Catalog KMP</h3>
-                <p class="project-desc">Cross-platform movie catalog app built with Kotlin Multiplatform.</p>
-                <div class="tags">
-                    <span class="tag">Kotlin</span>
-                    <span class="tag">KMP</span>
+                <div class="card-body">
+                    <h3 class="post-title">Movie Catalog KMP</h3>
+                    <div class="tags"><span class="tag">#Kotlin</span><span class="tag">#KMP</span></div>
+                    <p class="post-desc">Cross-platform movie catalog app built with Kotlin Multiplatform.</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/Airbnb-BI" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Airbnb BI Dashboard</h3>
-                <p class="project-desc">BI dashboard for pricing insights using Kaggle datasets and ML-based recommendations.</p>
-                <div class="tags">
-                    <span class="tag">TypeScript</span>
-                    <span class="tag">Next.js</span>
+                <div class="card-body">
+                    <h3 class="post-title">Airbnb BI Dashboard</h3>
+                    <div class="tags"><span class="tag">#TypeScript</span><span class="tag">#Next.js</span></div>
+                    <p class="post-desc">BI dashboard for pricing insights using Kaggle datasets and ML-based recommendations.</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/android-firebase-starter" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Android Firebase Starter</h3>
-                <p class="project-desc">Android starter template with Firebase integration. ⭐ 2 stars</p>
-                <div class="tags">
-                    <span class="tag">Kotlin</span>
-                    <span class="tag">Firebase</span>
+                <div class="card-body">
+                    <h3 class="post-title">Android Firebase Starter</h3>
+                    <div class="tags"><span class="tag">#Kotlin</span><span class="tag">#Firebase</span></div>
+                    <p class="post-desc">Android starter template with Firebase integration. ⭐ 2 stars</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/Outfyt" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Outfyt</h3>
-                <p class="project-desc">Bangkit Capstone - Smart OOTD Recommendation App based on skin tone analysis.</p>
-                <div class="tags">
-                    <span class="tag">Kotlin</span>
-                    <span class="tag">TensorFlow</span>
+                <div class="card-body">
+                    <h3 class="post-title">Outfyt</h3>
+                    <div class="tags"><span class="tag">#Kotlin</span><span class="tag">#TensorFlow</span></div>
+                    <p class="post-desc">Bangkit Capstone - Smart OOTD Recommendation App based on skin tone analysis.</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/ghibli-gallery" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Ghibli Gallery</h3>
-                <p class="project-desc">A beautiful gallery app showcasing Studio Ghibli films.</p>
-                <div class="tags">
-                    <span class="tag">Kotlin</span>
-                    <span class="tag">Android</span>
+                <div class="card-body">
+                    <h3 class="post-title">Ghibli Gallery</h3>
+                    <div class="tags"><span class="tag">#Kotlin</span><span class="tag">#Android</span></div>
+                    <p class="post-desc">A beautiful gallery app showcasing Studio Ghibli films.</p>
                 </div>
             </a>
             
             <a href="https://github.com/nabilrn/pondok-permai-landingpage" target="_blank" rel="noopener" class="project-card">
-                <h3 class="project-title">Pondok Permai Landing Page</h3>
-                <p class="project-desc">Responsive landing page showcasing programs, galleries, and community activities.</p>
-                <div class="tags">
-                    <span class="tag">React</span>
-                    <span class="tag">Vite</span>
+                <div class="card-body">
+                    <h3 class="post-title">Pondok Permai Landing Page</h3>
+                    <div class="tags"><span class="tag">#React</span><span class="tag">#Vite</span></div>
+                    <p class="post-desc">Responsive landing page showcasing programs, galleries, and community activities.</p>
                 </div>
             </a>
         </div>
@@ -186,6 +182,31 @@ import Page from '../components/Page.astro';
     
     <hr />
     
+    <!-- Blog Section -->
+    <section id="blog">
+        <h2>Latest Blog Posts</h2>
+        
+        <div class="projects-grid">
+            {latestPosts.map((post) => (
+                <a href={`/blog/${post.slug}/`} class="project-card">
+                    <div class="card-body">
+                        <h3 class="post-title">{post.data.title}</h3>
+                        <div class="tags">{post.data.tags.map((tag: string) => <span class="tag">#{tag}</span>)}</div>
+                        <p class="post-desc">{post.data.description}</p>
+                    </div>
+                </a>
+            ))}
+        </div>
+        
+        <div class="explore-more">
+            <a href="/blog/">
+                Read all posts →
+            </a>
+        </div>
+    </section>
+    
+    <hr />
+    
     <!-- Skills Section -->
     <section id="skills">
         <h2>Skills</h2>
@@ -193,22 +214,45 @@ import Page from '../components/Page.astro';
         <div class="skills-grid">
             <div class="skill-category">
                 <h4>Programming</h4>
-                <p>JavaScript, TypeScript, Kotlin, Dart, Python</p>
+                <div class="skill-list">
+                    <img class="skill-badge" src="https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black&style=flat-square" alt="JavaScript" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square" alt="TypeScript" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Kotlin-7F52FF?logo=kotlin&logoColor=white&style=flat-square" alt="Kotlin" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white&style=flat-square" alt="Dart" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white&style=flat-square" alt="Python" />
+                </div>
             </div>
             
             <div class="skill-category">
                 <h4>DevOps & Infra</h4>
-                <p>Proxmox VE, Docker, Ubuntu Server, GCP, Cloudflare Tunnels</p>
+                <div class="skill-list">
+                    <img class="skill-badge" src="https://img.shields.io/badge/Proxmox-CC0000?style=flat-square" alt="Proxmox" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white&style=flat-square" alt="Docker" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white&style=flat-square" alt="Ubuntu" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/GCP-4285F4?logo=google-cloud&logoColor=white&style=flat-square" alt="GCP" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Cloudflare-F38020?logo=cloudflare&logoColor=white&style=flat-square" alt="Cloudflare" />
+                </div>
             </div>
             
             <div class="skill-category">
                 <h4>Databases</h4>
-                <p>MySQL, PostgreSQL, SQLite, Redis</p>
+                <div class="skill-list">
+                    <img class="skill-badge" src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white&style=flat-square" alt="MySQL" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white&style=flat-square" alt="PostgreSQL" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white&style=flat-square" alt="SQLite" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white&style=flat-square" alt="Redis" />
+                </div>
             </div>
             
             <div class="skill-category">
                 <h4>Tools</h4>
-                <p>Git, VS Code, Android Studio, Figma, Jetbrains</p>
+                <div class="skill-list">
+                    <img class="skill-badge" src="https://img.shields.io/badge/Git-F05032?logo=git&logoColor=white&style=flat-square" alt="Git" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/VS_Code-007ACC?logo=visual-studio-code&logoColor=white&style=flat-square" alt="VS Code" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Android_Studio-3DDC84?logo=android&logoColor=white&style=flat-square" alt="Android Studio" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/Figma-F24E1E?logo=figma&logoColor=white&style=flat-square" alt="Figma" />
+                    <img class="skill-badge" src="https://img.shields.io/badge/JetBrains-000000?logo=jetbrains&logoColor=white&style=flat-square" alt="JetBrains" />
+                </div>
             </div>
         </div>
     </section>

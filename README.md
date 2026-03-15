@@ -1,49 +1,77 @@
-# Starlight Starter Kit: Basics
+# Portfolio Site
 
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+Personal portfolio built with Astro, now including:
 
-```
-pnpm create astro@latest -- --template starlight
-```
+- Profile and project landing page
+- Blog (`/blog`)
+- Post engagement metrics (views, likes, shares)
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Stack
 
-## 🚀 Project Structure
+- Astro (static site)
+- Astro Content Collections (blog content)
+- Cloudflare Worker + D1 (global engagement metrics)
 
-Inside of your Astro + Starlight project, you'll see the following folders and files:
+## Commands
 
-```
-.
-├── public/
-├── src/
-│   ├── assets/
-│   ├── content/
-│   │   └── docs/
-│   └── content.config.ts
-├── astro.config.mjs
-├── package.json
-└── tsconfig.json
+```bash
+pnpm dev
+pnpm build
+pnpm preview
 ```
 
-Starlight looks for `.md` or `.mdx` files in the `src/content/docs/` directory. Each file is exposed as a route based on its file name.
+## Blog content
 
-Images can be added to `src/assets/` and embedded in Markdown with a relative link.
+Create posts in:
 
-Static assets, like favicons, can be placed in the `public/` directory.
+`src/content/blog/*.md`
 
-## 🧞 Commands
+Required frontmatter:
 
-All commands are run from the root of the project, from a terminal:
+```yaml
+title: "Post title"
+description: "Short summary"
+pubDate: 2026-03-15
+tags: ["tag1", "tag2"]
+featured: false
+draft: false
+```
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `pnpm install`             | Installs dependencies                            |
-| `pnpm dev`             | Starts local dev server at `localhost:4321`      |
-| `pnpm build`           | Build your production site to `./dist/`          |
-| `pnpm preview`         | Preview your build locally, before deploying     |
-| `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `pnpm astro -- --help` | Get help using the Astro CLI                     |
+## Engagement API setup (Cloudflare)
 
-## 👀 Want to learn more?
+1. Install Wrangler (if needed):
 
-Check out [Starlight’s docs](https://starlight.astro.build/), read [the Astro documentation](https://docs.astro.build), or jump into the [Astro Discord server](https://astro.build/chat).
+```bash
+pnpm dlx wrangler --version
+```
+
+2. Create D1 database:
+
+```bash
+pnpm dlx wrangler d1 create portfolio-metrics
+```
+
+3. Copy returned `database_id` into `worker/wrangler.toml`.
+
+4. Run migration:
+
+```bash
+pnpm dlx wrangler d1 execute portfolio-metrics --file worker/migrations/0001_init.sql --remote
+```
+
+5. Deploy worker:
+
+```bash
+pnpm dlx wrangler deploy --config worker/wrangler.toml
+```
+
+6. Set site env var:
+
+`PUBLIC_ENGAGEMENT_API_BASE=https://<your-worker-domain>`
+
+Put this in `.env` for local/dev build.
+
+## Notes
+
+- If `PUBLIC_ENGAGEMENT_API_BASE` is empty/unreachable, the UI falls back to local device metrics so the feature still works.
+- Current docs collection from Starlight is still present in the repo and can be removed later if unused.

@@ -1,0 +1,233 @@
+---
+interface Props {
+	postId: string;
+	title: string;
+}
+
+const { postId, title } = Astro.props;
+const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
+---
+
+<div class="engagement-bar" data-post-id={postId} data-post-title={title} data-api-base={apiBase}>
+	<div class="stats">
+		<span>Views: <strong data-views>0</strong></span>
+		<span>Likes: <strong data-likes>0</strong></span>
+		<span>Shares: <strong data-shares>0</strong></span>
+		<span class="local-note">local MVP metrics</span>
+	</div>
+	<div class="actions">
+		<button type="button" data-like-btn>Like</button>
+		<button type="button" data-share-btn="copy">Copy Link</button>
+		<button type="button" data-share-btn="linkedin">LinkedIn</button>
+		<button type="button" data-share-btn="x">X</button>
+		<button type="button" data-share-btn="whatsapp">WhatsApp</button>
+	</div>
+</div>
+
+<style>
+	.engagement-bar {
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 10px;
+		padding: 1rem;
+		margin: 2rem 0;
+	}
+
+	.stats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		font-size: 0.95rem;
+		color: var(--sl-color-gray-2);
+		margin-bottom: 1rem;
+	}
+
+	.local-note {
+		color: var(--sl-color-gray-4);
+		font-size: 0.8rem;
+	}
+
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	button {
+		border: 1px solid var(--sl-color-hairline);
+		background: transparent;
+		color: var(--sl-color-gray-2);
+		padding: 0.45rem 0.75rem;
+		border-radius: 6px;
+		cursor: pointer;
+	}
+
+	button:hover {
+		color: var(--sl-color-white);
+		border-color: var(--sl-color-gray-4);
+	}
+</style>
+
+<script>
+	type Metrics = { views: number; likes: number; shares: number; liked?: boolean };
+
+	const visitorStorageKey = 'portfolio:visitor-id';
+	const getVisitorId = () => {
+		const existing = localStorage.getItem(visitorStorageKey);
+		if (existing) return existing;
+		const id = crypto.randomUUID();
+		localStorage.setItem(visitorStorageKey, id);
+		return id;
+	};
+
+	const fetchApi = async (apiBase: string, postId: string, body?: Record<string, string>) => {
+		const endpoint = `${apiBase.replace(/\/$/, '')}/metrics/${encodeURIComponent(postId)}`;
+		if (!body) {
+			const res = await fetch(endpoint);
+			if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+			return (await res.json()) as Metrics;
+		}
+
+		const res = await fetch(endpoint, {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify(body),
+		});
+		if (!res.ok) throw new Error(`Failed with status ${res.status}`);
+		return (await res.json()) as Metrics;
+	};
+
+	const bars = document.querySelectorAll<HTMLElement>('.engagement-bar');
+	for (const bar of bars) {
+		const postId = bar.dataset.postId;
+		const postTitle = bar.dataset.postTitle ?? 'Blog post';
+		const apiBase = bar.dataset.apiBase?.trim() ?? '';
+		if (!postId) continue;
+
+		const viewCountKey = `portfolio:views:${postId}`;
+		const viewedOnceKey = `portfolio:viewed-once:${postId}`;
+		const likeCountKey = `portfolio:likes:${postId}`;
+		const likedKey = `portfolio:liked:${postId}`;
+		const shareCountKey = `portfolio:shares:${postId}`;
+
+		const viewsEl = bar.querySelector<HTMLElement>('[data-views]');
+		const likesEl = bar.querySelector<HTMLElement>('[data-likes]');
+		const sharesEl = bar.querySelector<HTMLElement>('[data-shares]');
+		const likeButton = bar.querySelector<HTMLButtonElement>('[data-like-btn]');
+		const shareButtons = bar.querySelectorAll<HTMLButtonElement>('[data-share-btn]');
+
+		const readCount = (key: string) => Number(localStorage.getItem(key) ?? '0');
+		const setCount = (key: string, value: number) => localStorage.setItem(key, String(value));
+
+		const visitorId = getVisitorId();
+		let views = readCount(viewCountKey);
+		let likes = readCount(likeCountKey);
+		let shares = readCount(shareCountKey);
+		let liked = localStorage.getItem(likedKey) === '1';
+
+		const render = () => {
+			if (viewsEl) viewsEl.textContent = String(views);
+			if (likesEl) likesEl.textContent = String(likes);
+			if (sharesEl) sharesEl.textContent = String(shares);
+			if (likeButton) likeButton.textContent = liked ? 'Liked' : 'Like';
+		};
+
+		const renderFromApi = (metrics: Metrics) => {
+			views = metrics.views;
+			likes = metrics.likes;
+			shares = metrics.shares;
+			if (typeof metrics.liked === 'boolean') liked = metrics.liked;
+			setCount(viewCountKey, views);
+			setCount(likeCountKey, likes);
+			setCount(shareCountKey, shares);
+			localStorage.setItem(likedKey, liked ? '1' : '0');
+			render();
+		};
+
+		const trackView = async () => {
+			try {
+				if (!apiBase) throw new Error('No API base');
+				const metrics = await fetchApi(apiBase, postId, { action: 'view', visitorId });
+				renderFromApi(metrics);
+			} catch {
+				if (localStorage.getItem(viewedOnceKey) !== '1') {
+					views += 1;
+					setCount(viewCountKey, views);
+					localStorage.setItem(viewedOnceKey, '1');
+				}
+				render();
+			}
+		};
+
+		likeButton?.addEventListener('click', () => {
+			void (async () => {
+				try {
+					if (!apiBase) throw new Error('No API base');
+					const metrics = await fetchApi(apiBase, postId, { action: 'like', visitorId });
+					renderFromApi(metrics);
+				} catch {
+					liked = !liked;
+					likes = liked ? likes + 1 : Math.max(0, likes - 1);
+					setCount(likeCountKey, likes);
+					localStorage.setItem(likedKey, liked ? '1' : '0');
+					render();
+				}
+			})();
+		});
+
+		const registerShare = async () => {
+			try {
+				if (!apiBase) throw new Error('No API base');
+				const metrics = await fetchApi(apiBase, postId, { action: 'share', visitorId });
+				renderFromApi(metrics);
+			} catch {
+				shares += 1;
+				setCount(shareCountKey, shares);
+				render();
+			}
+		};
+
+		shareButtons.forEach((button) => {
+			button.addEventListener('click', async () => {
+				const mode = button.dataset.shareBtn;
+				const url = window.location.href;
+				const text = `${postTitle} - ${url}`;
+
+				if (mode === 'copy') {
+					await navigator.clipboard.writeText(url);
+					await registerShare();
+					return;
+				}
+
+				if (mode === 'linkedin') {
+					window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank', 'noopener');
+					await registerShare();
+					return;
+				}
+
+				if (mode === 'x') {
+					window.open(`https://x.com/intent/post?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+					await registerShare();
+					return;
+				}
+
+				if (mode === 'whatsapp') {
+					window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+					await registerShare();
+				}
+			});
+		});
+
+		render();
+		void (async () => {
+			if (apiBase) {
+				try {
+					const metrics = await fetchApi(apiBase, postId);
+					renderFromApi(metrics);
+				} catch {
+					render();
+				}
+			}
+			await trackView();
+		})();
+	}
+</script>

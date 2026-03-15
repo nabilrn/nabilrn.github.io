@@ -1,0 +1,33 @@
+---
+title: "Menampilkan Gambar di Post MDX"
+description: "Contoh cara menyertakan gambar di post (MDX) menggunakan import dan path publik."
+pubDate: 2026-03-15
+tags: ["images","mdx","astro"]
+featured: false
+draft: false
+---
+
+import profilePic from '../../assets/profilepict.webp';
+
+Berikut dua cara yang direkomendasikan untuk menyertakan gambar di post:
+
+1) Import gambar langsung di MDX (recommended — akan di-bundle oleh Astro):
+
+<figure>
+  <img src={profilePic} alt="Profile picture" style={{ maxWidth: '480px', width: '100%' }} />
+  <figcaption>Contoh: import dari src/assets (di-bundle)</figcaption>
+</figure>
+
+2) Taruh file gambar di folder `public/` dan referensikan dengan path absolut (baik untuk file besar atau CDN):
+
+```md
+![OG image](/og-image.png)
+```
+
+Catatan singkat:
+
+- Untuk markdown biasa (.md) tanpa MDX, pakai opsi (2) atau gunakan embedding yang menunjuk folder `public/`.
+- MDX memungkinkan `import` sehingga lebih fleksibel (responsive builds, bundling, hashing).
+- Jika mau optimasi gambar otomatis gunakan integrasi image (e.g. `@astrojs/image`), tapi untuk MVP import MDX sudah cukup.
+
+Sekarang jalankan `pnpm dev` dan buka `/blog/using-images/` untuk melihat contoh. 
