@@ -1,7 +1,7 @@
 name = "portfolio-metrics-api"
 main = "src/index.ts"
 compatibility_date = "2026-03-15"
-account_id = "REPLACE_WITH_YOUR_ACCOUNT_ID"
+account_id = "4bfdace13a8f558f066ea6e93e3d41d8"
 workers_dev = true
 
 [vars]
@@ -10,4 +10,4 @@ ALLOWED_ORIGIN = "*"
 [[d1_databases]]
 binding = "DB"
 database_name = "portfolio-metrics"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "95fdffb0-37a1-45c5-a108-786c95d50188"
