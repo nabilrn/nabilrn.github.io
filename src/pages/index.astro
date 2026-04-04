@@ -16,7 +16,19 @@ const langColors: Record<string, string> = {
     React: '#61dafb',
 };
 
-const projects = [
+interface GitHubRepo {
+    name: string;
+    description: string | null;
+    language: string | null;
+    html_url: string;
+    stargazers_count: number;
+    topics: string[];
+}
+
+const GITHUB_USERNAME = 'nabilrn';
+
+// Fallback data if API fails (name, desc, lang, url, stars, tags)
+const FALLBACK_PROJECTS = [
     { name: 'Momentum', desc: 'Cross-platform habit-tracking app with real-time sync and notifications.', lang: 'Dart', url: 'https://github.com/nabilrn/Momentum', tags: ['Flutter', 'Supabase'] },
     { name: 'express-api-starter', desc: 'Boilerplate for building REST APIs with Express.js and TypeScript.', lang: 'TypeScript', url: 'https://github.com/nabilrn/express-api-starter', stars: 4, tags: ['Express'] },
     { name: 'moviecatalog-kmp', desc: 'Cross-platform movie catalog app built with Kotlin Multiplatform.', lang: 'Kotlin', url: 'https://github.com/nabilrn/moviecatalog-kmp', tags: ['KMP'] },
@@ -24,6 +36,93 @@ const projects = [
     { name: 'android-firebase-starter', desc: 'Android starter template with Firebase integration.', lang: 'Kotlin', url: 'https://github.com/nabilrn/android-firebase-starter', stars: 2, tags: ['Firebase'] },
     { name: 'Outfyt', desc: 'Bangkit Capstone - Smart OOTD Recommendation App based on skin tone analysis.', lang: 'Kotlin', url: 'https://github.com/nabilrn/Outfyt', tags: ['TensorFlow'] },
 ];
+
+async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; lang: string; url: string; stars?: number; tags: string[] }>> {
+    const token = import.meta.env.GITHUB_TOKEN;
+    const featuredRepos = (import.meta.env.FEATURED_REPOS as string)?.split(',').map((r: string) => r.trim()).filter(Boolean) || [];
+
+    // If GITHUB_TOKEN is set, use GraphQL to fetch exact pinned repos
+    if (token) {
+        try {
+            const query = `
+                query {
+                    user(login: "${GITHUB_USERNAME}") {
+                        pinnedItems(first: 6, types: REPOSITORY) {
+                            nodes {
+                                ... on Repository {
+                                    name
+                                    description
+                                    primaryLanguage { name }
+                                    url
+                                    stargazerCount
+                                    repositoryTopics(first: 10) {
+                                        nodes { topic { name } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            `;
+            const res = await fetch('https://api.github.com/graphql', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const repos = data.data.user.pinnedItems.nodes;
+                return repos.map((r: any) => ({
+                    name: r.name,
+                    desc: r.description || '',
+                    lang: r.primaryLanguage?.name || 'Unknown',
+                    url: r.url,
+                    stars: r.stargazerCount,
+                    tags: r.repositoryTopics?.nodes.map((t: any) => t.topic.name).slice(0, 2) || [],
+                }));
+            }
+        } catch {
+            // Fall through
+        }
+    }
+
+    // If FEATURED_REPOS env var is set, fetch details for those repos
+    if (featuredRepos.length > 0) {
+        try {
+            const results = await Promise.allSettled(
+                featuredRepos.map(async (repoName: string) => {
+                    const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${repoName}`, {
+                        headers: token ? { 'Authorization': `token ${token}` } : {},
+                    });
+                    if (!res.ok) throw new Error(`Failed to fetch ${repoName}`);
+                    const repo: GitHubRepo = await res.json();
+                    return {
+                        name: repo.name,
+                        desc: repo.description || '',
+                        lang: repo.language || 'Unknown',
+                        url: repo.html_url,
+                        stars: repo.stargazers_count,
+                        tags: repo.topics?.slice(0, 2) || [],
+                    };
+                })
+            );
+            const successful = results
+                .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+                .map((r) => r.value);
+            if (successful.length > 0) return successful;
+        } catch {
+            // Fall through to hardcoded list
+        }
+    }
+
+    // Ultimate fallback: hardcoded list
+    return FALLBACK_PROJECTS;
+}
+
+const projects = await fetchPinnedRepos();
 ---
 
 <Page title="Nabil Rizki Navisa | Software Engineer" description="Portfolio of Nabil Rizki Navisa - Full-Stack Developer & IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia." path="/">
