@@ -27,6 +27,14 @@ interface GitHubRepo {
 
 const GITHUB_USERNAME = 'nabilrn';
 
+// Org repos to include (GitHub API returns null for pinned org repos)
+const ORG_REPOS = [
+    { owner: 'kk-infrastruktur-dan-tata-kelola-dsi', name: 'tkiti.github.io' },
+    { owner: 'NeoCentralSI', name: 'Neo-Central-Mobile' },
+    { owner: 'NeoCentralSI', name: 'website' },
+    { owner: 'NeoCentralSI', name: 'services' },
+];
+
 // Fallback data if API fails (name, desc, lang, url, stars, tags)
 const FALLBACK_PROJECTS = [
     { name: 'Momentum', desc: 'Cross-platform habit-tracking app with real-time sync and notifications.', lang: 'Dart', url: 'https://github.com/nabilrn/Momentum', tags: ['Flutter', 'Supabase'] },
@@ -95,7 +103,34 @@ async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; l
     return FALLBACK_PROJECTS;
 }
 
-const projects = await fetchPinnedRepos();
+async function fetchOrgRepos(): Promise<Array<{ name: string; desc: string; lang: string; url: string; stars?: number; tags: string[] }>> {
+    try {
+        const results = await Promise.allSettled(
+            ORG_REPOS.map(async ({ owner, name }) => {
+                const res = await fetch(`https://api.github.com/repos/${owner}/${name}`);
+                if (!res.ok) throw new Error(`Failed to fetch ${name}`);
+                const repo: GitHubRepo = await res.json();
+                return {
+                    name: repo.name,
+                    desc: repo.description || '',
+                    lang: repo.language || 'Unknown',
+                    url: repo.html_url,
+                    stars: repo.stargazers_count,
+                    tags: repo.topics?.slice(0, 2) || [],
+                };
+            })
+        );
+        return results
+            .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
+            .map((r) => r.value);
+    } catch {
+        return [];
+    }
+}
+
+const personalRepos = await fetchPinnedRepos();
+const orgReposList = await fetchOrgRepos();
+const projects = [...personalRepos, ...orgReposList];
 ---
 
 <Page title="Nabil Rizki Navisa | Software Engineer" description="Portfolio of Nabil Rizki Navisa - Full-Stack Developer & IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia." path="/">
@@ -129,8 +164,8 @@ const projects = await fetchPinnedRepos();
     <!-- Projects -->
     <section id="projects" class="section">
         <div class="section-heading">
-            <h2>Pinned</h2>
-            <span class="section-sub">Customize your pins</span>
+            <h2>Project</h2>
+            <span class="section-sub">recent project working on</span>
         </div>
         <div class="projects-grid">
             {projects.map((project) => (
