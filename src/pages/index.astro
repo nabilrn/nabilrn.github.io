@@ -71,17 +71,20 @@ async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; l
                 },
                 body: JSON.stringify({ query }),
             });
-            if (res.ok) {
-                const data = await res.json();
-                const repos = data.data.user.pinnedItems.nodes;
-                return repos.map((r: any) => ({
-                    name: r.name,
-                    desc: r.description || '',
-                    lang: r.primaryLanguage?.name || 'Unknown',
-                    url: r.url,
-                    stars: r.stargazerCount,
-                    tags: r.repositoryTopics?.nodes.map((t: any) => t.topic.name).slice(0, 2) || [],
-                }));
+            const body = await res.json();
+
+            if (res.ok && body.data?.user?.pinnedItems?.nodes) {
+                const repos = body.data.user.pinnedItems.nodes.filter(Boolean);
+                if (repos.length > 0) {
+                    return repos.map((r: any) => ({
+                        name: r.name,
+                        desc: r.description || '',
+                        lang: r.primaryLanguage?.name || 'Unknown',
+                        url: r.url,
+                        stars: r.stargazerCount,
+                        tags: r.repositoryTopics?.nodes.map((t: any) => t.topic.name).slice(0, 2) || [],
+                    }));
+                }
             }
         } catch {
             // Fall through to hardcoded list
