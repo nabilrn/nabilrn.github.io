@@ -1,24 +1,19 @@
 export interface Env {
-  DB: D1Database;
+  METRICS: KVNamespace;
   ALLOWED_ORIGIN?: string;
 }
 
-type MetricKey = 'views' | 'likes' | 'shares';
-
-const json = (data: unknown, init: ResponseInit = {}) =>
-  new Response(JSON.stringify(data), {
-    ...init,
-    headers: {
-      'content-type': 'application/json; charset=utf-8',
-      ...corsHeaders(init.headers),
-    },
-  });
+const json = (data: unknown, init: ResponseInit = {}) => {
+  const headers = corsHeaders(init.headers);
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  return new Response(JSON.stringify(data), { ...init, headers });
+};
 
 function corsHeaders(existing?: HeadersInit) {
   const headers = new Headers(existing);
-  headers.set('access-control-allow-origin', '*');
-  headers.set('access-control-allow-methods', 'GET,POST,OPTIONS');
-  headers.set('access-control-allow-headers', 'content-type');
+  headers.set('Access-Control-Allow-Origin', '*');
+  headers.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Content-Type');
   return headers;
 }
 
@@ -32,33 +27,24 @@ function extractPostId(url: URL) {
   return parts[1];
 }
 
-async function ensureMetricRow(db: D1Database, postId: string) {
-  await db
-    .prepare('INSERT OR IGNORE INTO post_metrics (post_id) VALUES (?1)')
-    .bind(postId)
-    .run();
-}
-
-async function getMetrics(db: D1Database, postId: string) {
-  await ensureMetricRow(db, postId);
-  const row = await db
-    .prepare('SELECT views, likes, shares FROM post_metrics WHERE post_id = ?1')
-    .bind(postId)
-    .first<{ views: number; likes: number; shares: number }>();
-
+async function getMetrics(kv: KVNamespace, postId: string) {
+  const [views, likes, shares] = await Promise.all([
+    kv.get(`metrics:${postId}:views`),
+    kv.get(`metrics:${postId}:likes`),
+    kv.get(`metrics:${postId}:shares`),
+  ]);
   return {
-    views: row?.views ?? 0,
-    likes: row?.likes ?? 0,
-    shares: row?.shares ?? 0,
+    views: Number(views ?? '0'),
+    likes: Number(likes ?? '0'),
+    shares: Number(shares ?? '0'),
   };
 }
 
-async function bumpMetric(db: D1Database, postId: string, field: MetricKey, amount = 1) {
-  await ensureMetricRow(db, postId);
-  await db
-    .prepare(`UPDATE post_metrics SET ${field} = MAX(0, ${field} + ?2) WHERE post_id = ?1`)
-    .bind(postId, amount)
-    .run();
+async function increment(kv: KVNamespace, key: string, delta = 1) {
+  const current = Number((await kv.get(key)) ?? '0');
+  const next = Math.max(0, current + delta);
+  await kv.put(key, String(next));
+  return next;
 }
 
 export default {
@@ -73,7 +59,7 @@ export default {
     if (!postId) return json({ error: 'Not found' }, { status: 404 });
 
     if (request.method === 'GET') {
-      return json(await getMetrics(env.DB, postId));
+      return json(await getMetrics(env.METRICS, postId));
     }
 
     if (request.method !== 'POST') {
@@ -92,50 +78,40 @@ export default {
 
     if (!action) return badRequest('Missing action.');
 
+    const kv = env.METRICS;
+
     if (action === 'view') {
       if (!visitorId) return badRequest('Missing visitorId for view.');
-      await ensureMetricRow(env.DB, postId);
-      const inserted = await env.DB
-        .prepare('INSERT OR IGNORE INTO post_views (post_id, visitor_id) VALUES (?1, ?2)')
-        .bind(postId, visitorId)
-        .run();
-      if ((inserted.meta.changes ?? 0) > 0) {
-        await bumpMetric(env.DB, postId, 'views', 1);
+      const viewedKey = `visitor:${postId}:${visitorId}:viewed`;
+      const already = await kv.get(viewedKey);
+      if (!already) {
+        await kv.put(viewedKey, '1');
+        await increment(kv, `metrics:${postId}:views`);
       }
-      return json(await getMetrics(env.DB, postId));
+      return json(await getMetrics(kv, postId));
     }
 
     if (action === 'like') {
       if (!visitorId) return badRequest('Missing visitorId for like.');
-      await ensureMetricRow(env.DB, postId);
-      const existing = await env.DB
-        .prepare('SELECT 1 as liked FROM post_likes WHERE post_id = ?1 AND visitor_id = ?2')
-        .bind(postId, visitorId)
-        .first<{ liked: number }>();
-
-      let liked = false;
-      if (existing) {
-        await env.DB
-          .prepare('DELETE FROM post_likes WHERE post_id = ?1 AND visitor_id = ?2')
-          .bind(postId, visitorId)
-          .run();
-        await bumpMetric(env.DB, postId, 'likes', -1);
+      const likedKey = `visitor:${postId}:${visitorId}:liked`;
+      const already = await kv.get(likedKey);
+      let liked: boolean;
+      if (already) {
+        await kv.delete(likedKey);
+        await increment(kv, `metrics:${postId}:likes`, -1);
+        liked = false;
       } else {
-        await env.DB
-          .prepare('INSERT INTO post_likes (post_id, visitor_id) VALUES (?1, ?2)')
-          .bind(postId, visitorId)
-          .run();
-        await bumpMetric(env.DB, postId, 'likes', 1);
+        await kv.put(likedKey, '1');
+        await increment(kv, `metrics:${postId}:likes`);
         liked = true;
       }
-
-      const metrics = await getMetrics(env.DB, postId);
+      const metrics = await getMetrics(kv, postId);
       return json({ ...metrics, liked });
     }
 
     if (action === 'share') {
-      await bumpMetric(env.DB, postId, 'shares', 1);
-      return json(await getMetrics(env.DB, postId));
+      await increment(kv, `metrics:${postId}:shares`);
+      return json(await getMetrics(kv, postId));
     }
 
     return badRequest('Unknown action.');

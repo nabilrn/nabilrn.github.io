@@ -7,7 +7,6 @@ workers_dev = true
 [vars]
 ALLOWED_ORIGIN = "*"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "portfolio-metrics"
-database_id = "95fdffb0-37a1-45c5-a108-786c95d50188"
+[[kv_namespaces]]
+binding = "METRICS"
+id = "fead888804e44d66b861ef936027f2ae"
