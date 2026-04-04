@@ -4,35 +4,82 @@ interface Props { postId: string; title: string }
 const { postId, title } = Astro.props;
 const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
 ---
-<div class="engage-new" data-post-id={postId} data-api-base={apiBase} data-title={title} aria-live="polite">
-  <div class="left">
-    <span class="stat"><Icon name="views" /> <strong data-views>0</strong></span>
-    <span class="stat"><Icon name="heart" /> <strong data-likes>0</strong></span>
-    <span class="stat"><Icon name="share" /> <strong data-shares>0</strong></span>
+<div class="engage" data-post-id={postId} data-api-base={apiBase} data-title={title} aria-live="polite">
+  <div class="engage-stats">
+    <span class="engage-stat"><Icon name="views" /> <strong data-views>0</strong></span>
+    <span class="engage-stat"><Icon name="heart" /> <strong data-likes>0</strong></span>
+    <span class="engage-stat"><Icon name="share" /> <strong data-shares>0</strong></span>
   </div>
-  <div class="right">
-    <button class="action like" aria-label="Like post" data-like-btn><Icon name="heart" /></button>
-    <div class="share-group">
-      <button class="action" data-share-btn="copy" aria-label="Copy link"><Icon name="copy" /></button>
-    </div>
+  <div class="engage-actions">
+    <button class="engage-btn" aria-label="Like post" data-like-btn><Icon name="heart" /> Like</button>
+    <button class="engage-btn" data-share-btn="copy" aria-label="Copy link"><Icon name="copy" /> Copy</button>
   </div>
 </div>
 <div id="toast-copied" aria-hidden="true" class="toast"></div>
 
 <style>
-.engage-new{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.75rem;border-radius:8px;border:1px solid var(--sl-color-hairline);gap:1rem}
-.engage-new .left{display:flex;gap:0.75rem;align-items:center}
-.engage-new .stat{display:inline-flex;align-items:center;gap:0.35rem;color:var(--sl-color-gray-2)}
-.engage-new .stat strong{color:var(--sl-color-white)}
-.engage-new .right{display:flex;gap:0.5rem;align-items:center}
-.action{background:transparent;border:1px solid var(--sl-color-hairline);padding:0.4rem;border-radius:8px;cursor:pointer;color:var(--sl-color-gray-2)}
-.action:hover{color:var(--sl-color-white);border-color:var(--sl-color-gray-4);transform:translateY(-2px)}
-.action.like.active{background:linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));border-color:rgba(255,255,255,0.08);}
-.share-group{display:flex;gap:0.35rem}
+.engage {
+  border: 1px solid var(--gh-border);
+  border-radius: 6px;
+  padding: 10px 16px;
+  background: var(--gh-surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.engage-stats {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.engage-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gh-text-secondary);
+}
+
+.engage-stat strong {
+  color: var(--gh-text);
+  font-weight: 600;
+}
+
+.engage-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.engage-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gh-text-secondary);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.engage-btn:hover {
+  border-color: var(--gh-border-muted);
+  background: var(--gh-surface-2);
+}
+
+.engage-btn.liked {
+  color: var(--gh-red);
+}
 </style>
 
 <script>
-const root = document.currentScript?.parentElement ?? document.querySelector('.engage-new');
+const root = document.currentScript?.parentElement ?? document.querySelector('.engage');
 (function(){
   const el = root;
   if(!el) return;
@@ -53,40 +100,36 @@ const root = document.currentScript?.parentElement ?? document.querySelector('.e
     return await res.json();
   }
   function setCounts(m){ if(viewsEl) viewsEl.textContent = m.views; if(likesEl) likesEl.textContent = m.likes; if(sharesEl) sharesEl.textContent = m.shares }
-  function showToast(msg){ let toast = document.getElementById('toast-copied'); if(!toast){ toast = document.createElement('div'); toast.id='toast-copied'; toast.className='toast'; document.body.appendChild(toast);} toast.textContent = msg; // inline styles to avoid scoping issues
-    toast.style.position = 'fixed'; toast.style.right = '1rem'; toast.style.bottom = '1.25rem'; toast.style.background = 'rgba(0,0,0,0.85)'; toast.style.color = 'white'; toast.style.padding = '0.5rem 0.75rem'; toast.style.borderRadius = '6px'; toast.style.boxShadow = '0 6px 18px rgba(0,0,0,0.4)'; toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; setTimeout(()=>{ try{ toast.style.opacity='0'; toast.style.transform='translateY(8px)'; }catch(e){} },2000);
+  function showToast(msg){ let toast = document.getElementById('toast-copied'); if(!toast){ toast = document.createElement('div'); toast.id='toast-copied'; toast.className='toast'; document.body.appendChild(toast);} toast.textContent = msg;
+    toast.style.position = 'fixed'; toast.style.right = '1rem'; toast.style.bottom = '1.25rem'; toast.style.background = 'var(--gh-surface-2)'; toast.style.color = 'var(--gh-text)'; toast.style.padding = '6px 12px'; toast.style.borderRadius = '6px'; toast.style.border = '1px solid var(--gh-border-muted)'; toast.style.fontSize = '12px'; toast.style.opacity = '1'; toast.style.transition = 'opacity 0.15s ease'; setTimeout(()=>{ try{ toast.style.opacity='0'; }catch(e){} },2000);
   }
   (async()=>{
-    try{ if(api){ const m = await fetchApi(); setCounts(m); // set like button state if provided
-        if(m.liked){ likeBtn?.classList.add('active'); likeBtn.style.color='#e11d48'; const svg=likeBtn?.querySelector('svg'); if(svg) svg.style.stroke='#e11d48'; }
+    try{ if(api){ const m = await fetchApi(); setCounts(m);
+        if(m.liked){ likeBtn?.classList.add('liked'); }
       } }catch{}
     try{ if(api){ const m = await fetchApi({action:'view',visitorId:visitor}); setCounts(m); } }catch{}
-    // fallback local increment if api missing
-    if(!api){ const k='portfolio:views:'+pid; let v=Number(localStorage.getItem(k)||'0'); const seenKey='portfolio:viewed-once:'+pid; if(!localStorage.getItem(seenKey)){ v++; localStorage.setItem(k,String(v)); localStorage.setItem(seenKey,'1'); } if(viewsEl) viewsEl.textContent = String(v);} 
+    if(!api){ const k='portfolio:views:'+pid; let v=Number(localStorage.getItem(k)||'0'); const seenKey='portfolio:viewed-once:'+pid; if(!localStorage.getItem(seenKey)){ v++; localStorage.setItem(k,String(v)); localStorage.setItem(seenKey,'1'); } if(viewsEl) viewsEl.textContent = String(v);}
   })();
   likeBtn?.addEventListener('click',async()=>{
     try{
-      if(api){ const m = await fetchApi({action:'like',visitorId:visitor}); setCounts(m); const active = !!m.liked; likeBtn.classList.toggle('active', active); // ensure color
-        if(active){ likeBtn.style.color = '#e11d48'; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke = '#e11d48'; } else { likeBtn.style.color=''; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke=''; }
+      if(api){ const m = await fetchApi({action:'like',visitorId:visitor}); setCounts(m); const active = !!m.liked; likeBtn.classList.toggle('liked', active);
         return
       }
     }catch{}
-    // fallback local
-    const lk='portfolio:likes:'+pid; const likedKey='portfolio:liked:'+pid; let count=Number(localStorage.getItem(lk)||'0'); let liked = localStorage.getItem(likedKey) === '1'; liked = !liked; if(liked){ count++; } else { count = Math.max(0,count-1)} localStorage.setItem(lk,String(count)); localStorage.setItem(likedKey, liked ? '1' : '0'); if(likesEl) likesEl.textContent = String(count); likeBtn.classList.toggle('active', liked); if(liked){ likeBtn.style.color='#e11d48'; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke='#e11d48'; } else { likeBtn.style.color=''; const svg=likeBtn.querySelector('svg'); if(svg) svg.style.stroke=''; }
+    const lk='portfolio:likes:'+pid; const likedKey='portfolio:liked:'+pid; let count=Number(localStorage.getItem(lk)||'0'); let liked = localStorage.getItem(likedKey) === '1'; liked = !liked; if(liked){ count++; } else { count = Math.max(0,count-1)} localStorage.setItem(lk,String(count)); localStorage.setItem(likedKey, liked ? '1' : '0'); if(likesEl) likesEl.textContent = String(count); likeBtn.classList.toggle('liked', liked);
   });
   shareBtns.forEach(b=>b.addEventListener('click',async(e)=>{
     const mode = b.dataset.shareBtn;
-    const url = window.location.href; const postTitle = el.dataset.title || document.title; const text = postTitle + ' - ' + url;
+    const url = window.location.href;
     try{
       if(mode==='copy'){
         await navigator.clipboard.writeText(url);
-        showToast('Link copied to clipboard');
+        showToast('Link copied');
       }
       if(api){ await fetchApi({action:'share'}); const m= await fetchApi(); setCounts(m); return }
     }catch{
-      showToast('Copied (fallback)');
+      showToast('Copied');
     }
-    // fallback local
     const sk='portfolio:shares:'+pid; let c=Number(localStorage.getItem(sk)||'0'); c++; localStorage.setItem(sk,String(c)); if(sharesEl) sharesEl.textContent = String(c);
   }));
 })();

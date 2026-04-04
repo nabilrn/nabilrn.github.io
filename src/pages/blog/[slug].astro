@@ -2,7 +2,6 @@
 import { getCollection, render } from 'astro:content';
 import Page from '../../components/Page.astro';
 import EngagementBar from '../../components/EngagementBarNew.astro';
-import PostMetaBar from '../../components/PostMetaBar.astro';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -16,58 +15,207 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const words = post.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.ceil(words / 200));
+const dateStr = post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 ---
 
 <Page>
-	<article class="blog-post">
-		<p class="back-link"><a href="/blog/">← Back to blog</a></p>
-		<h2>{post.data.title}</h2>
-		<PostMetaBar date={post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} readingTime={readingTime} tags={post.data.tags} />
-		<p class="project-desc">{post.data.description}</p>
+	<div class="breadcrumb">
+		<a href="/blog/">Blog</a> / <span>{post.data.title}</span>
+	</div>
 
-		<EngagementBar postId={post.slug} title={post.data.title} />
-
-		<div class="content">
-			<Content />
+	<div class="post-header">
+		<h1 class="post-title">{post.data.title}</h1>
+		<div class="post-author-row">
+			<div class="author-avatar"></div>
+			<span class="author-name">Nabil Rizki Navisa</span>
+			<span class="author-meta">{dateStr}</span>
+			<span class="author-meta">{readingTime} min read</span>
 		</div>
-	</article>
+		<div class="post-tags">
+			{post.data.tags.map((tag: string) => (
+				<span class="pill">{tag}</span>
+			))}
+		</div>
+	</div>
+
+	<EngagementBar postId={post.slug} title={post.data.title} />
+
+	<div class="post-body">
+		<Content />
+	</div>
 </Page>
 
 <style>
-	.blog-post {
-		max-width: 780px;
+	.breadcrumb {
+		font-size: 12px;
+		color: var(--gh-text-secondary);
+		margin-bottom: 16px;
 	}
 
-	.back-link {
-		margin-bottom: 1rem;
-	}
-
-	.back-link a {
+	.breadcrumb a {
+		color: var(--gh-accent);
 		text-decoration: none;
-		color: var(--sl-color-gray-2);
 	}
 
-	.back-link a:hover {
-		color: var(--sl-color-white);
+	.breadcrumb a:hover {
+		text-decoration: underline;
 	}
 
-	.blog-post h2 {
-		letter-spacing: -0.02em;
+	.post-header {
+		border: 1px solid var(--gh-border);
+		border-radius: 6px;
+		padding: 16px;
+		margin-bottom: 12px;
 	}
 
-	.content :global(h2) {
-		font-size: 1.3rem;
-		margin-top: 2rem;
+	.post-title {
+		font-size: 20px;
+		font-weight: 600;
+		color: var(--gh-text);
+		line-height: 1.4;
+		margin-bottom: 10px;
 	}
 
-	.content :global(a) {
-		color: var(--accent, #5eead4);
-		text-decoration-color: rgba(94, 234, 212, 0.3);
-		text-underline-offset: 2px;
-		transition: text-decoration-color 0.2s ease;
+	.post-author-row {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 12px;
 	}
 
-	.content :global(a:hover) {
-		text-decoration-color: var(--accent, #5eead4);
+	.author-avatar {
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: var(--gh-surface-2);
+		flex-shrink: 0;
+	}
+
+	.author-name {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--gh-text);
+	}
+
+	.author-meta {
+		font-size: 12px;
+		color: var(--gh-text-secondary);
+	}
+
+	.post-tags {
+		display: flex;
+		gap: 4px;
+		flex-wrap: wrap;
+	}
+
+	.pill {
+		font-size: 11px;
+		background: var(--gh-surface);
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 20px;
+		padding: 1px 8px;
+		color: var(--gh-text-secondary);
+	}
+
+	.post-body {
+		border: 1px solid var(--gh-border);
+		border-radius: 6px;
+		padding: 20px;
+		margin-top: 12px;
+	}
+
+	.post-body :global(p) {
+		font-size: 14px;
+		line-height: 1.7;
+		color: var(--gh-text-body);
+		margin-bottom: 14px;
+	}
+
+	.post-body :global(p:last-child) {
+		margin-bottom: 0;
+	}
+
+	.post-body :global(strong) {
+		color: var(--gh-text);
+		font-weight: 600;
+	}
+
+	.post-body :global(h2) {
+		font-size: 16px;
+		font-weight: 600;
+		color: var(--gh-text);
+		margin: 24px 0 12px 0;
+		padding-bottom: 8px;
+		border-bottom: 1px solid var(--gh-border);
+	}
+
+	.post-body :global(h3) {
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--gh-text);
+		margin: 20px 0 8px 0;
+	}
+
+	.post-body :global(a) {
+		color: var(--gh-accent);
+		text-decoration: none;
+	}
+
+	.post-body :global(a:hover) {
+		text-decoration: underline;
+	}
+
+	.post-body :global(ul),
+	.post-body :global(ol) {
+		padding-left: 20px;
+		margin: 0 0 14px 0;
+	}
+
+	.post-body :global(li) {
+		font-size: 14px;
+		color: var(--gh-text-body);
+		line-height: 1.7;
+		margin-bottom: 6px;
+	}
+
+	.post-body :global(code) {
+		font-size: 13px;
+		background: var(--gh-surface);
+		padding: 2px 6px;
+		border-radius: 6px;
+		border: 1px solid var(--gh-border);
+	}
+
+	.post-body :global(pre) {
+		background: var(--gh-surface);
+		border: 1px solid var(--gh-border);
+		border-radius: 6px;
+		padding: 14px;
+		overflow-x: auto;
+		margin: 0 0 14px 0;
+	}
+
+	.post-body :global(pre code) {
+		background: none;
+		border: none;
+		padding: 0;
+	}
+
+	.post-body :global(blockquote) {
+		border-left: 3px solid var(--gh-border-muted);
+		padding-left: 14px;
+		color: var(--gh-text-secondary);
+		margin: 0 0 14px 0;
+	}
+
+	.post-body :global(img) {
+		border-radius: 6px;
+		border: 1px solid var(--gh-border);
+	}
+
+	.post-body :global(hr) {
+		border: none;
+		border-top: 1px solid var(--gh-border);
+		margin: 24px 0;
 	}
 </style>
