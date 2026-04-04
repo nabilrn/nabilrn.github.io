@@ -67,16 +67,20 @@ const postCount = blogPosts.length;
 <style>
     .portfolio-layout {
         display: flex;
+        align-items: stretch;
         min-height: 100vh;
+        background-image: linear-gradient(var(--gh-border), var(--gh-border));
+        background-size: 1px 100%;
+        background-position: 220px 0;
+        background-repeat: no-repeat;
     }
 
     .sidebar {
-        position: fixed;
-        left: 0;
+        position: sticky;
         top: 0;
         width: 220px;
+        min-width: 220px;
         height: 100vh;
-        border-right: 1px solid var(--gh-border);
         background: var(--gh-base);
         z-index: 10;
         overflow-y: auto;
@@ -212,7 +216,6 @@ const postCount = blogPosts.length;
     }
 
     .main-content {
-        margin-left: 220px;
         flex: 1;
         padding: 20px 24px;
         min-width: 0;
@@ -222,13 +225,14 @@ const postCount = blogPosts.length;
     @media (max-width: 768px) {
         .portfolio-layout {
             flex-direction: column;
+            background-image: none;
         }
 
         .sidebar {
             position: relative;
             width: 100%;
+            min-width: auto;
             height: auto;
-            border-right: none;
             border-bottom: 1px solid var(--gh-border);
         }
 
