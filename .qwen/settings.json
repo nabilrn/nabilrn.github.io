@@ -5,7 +5,9 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(del *)",
-      "Bash(pnpm run *)"
+      "Bash(pnpm run *)",
+      "Bash(curl *)",
+      "Bash(jq *)"
     ]
   },
   "$version": 3

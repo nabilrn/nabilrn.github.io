@@ -39,9 +39,8 @@ const FALLBACK_PROJECTS = [
 
 async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; lang: string; url: string; stars?: number; tags: string[] }>> {
     const token = import.meta.env.GITHUB_TOKEN;
-    const featuredRepos = (import.meta.env.FEATURED_REPOS as string)?.split(',').map((r: string) => r.trim()).filter(Boolean) || [];
 
-    // If GITHUB_TOKEN is set, use GraphQL to fetch exact pinned repos
+    // GitHub pinned repos only available via GraphQL API (requires token)
     if (token) {
         try {
             const query = `
@@ -85,40 +84,11 @@ async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; l
                 }));
             }
         } catch {
-            // Fall through
-        }
-    }
-
-    // If FEATURED_REPOS env var is set, fetch details for those repos
-    if (featuredRepos.length > 0) {
-        try {
-            const results = await Promise.allSettled(
-                featuredRepos.map(async (repoName: string) => {
-                    const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${repoName}`, {
-                        headers: token ? { 'Authorization': `token ${token}` } : {},
-                    });
-                    if (!res.ok) throw new Error(`Failed to fetch ${repoName}`);
-                    const repo: GitHubRepo = await res.json();
-                    return {
-                        name: repo.name,
-                        desc: repo.description || '',
-                        lang: repo.language || 'Unknown',
-                        url: repo.html_url,
-                        stars: repo.stargazers_count,
-                        tags: repo.topics?.slice(0, 2) || [],
-                    };
-                })
-            );
-            const successful = results
-                .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
-                .map((r) => r.value);
-            if (successful.length > 0) return successful;
-        } catch {
             // Fall through to hardcoded list
         }
     }
 
-    // Ultimate fallback: hardcoded list
+    // Fallback: hardcoded list (set GITHUB_TOKEN to auto-sync with pinned repos)
     return FALLBACK_PROJECTS;
 }
 
