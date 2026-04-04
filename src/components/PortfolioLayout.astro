@@ -6,7 +6,8 @@ const blogPosts = await getCollection('blog', ({ data }) => !data.draft);
 const postCount = blogPosts.length;
 ---
 
-<div class="portfolio-layout">
+<div class="page-wrapper">
+  <div class="portfolio-layout">
     <aside class="sidebar">
         <div class="sidebar-inner">
             <div class="profile">
@@ -62,26 +63,30 @@ const postCount = blogPosts.length;
     <main class="main-content">
         <slot />
     </main>
+  </div>
 </div>
 
 <style>
+    .page-wrapper {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 32px;
+        width: 100%;
+    }
+
     .portfolio-layout {
         display: flex;
-        align-items: stretch;
         min-height: 100vh;
-        background-image: linear-gradient(var(--gh-border), var(--gh-border));
-        background-size: 1px 100%;
-        background-position: 220px 0;
-        background-repeat: no-repeat;
     }
 
     .sidebar {
         position: sticky;
         top: 0;
-        width: 220px;
-        min-width: 220px;
+        width: 296px;
+        min-width: 296px;
+        flex-shrink: 0;
         height: 100vh;
-        background: var(--gh-base);
+        border-right: 1px solid var(--gh-border);
         z-index: 10;
         overflow-y: auto;
     }
@@ -97,15 +102,16 @@ const postCount = blogPosts.length;
         padding-bottom: 12px;
         margin-bottom: 8px;
         border-bottom: 1px solid var(--gh-border);
+        text-align: center;
     }
 
     .avatar {
-        width: 80px;
-        height: 80px;
+        width: 200px;
+        height: 200px;
         border-radius: 50%;
         overflow: hidden;
-        margin-bottom: 10px;
-        border: 2px solid var(--gh-border-muted);
+        margin: 0 auto 10px auto;
+        border: 2px solid #30363d;
     }
 
     .avatar img {
@@ -219,13 +225,15 @@ const postCount = blogPosts.length;
         flex: 1;
         padding: 20px 24px;
         min-width: 0;
-        max-width: 960px;
     }
 
     @media (max-width: 768px) {
+        .page-wrapper {
+            padding: 0;
+        }
+
         .portfolio-layout {
             flex-direction: column;
-            background-image: none;
         }
 
         .sidebar {
@@ -233,6 +241,7 @@ const postCount = blogPosts.length;
             width: 100%;
             min-width: auto;
             height: auto;
+            border-right: none;
             border-bottom: 1px solid var(--gh-border);
         }
 

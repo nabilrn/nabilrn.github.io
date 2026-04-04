@@ -31,9 +31,6 @@ const getReadingTime = (raw: string) => {
 	<div class="blog-list">
 		{posts.map((post) => (
 			<a href={`/blog/${post.slug}/`} class="blog-card">
-				<div class="blog-card-icon">
-					<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0114.25 13H8.06l-2.573 2.573A1.458 1.458 0 013 14.543V13H1.75A1.75 1.75 0 010 11.25zm1.75-.25a.25.25 0 00-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 01.75.75v2.19l2.72-2.72a.749.749 0 01.53-.22h6.5a.25.25 0 00.25-.25v-9.5a.25.25 0 00-.25-.25z"></path></svg>
-				</div>
 				<div class="blog-card-body">
 					<div class="blog-card-title">{post.data.title}</div>
 					<div class="blog-card-desc">{post.data.description}</div>
@@ -117,19 +114,6 @@ const getReadingTime = (raw: string) => {
 
 	.blog-card:hover {
 		border-color: var(--gh-accent);
-	}
-
-	.blog-card-icon {
-		width: 36px;
-		height: 36px;
-		min-width: 36px;
-		border-radius: 6px;
-		background: var(--gh-surface);
-		border: 1px solid var(--gh-border);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: var(--gh-text-secondary);
 	}
 
 	.blog-card-title {
