@@ -106,6 +106,7 @@ import profilePic from '../assets/profilepict.webp';
         overflow: hidden;
         margin-bottom: 1.5rem;
         border: 3px solid var(--sl-color-hairline, #27272a);
+        box-shadow: 0 0 0 4px var(--sl-color-bg, #09090b), 0 0 0 6px var(--accent, #5eead4);
     }
     
     .profile-picture img {
@@ -156,7 +157,11 @@ import profilePic from '../assets/profilepict.webp';
     }
     
     .nav-links a:hover {
-        color: var(--sl-color-white, #fff);
+        color: var(--accent, #5eead4);
+    }
+
+    .nav-links a.active {
+        color: var(--accent, #5eead4);
     }
     
     .social-links {
@@ -223,3 +228,15 @@ import profilePic from '../assets/profilepict.webp';
         }
     }
 </style>
+
+<script>
+    const links = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    for (const link of links) {
+        const href = link.getAttribute('href') ?? '';
+        if (href === path || href === path + hash) {
+            link.classList.add('active');
+        }
+    }
+</script>

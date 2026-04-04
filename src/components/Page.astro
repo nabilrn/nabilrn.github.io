@@ -121,6 +121,7 @@ const ogImage = `${siteUrl}/og-image.png`;
         --sl-color-bg: #09090b;
         --sl-color-hairline: #27272a;
         --sl-color-accent: #ffffff;
+        --accent: #5eead4;
     }
     
     [data-theme='light'] {
@@ -135,6 +136,7 @@ const ogImage = `${siteUrl}/og-image.png`;
         --sl-color-bg: #ffffff;
         --sl-color-hairline: #e4e4e7;
         --sl-color-accent: #000000;
+        --accent: #2dd4bf;
     }
     
     a {
@@ -144,7 +146,7 @@ const ogImage = `${siteUrl}/og-image.png`;
     /* Typography for main content */
     h2 {
         font-size: 1.15rem;
-        font-weight: 700;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.15em;
         color: var(--sl-color-white);
@@ -155,7 +157,7 @@ const ogImage = `${siteUrl}/og-image.png`;
     
     h3 {
         font-size: 1.15rem;
-        font-weight: 600;
+        font-weight: 800;
         color: var(--sl-color-white);
         margin: 1.75rem 0 0.5rem 0;
     }
@@ -201,13 +203,21 @@ const ogImage = `${siteUrl}/og-image.png`;
     hr {
         border: none;
         border-top: 1px solid var(--sl-color-hairline);
-        margin: 4rem 0;
+        margin: 5rem 0;
     }
-    
+
     /* Section styling */
-    section, 
+    section,
     .section {
-        margin-bottom: 4rem;
+        margin-bottom: 5rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--sl-color-hairline);
+    }
+
+    section:first-child,
+    .section:first-child {
+        border-top: none;
+        padding-top: 0;
     }
     
     /* Badge/Tag styling */
@@ -218,9 +228,14 @@ const ogImage = `${siteUrl}/og-image.png`;
         font-weight: 500;
         border-radius: 4px;
         background: var(--sl-color-gray-6);
-        color: var(--sl-color-gray-2);
-        border: 1px solid var(--sl-color-gray-5);
+        color: rgba(255,255,255,0.75);
+        border: 1px solid rgba(255,255,255,0.15);
         margin: 0.2rem;
+        transition: border-color 0.2s ease;
+    }
+
+    .badge:hover, .tag:hover {
+        border-color: var(--accent);
     }
     
     [data-theme='light'] .badge,

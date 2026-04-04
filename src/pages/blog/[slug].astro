@@ -51,8 +51,23 @@ const readingTime = Math.max(1, Math.ceil(words / 200));
 		color: var(--sl-color-white);
 	}
 
+	.blog-post h2 {
+		letter-spacing: -0.02em;
+	}
+
 	.content :global(h2) {
 		font-size: 1.3rem;
 		margin-top: 2rem;
+	}
+
+	.content :global(a) {
+		color: var(--accent, #5eead4);
+		text-decoration-color: rgba(94, 234, 212, 0.3);
+		text-underline-offset: 2px;
+		transition: text-decoration-color 0.2s ease;
+	}
+
+	.content :global(a:hover) {
+		text-decoration-color: var(--accent, #5eead4);
 	}
 </style>
