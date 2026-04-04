@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUBLIC_ENGAGEMENT_API_BASE: "https://portfolio-metrics-api.nabilrizkinavisa.workers.dev"
+      FEATURED_REPOS: "nabilrn.github.io,express-api-starter"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
