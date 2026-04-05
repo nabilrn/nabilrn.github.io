@@ -27,7 +27,7 @@ interface GitHubRepo {
 
 const GITHUB_USERNAME = 'nabilrn';
 
-// Org repos to include (GitHub API returns null for pinned org repos)
+// Org repos to include (manually curated, fetched from GitHub API)
 const ORG_REPOS = [
     { owner: 'kk-infrastruktur-dan-tata-kelola-dsi', name: 'tkiti.github.io' },
     { owner: 'NeoCentralSI', name: 'Neo-Central-Mobile' },
@@ -78,50 +78,36 @@ async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; l
         }
     }
 
-    // GitHub pinned repos only available via GraphQL API (requires token)
+    // Fetch repos sorted by last commit date (requires token for higher rate limit)
     if (token) {
         try {
-            const query = `
-                query {
-                    user(login: "${GITHUB_USERNAME}") {
-                        pinnedItems(first: 6, types: REPOSITORY) {
-                            nodes {
-                                ... on Repository {
-                                    name
-                                    description
-                                    primaryLanguage { name }
-                                    url
-                                    stargazerCount
-                                    repositoryTopics(first: 10) {
-                                        nodes { topic { name } }
-                                    }
-                                }
-                            }
-                        }
-                    }
+            const res = await fetch(
+                `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=pushed&per_page=100&direction=desc&type=owner`,
+                {
+                    headers: { 'Authorization': `token ${token}` },
                 }
-            `;
-            const res = await fetch('https://api.github.com/graphql', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ query }),
-            });
-            const body = await res.json();
+            );
+            if (res.ok) {
+                const allRepos: GitHubRepo[] = await res.json();
+                if (Array.isArray(allRepos) && allRepos.length > 0) {
+                    // Filter: only repos pushed within the last 7 days
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-            if (res.ok && body.data?.user?.pinnedItems?.nodes) {
-                const repos = body.data.user.pinnedItems.nodes.filter(Boolean);
-                if (repos.length > 0) {
-                    return repos.map((r: any) => ({
-                        name: r.name,
-                        desc: r.description || '',
-                        lang: r.primaryLanguage?.name || 'Unknown',
-                        url: r.url,
-                        stars: r.stargazerCount,
-                        tags: r.repositoryTopics?.nodes.map((t: any) => t.topic.name).slice(0, 2) || [],
-                    }));
+                    const recentRepos = allRepos
+                        .filter((repo) => new Date(repo.pushed_at) >= sevenDaysAgo)
+                        .slice(0, 6);
+
+                    if (recentRepos.length > 0) {
+                        return recentRepos.map((r) => ({
+                            name: r.name,
+                            desc: r.description || '',
+                            lang: r.language || 'Unknown',
+                            url: r.html_url,
+                            stars: r.stargazers_count,
+                            tags: r.topics?.slice(0, 2) || [],
+                        }));
+                    }
                 }
             }
         } catch {
