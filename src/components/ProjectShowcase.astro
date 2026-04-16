@@ -1,0 +1,931 @@
+---
+import tkitiImg from '../assets/tkiti.webp';
+import pondokpermaiImg from '../assets/pondokpermai.webp';
+import neocentralImg from '../assets/neocentral.webp';
+import foodexplorer1Img from '../assets/foodexplorer1.webp';
+import foodexplorer2Img from '../assets/foodexplorer2.webp';
+import foodexplorer3Img from '../assets/foodexplorer3.webp';
+import foodexplorer4Img from '../assets/foodexplorer4.webp';
+import ghibligallery1Img from '../assets/ghibligallery1.webp';
+import ghibligallery2Img from '../assets/ghibligallery2.webp';
+
+interface WebProject {
+    name: string;
+    desc: string;
+    liveUrl: string;
+    repoUrl?: string;
+    stack: string[];
+    screenshot: ImageMetadata;
+}
+
+interface MobileProject {
+    name: string;
+    desc: string;
+    platform: string;
+    repoUrl?: string;
+    stack: string[];
+    screenshots?: ImageMetadata[];
+}
+
+const webProjects: WebProject[] = [
+    {
+        name: 'Lab TKITI',
+        desc: 'Landing page and content system for Lab TKITI (campus lab at Universitas Andalas), with a bilingual (ID/EN) article system.',
+        liveUrl: 'https://tkiti.tech',
+        repoUrl: 'https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/tkiti.github.io',
+        stack: ['React', 'Vite', 'Hono', 'SQLite', 'GitHub Pages'],
+        screenshot: tkitiImg,
+    },
+    {
+        name: 'Bank Sampah Pondok Permai',
+        desc: 'Landing page for a community waste bank NGO in Padang, with a grounded, nature-driven aesthetic.',
+        liveUrl: 'https://pondokpermai.my.id',
+        repoUrl: 'https://github.com/nabilrn/permai-eco-landing',
+        stack: ['React', 'Vite', 'GitHub Pages'],
+        screenshot: pondokpermaiImg,
+    },
+    {
+        name: 'Neocentral',
+        desc: 'Full-stack platform with a self-hosted deployment pipeline, containerized backend services, and a React frontend.',
+        liveUrl: 'https://neocentral.dev',
+        stack: ['React', 'Vite', 'Express', 'MySQL', 'Redis', 'Docker'],
+        screenshot: neocentralImg,
+    },
+];
+
+const mobileProjects: MobileProject[] = [
+    {
+        name: 'Food Explorer',
+        desc: 'Browse and discover meals by category using TheMealDB public API.',
+        platform: 'Android · Jetpack Compose',
+        repoUrl: 'https://github.com/nabilrn/food-explorer',
+        stack: ['Kotlin', 'Jetpack Compose', 'TheMealDB API'],
+        screenshots: [foodexplorer1Img, foodexplorer2Img, foodexplorer3Img, foodexplorer4Img],
+    },
+    {
+        name: 'Ghibli Gallery',
+        desc: 'Gallery app showcasing Studio Ghibli films built from static object data.',
+        platform: 'Android · Jetpack Compose',
+        repoUrl: 'https://github.com/nabilrn/ghibli-gallery',
+        stack: ['Kotlin', 'Jetpack Compose'],
+        screenshots: [ghibligallery1Img, ghibligallery2Img],
+    },
+];
+---
+
+<section id="showcase" class="section">
+    <div class="section-heading">
+        <h2>Showcase</h2>
+        <span class="section-sub">selected work</span>
+    </div>
+
+    <!-- Web projects -->
+    <div class="group-label">Web</div>
+    <div class="web-list">
+        {webProjects.map((p) => (
+            <article class="web-card">
+                <div class="web-preview">
+                    <div class="browser-chrome" aria-hidden="true">
+                        <div class="browser-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <div class="browser-url">{p.liveUrl.replace('https://', '')}</div>
+                    </div>
+                    <div class="preview-wrap">
+                        <img
+                            src={p.screenshot.src}
+                            alt={`${p.name} website preview`}
+                            class="preview-img"
+                            loading="lazy"
+                            width={p.screenshot.width}
+                            height={p.screenshot.height}
+                        />
+                    </div>
+                </div>
+                <div class="web-info">
+                    <h3 class="card-title">{p.name}</h3>
+                    <p class="card-desc">{p.desc}</p>
+                    <div class="card-tags">
+                        {p.stack.map((t) => <span class="pill">{t}</span>)}
+                    </div>
+                    <div class="card-links">
+                        <a
+                            href={p.liveUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="link-visit"
+                        >
+                            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                <path d="M10.604 1h4.146a.25.25 0 01.25.25v4.146a.25.25 0 01-.427.177L13.03 4.03 9.28 7.78a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0110.604 1zM3.75 2A1.75 1.75 0 002 3.75v8.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 12.25v-3.5a.75.75 0 00-1.5 0v3.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-8.5a.25.25 0 01.25-.25h3.5a.75.75 0 000-1.5h-3.5z" />
+                            </svg>
+                            Visit site
+                        </a>
+                        {p.repoUrl && (
+                            <a
+                                href={p.repoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="link-repo"
+                            >
+                                <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                                </svg>
+                                GitHub
+                            </a>
+                        )}
+                    </div>
+                </div>
+            </article>
+        ))}
+    </div>
+
+    <!-- Mobile apps -->
+    <div class="group-label" style="margin-top: 20px;">Mobile</div>
+    <div class="mobile-grid">
+        {mobileProjects.map((p) => {
+            const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            const hasScreenshots = p.screenshots && p.screenshots.length > 0;
+            const modalId = `modal-${slug}`;
+            return (
+                <article class="mobile-card">
+                    <div class="phone-wrap">
+                        <div class="phone-frame" aria-hidden="true">
+                            <div class="btn btn-vol-up"></div>
+                            <div class="btn btn-vol-down"></div>
+                            <div class="btn btn-power"></div>
+
+                            <div class="phone-screen" data-carousel>
+                                <div class="punch-hole"></div>
+
+                                {hasScreenshots ? (
+                                    <div
+                                        class="carousel-track"
+                                        style={`width: ${p.screenshots!.length * 100}%; --n: ${p.screenshots!.length};`}
+                                    >
+                                        {p.screenshots!.map((img, i) => (
+                                            <img
+                                                src={img.src}
+                                                alt={`${p.name} screenshot ${i + 1}`}
+                                                class="phone-img"
+                                                loading="lazy"
+                                                width={img.width}
+                                                height={img.height}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div class="phone-placeholder"></div>
+                                )}
+
+                                {p.screenshots && p.screenshots.length > 1 && (
+                                    <div class="carousel-dots">
+                                        {p.screenshots.map((_, i) => (
+                                            <button
+                                                class={`carousel-dot${i === 0 ? ' active' : ''}`}
+                                                data-index={i}
+                                                aria-label={`Screenshot ${i + 1}`}
+                                            ></button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <div class="phone-home"></div>
+                            </div>
+                        </div>
+
+                        {hasScreenshots && (
+                            <button
+                                class="phone-expand-btn"
+                                data-modal={modalId}
+                                aria-label={`View ${p.name} screenshots`}
+                            >
+                                <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M1.75 10a.75.75 0 01.75.75v2.75h2.75a.75.75 0 010 1.5h-3.5A.75.75 0 011 14.25v-3.5a.75.75 0 01.75-.75zm12.5 0a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5h2.75v-2.75a.75.75 0 01.75-.75zM2.5 2.5v2.75a.75.75 0 01-1.5 0v-3.5A.75.75 0 011.75 1h3.5a.75.75 0 010 1.5H2.5zm10.25-.75h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0V2.5h-2.75a.75.75 0 010-1.5z"/>
+                                </svg>
+                                View all
+                            </button>
+                        )}
+                    </div>
+
+                    <div class="mobile-info">
+                        <h3 class="card-title">{p.name}</h3>
+                        <p class="mobile-platform">{p.platform}</p>
+                        <div class="card-tags">
+                            {p.stack.map((t) => <span class="pill">{t}</span>)}
+                        </div>
+                        {p.repoUrl && (
+                            <a
+                                href={p.repoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="link-repo link-repo--mobile"
+                            >
+                                <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                                </svg>
+                                GitHub
+                            </a>
+                        )}
+                    </div>
+
+                    <!-- Screenshot dialog -->
+                    {hasScreenshots && (
+                        <dialog id={modalId} class="screenshot-dialog">
+                            <div class="dialog-inner">
+                                <div class="dialog-header">
+                                    <span class="dialog-title">{p.name}</span>
+                                    <button class="dialog-close" aria-label="Close">
+                                        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.749.749 0 011.275.326.749.749 0 01-.215.734L9.06 8l3.22 3.22a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215L8 9.06l-3.22 3.22a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>
+                                    </button>
+                                </div>
+                                <div class="dialog-viewer">
+                                    <button class="dialog-arrow dialog-prev" aria-label="Previous screenshot">
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M9.78 12.78a.75.75 0 01-1.06 0L4.47 8.53a.75.75 0 010-1.06l4.25-4.25a.751.751 0 011.042.018.751.751 0 01.018 1.042L6.06 8l3.72 3.72a.75.75 0 010 1.06z"/></svg>
+                                    </button>
+                                    <div class="dialog-screen">
+                                        {p.screenshots!.map((img, i) => (
+                                            <img
+                                                src={img.src}
+                                                alt={`${p.name} screenshot ${i + 1}`}
+                                                class={`dialog-img${i === 0 ? ' active' : ''}`}
+                                                loading="lazy"
+                                                width={img.width}
+                                                height={img.height}
+                                            />
+                                        ))}
+                                    </div>
+                                    <button class="dialog-arrow dialog-next" aria-label="Next screenshot">
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/></svg>
+                                    </button>
+                                </div>
+                                <div class="dialog-footer">
+                                    <div class="dialog-dots">
+                                        {p.screenshots!.map((_, i) => (
+                                            <button
+                                                class={`dialog-dot${i === 0 ? ' active' : ''}`}
+                                                aria-label={`Screenshot ${i + 1}`}
+                                            ></button>
+                                        ))}
+                                    </div>
+                                    <span class="dialog-counter">1 / {p.screenshots!.length}</span>
+                                </div>
+                            </div>
+                        </dialog>
+                    )}
+                </article>
+            );
+        })}
+    </div>
+</section>
+
+<style>
+    /* Section wrapper */
+    .section {
+        padding-top: 24px;
+        margin-top: 24px;
+        border-top: 1px solid var(--gh-border);
+    }
+
+    .section-heading {
+        margin-bottom: 14px;
+    }
+
+    .section-heading h2 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gh-text);
+        margin: 0;
+        display: inline;
+    }
+
+    .section-sub {
+        font-size: 12px;
+        color: var(--gh-text-secondary);
+        font-weight: 400;
+        margin-left: 6px;
+    }
+
+    /* Group label (WEB / MOBILE) */
+    .group-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--gh-text-secondary);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    /* Pill badge */
+    .pill {
+        font-size: 11px;
+        background: var(--gh-surface);
+        border: 1px solid var(--gh-border-muted);
+        border-radius: 20px;
+        padding: 1px 8px;
+        color: var(--gh-text-secondary);
+        display: inline-block;
+    }
+
+    /* ── Web project cards ── */
+    .web-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .web-card {
+        display: grid;
+        grid-template-columns: 38% 1fr;
+        border: 1px solid var(--gh-border);
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--gh-base);
+        transition: border-color 0.15s ease;
+    }
+
+    .web-card:hover {
+        border-color: var(--gh-accent);
+    }
+
+    .web-card:focus-within {
+        outline: 2px solid var(--gh-accent);
+        outline-offset: 2px;
+    }
+
+    /* Preview pane */
+    .web-preview {
+        display: flex;
+        flex-direction: column;
+        background: var(--gh-surface);
+        border-right: 1px solid var(--gh-border);
+    }
+
+    .browser-chrome {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        height: 26px;
+        background: var(--gh-surface-2);
+        border-bottom: 1px solid var(--gh-border);
+        flex-shrink: 0;
+    }
+
+    .browser-dots {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .browser-dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--gh-border-muted);
+    }
+
+    .browser-url {
+        font-size: 10px;
+        color: var(--gh-text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+        text-align: center;
+    }
+
+    .preview-wrap {
+        flex: 1;
+        overflow: hidden;
+        min-height: 150px;
+    }
+
+    .preview-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Info pane */
+    .web-info {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gh-text);
+        margin: 0;
+    }
+
+    .card-desc {
+        font-size: 11px;
+        color: var(--gh-text-secondary);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .card-links {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .link-visit {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--gh-accent);
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+
+    .link-visit:hover {
+        color: var(--gh-accent-hover);
+        text-decoration: underline;
+    }
+
+    .link-visit:focus-visible,
+    .link-repo:focus-visible {
+        outline: 2px solid var(--gh-accent);
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    .link-repo {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--gh-text-secondary);
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }
+
+    .link-repo:hover {
+        color: var(--gh-text);
+        text-decoration: underline;
+    }
+
+    /* ── Mobile app cards ── */
+    .mobile-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .mobile-card {
+        border: 1px solid var(--gh-border);
+        border-radius: 6px;
+        background: var(--gh-base);
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        transition: border-color 0.15s ease;
+    }
+
+    .mobile-card:hover {
+        border-color: var(--gh-accent);
+    }
+
+    .mobile-card:focus-within {
+        outline: 2px solid var(--gh-accent);
+        outline-offset: 2px;
+    }
+
+    /* ── Modern Android phone mockup ── */
+    .phone-frame {
+        position: relative;
+        width: 134px;
+        background: #1a1a1e;
+        border-radius: 20px;
+        /* Thin uniform bezel — just enough to see the frame */
+        padding: 4px;
+        margin-bottom: 16px;
+        box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.07),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+            0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Side hardware buttons */
+    .btn {
+        position: absolute;
+        background: #252528;
+        border-radius: 2px;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .btn-vol-up {
+        left: -2px;
+        top: 22%;
+        width: 2px;
+        height: 20px;
+    }
+
+    .btn-vol-down {
+        left: -2px;
+        top: 36%;
+        width: 2px;
+        height: 20px;
+    }
+
+    .btn-power {
+        right: -2px;
+        top: 28%;
+        width: 2px;
+        height: 28px;
+    }
+
+    /* Screen — fills the frame almost completely */
+    .phone-screen {
+        width: 100%;
+        aspect-ratio: 9 / 19;
+        border-radius: 17px;   /* outer_radius - padding */
+        overflow: hidden;
+        background: #000;
+        position: relative;
+        cursor: pointer;
+    }
+
+    /* Punch-hole camera — sits over the content */
+    .punch-hole {
+        position: absolute;
+        top: 9px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #000;
+        z-index: 3;
+        box-shadow: 0 0 0 1.5px rgba(255,255,255,0.08);
+    }
+
+    /* Carousel track */
+    .carousel-track {
+        display: flex;
+        height: 100%;
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform;
+    }
+
+    .phone-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        flex-shrink: 0;
+    }
+
+    .carousel-track .phone-img {
+        width: calc(100% / var(--n, 1));
+        height: 100%;
+    }
+
+    .phone-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(170deg, #1e1e24 0%, #2a2a32 100%);
+    }
+
+    /* Dot indicators — overlay at bottom of screen */
+    .carousel-dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 4px;
+        z-index: 3;
+    }
+
+    .carousel-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.35);
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: background 0.2s ease, width 0.2s ease;
+    }
+
+    .carousel-dot.active {
+        background: rgba(255, 255, 255, 0.85);
+        width: 10px;
+        border-radius: 2px;
+    }
+
+    /* Home gesture bar — overlay at very bottom of screen */
+    .phone-home {
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 36px;
+        height: 3px;
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.25);
+        z-index: 3;
+    }
+
+    /* Mobile info block */
+    .mobile-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+    }
+
+    .mobile-info .card-title {
+        font-size: 12px;
+    }
+
+    .mobile-platform {
+        font-size: 11px;
+        color: var(--gh-text-secondary);
+        margin: 0;
+    }
+
+    .mobile-info .card-tags {
+        justify-content: center;
+    }
+
+    .link-repo--mobile {
+        margin-top: 2px;
+    }
+
+    /* Phone wrap — positions expand button relative to frame */
+    .phone-wrap {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .phone-expand-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 6px;
+        padding: 3px 8px;
+        font-size: 10px;
+        color: var(--gh-text-secondary);
+        background: var(--gh-surface-2);
+        border: 1px solid var(--gh-border-muted);
+        border-radius: 20px;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+    }
+
+    .phone-expand-btn:hover {
+        color: var(--gh-text);
+        border-color: var(--gh-accent);
+    }
+
+    /* ── Screenshot dialog ── */
+    .screenshot-dialog {
+        position: fixed;
+        inset: 0;
+        margin: auto;
+        border: 1px solid var(--gh-border);
+        border-radius: 10px;
+        background: var(--gh-surface);
+        padding: 0;
+        width: min(360px, 92vw);
+        max-height: 92dvh;
+        color: var(--gh-text);
+        overflow: hidden;
+    }
+
+    .screenshot-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(6px);
+    }
+
+    .dialog-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .dialog-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .dialog-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--gh-text);
+    }
+
+    .dialog-close {
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--gh-surface-2);
+        border: 1px solid var(--gh-border-muted);
+        border-radius: 5px;
+        color: var(--gh-text-secondary);
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s;
+    }
+
+    .dialog-close:hover {
+        background: var(--gh-border-muted);
+        color: var(--gh-text);
+    }
+
+    .dialog-viewer {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .dialog-screen {
+        flex: 1;
+        aspect-ratio: 9 / 19;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #000;
+        position: relative;
+    }
+
+    .dialog-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+    }
+
+    .dialog-img.active {
+        display: block;
+    }
+
+    .dialog-arrow {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--gh-surface-2);
+        border: 1px solid var(--gh-border-muted);
+        border-radius: 6px;
+        color: var(--gh-text-secondary);
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+    }
+
+    .dialog-arrow:hover {
+        color: var(--gh-text);
+        border-color: var(--gh-accent);
+    }
+
+    .dialog-footer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .dialog-dots {
+        display: flex;
+        gap: 5px;
+    }
+
+    .dialog-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--gh-border-muted);
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: background 0.2s, width 0.2s;
+    }
+
+    .dialog-dot.active {
+        background: var(--gh-accent);
+        width: 12px;
+        border-radius: 2px;
+    }
+
+    .dialog-counter {
+        font-size: 11px;
+        color: var(--gh-text-secondary);
+        min-width: 28px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+        .web-card {
+            grid-template-columns: 1fr;
+        }
+
+        .web-preview {
+            border-right: none;
+            border-bottom: 1px solid var(--gh-border);
+        }
+
+        .preview-wrap {
+            min-height: 120px;
+            max-height: 160px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .mobile-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<script>
+    // ── Phone mini-carousel ──
+    document.querySelectorAll<HTMLElement>('.phone-screen[data-carousel]').forEach((screen) => {
+        const track = screen.querySelector<HTMLElement>('.carousel-track');
+        if (!track) return;
+        const n = parseInt(track.style.getPropertyValue('--n') || '1', 10);
+        if (n <= 1) return;
+
+        const dots = screen.querySelectorAll<HTMLElement>('.carousel-dot');
+        let current = 0;
+
+        function goTo(index: number) {
+            current = (index + n) % n;
+            track!.style.transform = `translateX(-${(current * 100) / n}%)`;
+            dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        }
+
+        screen.addEventListener('click', () => goTo(current + 1));
+        dots.forEach((dot, i) => {
+            dot.addEventListener('click', (e) => { e.stopPropagation(); goTo(i); });
+        });
+    });
+
+    // ── Screenshot dialog ──
+    document.querySelectorAll<HTMLButtonElement>('.phone-expand-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            const dialog = document.getElementById(btn.dataset.modal!) as HTMLDialogElement | null;
+            dialog?.showModal();
+        });
+    });
+
+    document.querySelectorAll<HTMLDialogElement>('.screenshot-dialog').forEach((dialog) => {
+        const imgs = dialog.querySelectorAll<HTMLElement>('.dialog-img');
+        const dots = dialog.querySelectorAll<HTMLElement>('.dialog-dot');
+        const counter = dialog.querySelector<HTMLElement>('.dialog-counter');
+        const n = imgs.length;
+        let current = 0;
+
+        function goTo(index: number) {
+            imgs[current].classList.remove('active');
+            dots[current]?.classList.remove('active');
+            current = (index + n) % n;
+            imgs[current].classList.add('active');
+            dots[current]?.classList.add('active');
+            if (counter) counter.textContent = `${current + 1} / ${n}`;
+        }
+
+        dialog.querySelector('.dialog-close')?.addEventListener('click', () => dialog.close());
+        dialog.querySelector('.dialog-prev')?.addEventListener('click', () => goTo(current - 1));
+        dialog.querySelector('.dialog-next')?.addEventListener('click', () => goTo(current + 1));
+        dots.forEach((dot, i) => dot.addEventListener('click', () => goTo(i)));
+
+        // Click backdrop to close
+        dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+
+        // Hide arrows when only 1 image
+        if (n <= 1) {
+            dialog.querySelector<HTMLElement>('.dialog-prev')!.style.visibility = 'hidden';
+            dialog.querySelector<HTMLElement>('.dialog-next')!.style.visibility = 'hidden';
+        }
+    });
+</script>
