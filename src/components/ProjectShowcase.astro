@@ -2,12 +2,14 @@
 import tkitiImg from '../assets/tkiti.webp';
 import pondokpermaiImg from '../assets/pondokpermai.webp';
 import neocentralImg from '../assets/neocentral.webp';
+import ezagentImg from '../assets/ez_agent.webp';
 import foodexplorer1Img from '../assets/foodexplorer1.webp';
 import foodexplorer2Img from '../assets/foodexplorer2.webp';
 import foodexplorer3Img from '../assets/foodexplorer3.webp';
 import foodexplorer4Img from '../assets/foodexplorer4.webp';
 import ghibligallery1Img from '../assets/ghibligallery1.webp';
 import ghibligallery2Img from '../assets/ghibligallery2.webp';
+
 
 interface WebProject {
     name: string;
@@ -28,6 +30,14 @@ interface MobileProject {
 }
 
 const webProjects: WebProject[] = [
+    {
+        name: 'Ez-Agent Landing Page',
+        desc: 'Landing page for EZ Agents, a multi-agent AI orchestration system for building software with coordinated intelligent agents.',
+        liveUrl: 'https://nabilrizkinavisa.me/ez-agent-landingpage/',
+        repoUrl: 'https://github.com/nabilrn/ez-agent-landingpage.git',
+        stack: ['Astro', 'Three.js', 'GitHub Pages'],
+        screenshot: ezagentImg,
+    },
     {
         name: 'Lab TKITI',
         desc: 'Landing page and content system for Lab TKITI (campus lab at Universitas Andalas), with a bilingual (ID/EN) article system.',
