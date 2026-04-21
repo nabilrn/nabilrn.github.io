@@ -1,4 +1,5 @@
-export const OG_SIZE = 1200;
+export const OG_WIDTH = 1200;
+export const OG_HEIGHT = 630;
 
 const escapeXml = (value: string) =>
 	value
@@ -74,13 +75,13 @@ interface OgCardData {
 }
 
 export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
-	const titleLines = wrapText(clampText(title, 160), 28, 4);
-	const excerptLines = wrapText(clampText(excerpt, 260), 50, 6);
+	const titleLines = wrapText(clampText(title, 160), 36, 3);
+	const excerptLines = wrapText(clampText(excerpt, 260), 60, 3);
 
 	const renderedTitle = titleLines
 		.map(
 			(line, index) =>
-				`<text x="124" y="${336 + index * 88}" font-size="72" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#e6edf3">${escapeXml(
+				`<text x="96" y="${196 + index * 62}" font-size="52" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#e6edf3">${escapeXml(
 					line
 				)}</text>`
 		)
@@ -89,15 +90,15 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
 	const renderedExcerpt = excerptLines
 		.map(
 			(line, index) =>
-				`<text x="124" y="${760 + index * 54}" font-size="38" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(
+				`<text x="96" y="${428 + index * 42}" font-size="28" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(
 					line
 				)}</text>`
 		)
 		.join('');
 
-	return `<svg width="${OG_SIZE}" height="${OG_SIZE}" viewBox="0 0 ${OG_SIZE} ${OG_SIZE}" fill="none" xmlns="http://www.w3.org/2000/svg">
+	return `<svg width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="1200" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0d1117"/>
       <stop offset="1" stop-color="#161b22"/>
     </linearGradient>
@@ -106,13 +107,13 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
       <stop offset="1" stop-color="#3fb950"/>
     </linearGradient>
   </defs>
-  <rect width="1200" height="1200" fill="url(#bg)"/>
-  <rect x="68" y="68" width="1064" height="1064" rx="48" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
-  <rect x="124" y="142" width="350" height="14" rx="7" fill="url(#accent)"/>
-  <text x="124" y="214" font-size="34" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(kicker)}</text>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="48" y="36" width="1104" height="558" rx="40" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+  <rect x="96" y="76" width="280" height="10" rx="5" fill="url(#accent)"/>
+  <text x="96" y="134" font-size="28" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(kicker)}</text>
   ${renderedTitle}
-  <line x1="124" y1="690" x2="1074" y2="690" stroke="#30363d" stroke-width="2"/>
+  <line x1="96" y1="390" x2="1104" y2="390" stroke="#30363d" stroke-width="2"/>
   ${renderedExcerpt}
-  <text x="124" y="1086" font-size="30" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#6e7681">nabilrizkinavisa.me</text>
+  <text x="96" y="600" font-size="26" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#6e7681">nabilrizkinavisa.me</text>
 </svg>`;
 };
