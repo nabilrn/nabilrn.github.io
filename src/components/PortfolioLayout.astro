@@ -1,73 +1,231 @@
 ---
-import profilePic from '../assets/profilepict.webp';
-import { getCollection } from 'astro:content';
+import profilePic from "../assets/profilepict.webp";
+import { getCollection } from "astro:content";
 
-const blogPosts = await getCollection('blog', ({ data }) => !data.draft);
+const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
 const postCount = blogPosts.length;
 ---
 
 <div class="page-wrapper">
-  <div class="portfolio-layout">
-    <aside class="sidebar">
-        <div class="sidebar-inner">
-            <div class="profile">
-                <div class="avatar">
-                    <img src={profilePic.src} alt="Nabil Rizki Navisa" />
+    <div class="portfolio-layout">
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <div class="profile">
+                    <div class="avatar">
+                        <img src={profilePic.src} alt="Nabil Rizki Navisa" />
+                    </div>
+                    <div class="profile-name">Nabil Rizki Navisa</div>
+                    <div class="profile-role">lifetime learn</div>
+                    <div class="profile-bio">
+                        SWE | AI Agent Enthusiast | IT Infrastructure
+                        Enthusiast. Information Systems at Universitas Andalas.
+                    </div>
                 </div>
-                <div class="profile-name">Nabil Rizki Navisa</div>
-                <div class="profile-role">nabilrn</div>
-                <div class="profile-bio">Full-Stack Developer &amp; IT Infrastructure Enthusiast. Information Systems at Universitas Andalas.</div>
+
+                <nav class="nav">
+                    <a href="/" class="nav-item" data-section="overview">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"
+                            ></path></svg
+                        >
+                        Overview
+                    </a>
+                    <a
+                        href="/#showcase"
+                        class="nav-item"
+                        data-section="showcase"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"
+                            ></path></svg
+                        >
+                        Showcase
+                    </a>
+                    <a
+                        href="/#projects"
+                        class="nav-item"
+                        data-section="projects"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"
+                            ></path></svg
+                        >
+                        Projects
+                    </a>
+                    <a href="/blog/" class="nav-item" data-section="blog">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"
+                            ></path></svg
+                        >
+                        Blog
+                        <span class="nav-badge">{postCount}</span>
+                    </a>
+                    <a
+                        href="/cv/nabil-rizki-navisa-cv.pdf"
+                        class="nav-item"
+                        download="nabil-rizki-navisa-cv.pdf"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M7.25 1.75a.75.75 0 011.5 0v6.69l2.22-2.22a.75.75 0 111.06 1.06l-3.5 3.5a.75.75 0 01-1.06 0l-3.5-3.5a.75.75 0 011.06-1.06l2.22 2.22zM2.5 11.5a.75.75 0 000 1.5h11a.75.75 0 000-1.5z"
+                            ></path></svg
+                        >
+                        Download CV
+                    </a>
+                    <a
+                        href="/#experiences"
+                        class="nav-item"
+                        data-section="experiences"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M1.5 3.25c0-.966.784-1.75 1.75-1.75h2.5c.966 0 1.75.784 1.75 1.75v.25h4c.966 0 1.75.784 1.75 1.75v7a1.75 1.75 0 01-1.75 1.75h-10A1.75 1.75 0 01.25 12.25v-7c0-.966.784-1.75 1.75-1.75h-.5v-.25zm2 0v.25h1v-.25a.25.25 0 00-.25-.25h-.5a.25.25 0 00-.25.25zM1.75 5a.25.25 0 00-.25.25v7c0 .138.112.25.25.25h10.5a.25.25 0 00.25-.25v-7a.25.25 0 00-.25-.25z"
+                            ></path></svg
+                        >
+                        Experience
+                    </a>
+                    <a href="/#skills" class="nav-item" data-section="skills">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M8.878.392a1.75 1.75 0 00-1.756 0l-5.25 3.045A1.75 1.75 0 001 4.951v6.098c0 .624.332 1.2.872 1.514l5.25 3.045a1.75 1.75 0 001.756 0l5.25-3.045c.54-.313.872-.89.872-1.514V4.951c0-.624-.332-1.2-.872-1.514zM7.875 1.69a.25.25 0 01.25 0l4.63 2.685L8 7.133 3.245 4.375zM2.5 5.677l5 2.902v5.2L2.873 11.1a.25.25 0 01-.124-.216V5.677zm6.5 8.102v-5.2l5-2.902v5.48a.25.25 0 01-.124.216z"
+                            ></path></svg
+                        >
+                        Skills
+                    </a>
+                </nav>
+
+                <div class="social">
+                    <a
+                        href="mailto:nabilrizkinavisa@gmail.com"
+                        class="social-btn"
+                        aria-label="Email"
+                        title="Email"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><rect width="20" height="16" x="2" y="4" rx="2"
+                            ></rect><path
+                                d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="https://github.com/nabilrn"
+                        target="_blank"
+                        rel="noopener"
+                        class="social-btn"
+                        aria-label="GitHub"
+                        title="GitHub"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            ><path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="https://www.linkedin.com/in/nabilrizkinavisa2004"
+                        target="_blank"
+                        rel="noopener"
+                        class="social-btn"
+                        aria-label="LinkedIn"
+                        title="LinkedIn"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><path
+                                d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                            ></path><rect width="4" height="12" x="2" y="9"
+                            ></rect><circle cx="4" cy="4" r="2"></circle></svg
+                        >
+                    </a>
+                    <a
+                        href="https://www.instagram.com/nabilrizkinavisa"
+                        target="_blank"
+                        rel="noopener"
+                        class="social-btn"
+                        aria-label="Instagram"
+                        title="Instagram"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            ><rect
+                                width="20"
+                                height="20"
+                                x="2"
+                                y="2"
+                                rx="5"
+                                ry="5"></rect><path
+                                d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"
+                            ></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"
+                            ></line></svg
+                        >
+                    </a>
+                </div>
             </div>
+        </aside>
 
-            <nav class="nav">
-                <a href="/" class="nav-item" data-section="overview">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
-                    Overview
-                </a>
-                <a href="/#showcase" class="nav-item" data-section="showcase">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"></path></svg>
-                    Showcase
-                </a>
-                <a href="/#projects" class="nav-item" data-section="projects">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
-                    Projects
-                </a>
-                <a href="/blog/" class="nav-item" data-section="blog">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"></path></svg>
-                    Blog
-                    <span class="nav-badge">{postCount}</span>
-                </a>
-                <a href="/#experiences" class="nav-item" data-section="experiences">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.5 3.25c0-.966.784-1.75 1.75-1.75h2.5c.966 0 1.75.784 1.75 1.75v.25h4c.966 0 1.75.784 1.75 1.75v7a1.75 1.75 0 01-1.75 1.75h-10A1.75 1.75 0 01.25 12.25v-7c0-.966.784-1.75 1.75-1.75h-.5v-.25zm2 0v.25h1v-.25a.25.25 0 00-.25-.25h-.5a.25.25 0 00-.25.25zM1.75 5a.25.25 0 00-.25.25v7c0 .138.112.25.25.25h10.5a.25.25 0 00.25-.25v-7a.25.25 0 00-.25-.25z"></path></svg>
-                    Experience
-                </a>
-                <a href="/#skills" class="nav-item" data-section="skills">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8.878.392a1.75 1.75 0 00-1.756 0l-5.25 3.045A1.75 1.75 0 001 4.951v6.098c0 .624.332 1.2.872 1.514l5.25 3.045a1.75 1.75 0 001.756 0l5.25-3.045c.54-.313.872-.89.872-1.514V4.951c0-.624-.332-1.2-.872-1.514zM7.875 1.69a.25.25 0 01.25 0l4.63 2.685L8 7.133 3.245 4.375zM2.5 5.677l5 2.902v5.2L2.873 11.1a.25.25 0 01-.124-.216V5.677zm6.5 8.102v-5.2l5-2.902v5.48a.25.25 0 01-.124.216z"></path></svg>
-                    Skills
-                </a>
-            </nav>
-
-            <div class="social">
-                <a href="mailto:nabilrizkinavisa@gmail.com" class="social-btn" aria-label="Email" title="Email">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                </a>
-                <a href="https://github.com/nabilrn" target="_blank" rel="noopener" class="social-btn" aria-label="GitHub" title="GitHub">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>
-                </a>
-                <a href="https://www.linkedin.com/in/nabilrizkinavisa2004" target="_blank" rel="noopener" class="social-btn" aria-label="LinkedIn" title="LinkedIn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
-                </a>
-                <a href="https://www.instagram.com/nabilrizkinavisa" target="_blank" rel="noopener" class="social-btn" aria-label="Instagram" title="Instagram">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
-                </a>
-            </div>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <slot />
-    </main>
-  </div>
+        <main class="main-content">
+            <slot />
+        </main>
+    </div>
 </div>
 
 <style>
@@ -174,7 +332,7 @@ const postCount = blogPosts.length;
     }
 
     .nav-item.active::before {
-        content: '';
+        content: "";
         position: absolute;
         left: -4px;
         top: 50%;
@@ -302,20 +460,20 @@ const postCount = blogPosts.length;
 </style>
 
 <script>
-    const items = document.querySelectorAll<HTMLAnchorElement>('.nav-item');
+    const items = document.querySelectorAll<HTMLAnchorElement>(".nav-item");
     const path = window.location.pathname;
     const hash = window.location.hash;
 
     for (const item of items) {
-        const href = item.getAttribute('href') ?? '';
+        const href = item.getAttribute("href") ?? "";
         const section = item.dataset.section;
 
-        if (path === '/' && section === 'overview' && !hash) {
-            item.classList.add('active');
-        } else if (path === '/' && hash && href === '/' + hash) {
-            item.classList.add('active');
-        } else if (path.startsWith('/blog') && section === 'blog') {
-            item.classList.add('active');
+        if (path === "/" && section === "overview" && !hash) {
+            item.classList.add("active");
+        } else if (path === "/" && hash && href === "/" + hash) {
+            item.classList.add("active");
+        } else if (path.startsWith("/blog") && section === "blog") {
+            item.classList.add("active");
         }
     }
 </script>

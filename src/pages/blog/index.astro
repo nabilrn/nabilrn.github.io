@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Page from '../../components/Page.astro';
+import { getBlogLocaleInfo, type BlogLocale } from '../../utils/blogLocale';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
@@ -10,149 +11,266 @@ const getReadingTime = (raw: string) => {
 	const words = raw.trim().split(/\s+/).length;
 	return Math.max(1, Math.ceil(words / 200));
 };
+
+const localeLabel: Record<BlogLocale, string> = {
+	en: 'English',
+	id: 'Indonesia',
+};
+
+const cards = posts.map((post) => {
+	const localeInfo = getBlogLocaleInfo(post);
+	return {
+		post,
+		locale: localeInfo.locale,
+		link: `/blog/${post.slug}/?lang=${localeInfo.locale}`,
+		readingTime: getReadingTime(post.body),
+		date: post.data.pubDate.toLocaleDateString(localeInfo.locale === 'id' ? 'id-ID' : 'en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+		}),
+	};
+});
 ---
 
-<Page title="Blog | Nabil Rizki Navisa" description="Notes on software engineering, project lessons, and practical workflows by Nabil Rizki Navisa." path="/blog/">
-	<!-- Tab Bar -->
-	<div class="tab-bar">
-		<a href="/" class="tab">
-			<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
-			Overview
-		</a>
-		<a href="/#showcase" class="tab">
-			<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"></path></svg>
-			Showcase
-		</a>
-		<a href="/#projects" class="tab">
-			<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
-			Projects
-		</a>
-		<a href="/blog/" class="tab active">
-			<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"></path></svg>
-			Blog
-			<span class="tab-badge">{posts.length}</span>
-		</a>
-	</div>
+<Page
+	title="Blog | Nabil Rizki Navisa"
+	description="Notes on software engineering, project lessons, and practical workflows by Nabil Rizki Navisa."
+	path="/blog/"
+	layoutVariant="blog-full"
+	ogImageAlt="Nabil Rizki Navisa blog article listing in GitHub-inspired dark style."
+>
+	<div data-blog-locale-root>
+		<section class="blog-hero">
+			<p class="eyebrow">Blog</p>
+			<h1>Technical notes, shipped learnings, and practical guides.</h1>
+			<p class="intro">A focused reading space with tutorials and engineering notes from real projects and homelab experiments.</p>
+			<div class="locale-switch" aria-label="Blog language">
+				<button type="button" class="locale-btn" data-locale-btn="en">English</button>
+				<button type="button" class="locale-btn" data-locale-btn="id">Indonesia</button>
+			</div>
+		</section>
 
-	<p class="page-desc">Notes on software engineering, project lessons, and practical workflows.</p>
-
-	<div class="blog-list">
-		{posts.map((post) => (
-			<a href={`/blog/${post.slug}/`} class="blog-card">
-				<div class="blog-card-body">
-					<div class="blog-card-title">{post.data.title}</div>
-					<div class="blog-card-desc">{post.data.description}</div>
-					<div class="blog-card-meta">
-						<span>{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-						<span>{getReadingTime(post.body)} min read</span>
-						{post.data.tags.map((tag) => (
-							<span class="pill">{tag}</span>
-						))}
-					</div>
-				</div>
-			</a>
-		))}
+		<section class="blog-list" aria-label="Blog posts">
+			{cards.map((item) => (
+				<article class="post-card" data-post-locale={item.locale}>
+					<a href={item.link} class="post-link">
+						<div class="post-meta">
+							<span class="locale-pill">{localeLabel[item.locale]}</span>
+							<time datetime={item.post.data.pubDate.toISOString()}>{item.date}</time>
+							<span>{item.locale === 'id' ? `${item.readingTime} menit baca` : `${item.readingTime} min read`}</span>
+						</div>
+						<h2 class="post-title">{item.post.data.title}</h2>
+						<p class="post-desc">{item.post.data.description}</p>
+						<div class="tags">
+							{item.post.data.tags.map((tag) => (
+								<span class="tag">{tag}</span>
+							))}
+						</div>
+					</a>
+				</article>
+			))}
+			<p class="empty-locale" data-locale-empty hidden></p>
+		</section>
 	</div>
 </Page>
 
 <style>
-	.tab-bar {
-		display: flex;
-		border-bottom: 1px solid var(--gh-border);
-		margin-bottom: 20px;
+	.blog-hero {
+		max-width: 860px;
+		margin: 0 auto 28px;
 	}
 
-	.tab {
-		display: flex;
+	.eyebrow {
+		font-size: 12px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--gh-text-secondary);
+		margin-bottom: 8px;
+	}
+
+	h1 {
+		font-size: clamp(28px, 5vw, 40px);
+		line-height: 1.2;
+		margin-bottom: 12px;
+	}
+
+	.intro {
+		font-size: 16px;
+		line-height: 1.7;
+		color: var(--gh-text-secondary);
+		max-width: 700px;
+		margin-bottom: 14px;
+	}
+
+	.locale-switch {
+		display: inline-flex;
 		align-items: center;
-		gap: 6px;
-		padding: 8px 14px;
+		gap: 4px;
+		border: 1px solid var(--gh-border);
+		border-radius: 999px;
+		padding: 3px;
+		background: var(--gh-base);
+	}
+
+	.locale-btn {
+		font: inherit;
 		font-size: 12px;
 		color: var(--gh-text-secondary);
-		text-decoration: none;
-		border-bottom: 2px solid transparent;
-		margin-bottom: -1px;
-		transition: color 0.15s ease;
+		border: 1px solid transparent;
+		background: transparent;
+		border-radius: 999px;
+		padding: 4px 10px;
+		cursor: pointer;
 	}
 
-	.tab:hover {
+	.locale-btn.is-active {
 		color: var(--gh-text);
-	}
-
-	.tab.active {
-		color: var(--gh-text);
-		border-bottom-color: var(--gh-red);
-	}
-
-	.tab svg {
-		opacity: 0.7;
-	}
-
-	.tab-badge {
-		font-size: 11px;
-		background: var(--gh-surface-2);
-		border-radius: 20px;
-		padding: 1px 7px;
-		color: var(--gh-text-secondary);
-	}
-
-	.page-desc {
-		font-size: 14px;
-		color: var(--gh-text-secondary);
-		margin-bottom: 16px;
+		background: var(--gh-surface);
+		border-color: var(--gh-border-muted);
 	}
 
 	.blog-list {
-		display: flex;
-		flex-direction: column;
+		max-width: 860px;
+		margin: 0 auto;
+		display: grid;
 		gap: 8px;
 	}
 
-	.blog-card {
+	.post-card {
 		background: var(--gh-base);
 		border: 1px solid var(--gh-border);
 		border-radius: 6px;
-		padding: 14px 16px;
-		display: flex;
-		gap: 12px;
-		text-decoration: none;
-		color: inherit;
 		transition: border-color 0.15s ease;
 	}
 
-	.blog-card:hover {
+	.post-card:hover {
 		border-color: var(--gh-accent);
 	}
 
-	.blog-card-title {
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--gh-accent);
-		margin-bottom: 4px;
+	.post-link {
+		display: block;
+		padding: 14px 16px;
 	}
 
-	.blog-card-desc {
-		font-size: 12px;
-		color: var(--gh-text-secondary);
-		margin-bottom: 8px;
-		line-height: 1.5;
-	}
-
-	.blog-card-meta {
+	.post-meta {
 		display: flex;
 		gap: 10px;
-		align-items: center;
+		flex-wrap: wrap;
 		font-size: 11px;
 		color: var(--gh-text-secondary);
-		flex-wrap: wrap;
+		margin-bottom: 6px;
+		align-items: center;
 	}
 
-	.pill {
+	.locale-pill {
 		font-size: 11px;
 		background: var(--gh-surface);
 		border: 1px solid var(--gh-border-muted);
-		border-radius: 20px;
-		padding: 1px 8px;
 		color: var(--gh-text-secondary);
+		padding: 1px 8px;
+		border-radius: 20px;
+	}
+
+	.post-title {
+		font-size: 14px;
+		line-height: 1.45;
+		color: var(--gh-accent);
+		margin-bottom: 8px;
+	}
+
+	.post-desc {
+		font-size: 12px;
+		line-height: 1.5;
+		color: var(--gh-text-secondary);
+		margin-bottom: 12px;
+	}
+
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.tag {
+		font-size: 11px;
+		background: var(--gh-surface);
+		border: 1px solid var(--gh-border-muted);
+		color: var(--gh-text-secondary);
+		padding: 1px 8px;
+		border-radius: 20px;
+	}
+
+	.empty-locale {
+		font-size: 13px;
+		color: var(--gh-text-secondary);
+		border: 1px dashed var(--gh-border-muted);
+		border-radius: 6px;
+		padding: 12px;
+	}
+
+	@media (max-width: 768px) {
+		.post-link {
+			padding: 14px;
+		}
+
+		.post-title {
+			font-size: 13px;
+		}
 	}
 </style>
+
+<script is:inline>
+	(() => {
+		const root = document.querySelector('[data-blog-locale-root]');
+		if (!root) return;
+
+		const buttons = Array.from(root.querySelectorAll('[data-locale-btn]'));
+		const cards = Array.from(root.querySelectorAll('[data-post-locale]'));
+		const emptyState = root.querySelector('[data-locale-empty]');
+
+		const getLangFromUrl = () => {
+			const current = new URL(window.location.href).searchParams.get('lang');
+			return current === 'id' ? 'id' : 'en';
+		};
+
+		const setLangInUrl = (lang) => {
+			const url = new URL(window.location.href);
+			url.searchParams.set('lang', lang);
+			window.history.replaceState({}, '', url);
+		};
+
+		const applyLocale = (lang) => {
+			let visible = 0;
+			for (const card of cards) {
+				const matches = card.getAttribute('data-post-locale') === lang;
+				card.hidden = !matches;
+				if (matches) visible++;
+			}
+
+			for (const button of buttons) {
+				button.classList.toggle('is-active', button.getAttribute('data-locale-btn') === lang);
+			}
+
+			if (emptyState) {
+				emptyState.hidden = visible > 0;
+				emptyState.textContent =
+					lang === 'id'
+						? 'Belum ada artikel Bahasa Indonesia yang tersedia.'
+						: 'No English articles are available yet.';
+			}
+		};
+
+		const initialLang = getLangFromUrl();
+		applyLocale(initialLang);
+
+		for (const button of buttons) {
+			button.addEventListener('click', () => {
+				const lang = button.getAttribute('data-locale-btn');
+				if (lang !== 'en' && lang !== 'id') return;
+				setLangInUrl(lang);
+				applyLocale(lang);
+			});
+		}
+	})();
+</script>

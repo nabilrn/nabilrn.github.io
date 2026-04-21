@@ -18,7 +18,7 @@ export async function GET() {
 
   for (const post of posts) {
     const loc = `${siteUrl}/blog/${post.slug}/`;
-    const lastmod = post.data.pubDate.toISOString();
+    const lastmod = (post.data.updatedDate ?? post.data.pubDate).toISOString();
     urlset.push(`<url><loc>${loc}</loc><lastmod>${lastmod}</lastmod><priority>0.7</priority></url>`);
   }
 

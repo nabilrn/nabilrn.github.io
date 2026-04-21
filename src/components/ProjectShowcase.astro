@@ -1,7 +1,7 @@
 ---
 import tkitiImg from '../assets/tkiti.webp';
 import pondokpermaiImg from '../assets/pondokpermai.webp';
-import neocentralImg from '../assets/neocentral.webp';
+// import neocentralImg from '../assets/neocentral.webp';
 import ezagentImg from '../assets/ez_agent.webp';
 import foodexplorer1Img from '../assets/foodexplorer1.webp';
 import foodexplorer2Img from '../assets/foodexplorer2.webp';
@@ -10,6 +10,9 @@ import foodexplorer4Img from '../assets/foodexplorer4.webp';
 import ghibligallery1Img from '../assets/ghibligallery1.webp';
 import ghibligallery2Img from '../assets/ghibligallery2.webp';
 import sspImg from '../assets/ssp.webp';
+import porschegalleryImg from '../assets/porschegallery.webp';
+import PortfolioLayout from './PortfolioLayout.astro';
+
 
 interface WebProject {
     name: string;
@@ -54,12 +57,20 @@ const webProjects: WebProject[] = [
         stack: ['React', 'Vite', 'GitHub Pages'],
         screenshot: pondokpermaiImg,
     },
+    // {
+    //     name: 'Neocentral',
+    //     desc: 'Full-stack platform with a self-hosted deployment pipeline, containerized backend services, and a React frontend.',
+    //     liveUrl: 'https://neocentral.dev',
+    //     stack: ['React', 'Vite', 'Express', 'MySQL', 'Redis', 'Docker'],
+    //     screenshot: neocentralImg,
+    // },
     {
-        name: 'Neocentral',
-        desc: 'Full-stack platform with a self-hosted deployment pipeline, containerized backend services, and a React frontend.',
-        liveUrl: 'https://neocentral.dev',
-        stack: ['React', 'Vite', 'Express', 'MySQL', 'Redis', 'Docker'],
-        screenshot: neocentralImg,
+        name: 'Porsche Gallery',
+        desc: 'Porsche Gallery is an elegant, interactive single-page showcase of the Porsche 911 legacy and models.',
+        liveUrl: 'https://nabilrizkinavisa.me/porsche-gallery/',
+        repoUrl: 'https://github.com/nabilrn/porsche-gallery.git',
+        stack: ['Html', 'Css', 'JavaScript', ],
+        screenshot: porschegalleryImg,
     },
     {
         name: 'Sumbar Smart Portal',

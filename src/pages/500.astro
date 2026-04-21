@@ -1,0 +1,95 @@
+---
+import Page from '../components/Page.astro';
+---
+
+<Page
+	title="500 | Server Error"
+	description="The server encountered an unexpected error."
+	path="/500/"
+	layoutVariant="blog-full"
+	robots="noindex, nofollow"
+	ogImageAlt="500 server error page for nabilrizkinavisa.me."
+>
+	<section class="error-wrap">
+		<p class="code">500</p>
+		<h1>Unexpected server error.</h1>
+		<p class="desc">
+			Something went wrong while loading this page. Please try again in a moment, or return to the homepage.
+		</p>
+		<div class="actions">
+			<a href="/" class="btn primary">Go to portfolio</a>
+			<a href="/blog/" class="btn">Read the blog</a>
+		</div>
+	</section>
+</Page>
+
+<style>
+	.error-wrap {
+		max-width: 760px;
+		margin: 12vh auto 0;
+		text-align: center;
+		border: 1px solid var(--gh-border);
+		border-radius: 6px;
+		padding: 30px 20px 26px;
+		background: var(--gh-base);
+	}
+
+	.code {
+		font-size: clamp(56px, 13vw, 90px);
+		font-weight: 700;
+		line-height: 0.95;
+		letter-spacing: -0.04em;
+		color: var(--gh-text);
+		margin-bottom: 8px;
+	}
+
+	h1 {
+		font-size: clamp(25px, 4.2vw, 34px);
+		line-height: 1.2;
+		margin-bottom: 10px;
+	}
+
+	.desc {
+		max-width: 560px;
+		margin: 0 auto;
+		font-size: 14px;
+		line-height: 1.65;
+		color: var(--gh-text-secondary);
+	}
+
+	.actions {
+		margin-top: 20px;
+		display: flex;
+		gap: 10px;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		padding: 6px 12px;
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 6px;
+		color: var(--gh-text);
+		background: var(--gh-surface);
+		font-size: 13px;
+	}
+
+	.btn.primary {
+		border-color: var(--gh-accent);
+		background: color-mix(in srgb, var(--gh-accent) 22%, var(--gh-base));
+		color: var(--gh-accent-hover);
+	}
+
+	.btn:hover {
+		border-color: var(--gh-accent);
+	}
+
+	@media (max-width: 768px) {
+		.error-wrap {
+			margin-top: 8vh;
+			padding: 24px 16px 20px;
+		}
+	}
+</style>
