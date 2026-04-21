@@ -9,7 +9,7 @@ import foodexplorer3Img from '../assets/foodexplorer3.webp';
 import foodexplorer4Img from '../assets/foodexplorer4.webp';
 import ghibligallery1Img from '../assets/ghibligallery1.webp';
 import ghibligallery2Img from '../assets/ghibligallery2.webp';
-
+import sspImg from '../assets/ssp.webp';
 
 interface WebProject {
     name: string;
@@ -60,6 +60,14 @@ const webProjects: WebProject[] = [
         liveUrl: 'https://neocentral.dev',
         stack: ['React', 'Vite', 'Express', 'MySQL', 'Redis', 'Docker'],
         screenshot: neocentralImg,
+    },
+    {
+        name: 'Sumbar Smart Portal',
+        desc: 'AI-powered government portal prototype built in 24 hours during the 2025 Firetech Event by Neotelemetri.',
+        liveUrl: 'https://sumbar-smart-portal.vercel.app/',
+        repoUrl: 'https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/sumbar-smart-portal.git',
+        stack: ['Next.js', 'Google AI Studio', 'Vercel', ],
+        screenshot: sspImg,
     },
 ];
 
