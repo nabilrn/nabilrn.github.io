@@ -11,7 +11,8 @@ import ghibligallery1Img from '../assets/ghibligallery1.webp';
 import ghibligallery2Img from '../assets/ghibligallery2.webp';
 import sspImg from '../assets/ssp.webp';
 import porschegalleryImg from '../assets/porschegallery.webp';
-import PortfolioLayout from './PortfolioLayout.astro';
+import networkRookieImg from '../assets/network-rookie.webp';
+
 
 
 interface WebProject {
@@ -33,6 +34,14 @@ interface MobileProject {
 }
 
 const webProjects: WebProject[] = [
+    {
+        name: 'Network Rookie',
+        desc: 'An AI-Powered Interactive Visualization Of The Global Internet Infrastructure,',
+        liveUrl: 'https://nabilrizkinavisa.me/network-rookie',
+        repoUrl: 'https://github.com/nabilrn/network-rookie.git',
+        stack: ['React','Vite','Globe.GL','Three.js','GitHub Pages'],
+        screenshot: networkRookieImg,
+    },
     {
         name: 'Ez-Agent Landing Page',
         desc: 'Landing page for EZ Agents, a multi-agent AI orchestration system for building software with coordinated intelligent agents.',
