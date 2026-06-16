@@ -13,6 +13,12 @@ import sspImg from "../assets/ssp.webp";
 import porschegalleryImg from "../assets/porschegallery.webp";
 import networkRookieImg from "../assets/network-rookie.webp";
 import ftiImg from "../assets/fti.webp";
+import neocentral1Img from "../assets/neocentral1.webp";
+import neocentral2Img from "../assets/neocentral2.webp";
+import neocentral3Img from "../assets/neocentral3.webp";
+import neocentral4Img from "../assets/neocentral4.webp";
+import neocentral5Img from "../assets/neocentral5.webp";
+import neocentral6Img from "../assets/neocentral6.webp";
 import type { SiteLocale } from "./siteContent";
 
 export interface WebProject {
@@ -131,6 +137,20 @@ export const webProjects: WebProject[] = [
 
 export const mobileProjects: MobileProject[] = [
   {
+    name: "Neocentral Mobile",
+    desc: "Cross-platform thesis guidance app for students and lecturers at DSI Unand.",
+    platform: "iOS / Android · Flutter",
+    stack: ["Flutter", "Shared UI", "FCM", "Microsoft Auth"],
+    screenshots: [
+      neocentral1Img,
+      neocentral2Img,
+      neocentral3Img,
+      neocentral4Img,
+      neocentral5Img,
+      neocentral6Img,
+    ],
+  },
+  {
     name: "Food Explorer",
     desc: "Browse and discover meals by category using TheMealDB public API.",
     platform: "Android · Jetpack Compose",
@@ -202,6 +222,11 @@ const webProjectDescriptions: LocalizedDescriptions = {
 };
 
 const mobileProjectDescriptions: LocalizedDescriptions = {
+  "Neocentral Mobile": {
+    id: "Aplikasi bimbingan tugas akhir untuk mahasiswa dan dosen di DSI Unand.",
+    cn: "面向 DSI Unand 学生与教师的跨平台毕业论文指导应用。",
+    jp: "DSI Unand の学生と教員向けクロスプラットフォーム卒業研究指導アプリ。",
+  },
   "Food Explorer": {
     id: "Menjelajahi dan menemukan menu makanan berdasarkan kategori menggunakan TheMealDB public API.",
     cn: "使用 TheMealDB 公共 API 按分类浏览和发现餐食。",
