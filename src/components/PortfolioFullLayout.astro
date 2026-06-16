@@ -1,0 +1,203 @@
+---
+import { getCollection } from "astro:content";
+import { getSiteContent, localeMeta, localizePath, normalizeLocale, stripLocaleFromPath, supportedLocales, type SiteLocale } from "../data/siteContent";
+import { getBlogLocaleInfo } from "../utils/blogLocale";
+
+interface Props {
+    currentPath?: string;
+    locale?: SiteLocale;
+    alternatePaths?: Partial<Record<SiteLocale, string>>;
+}
+
+const blogPosts = await getCollection("blog", ({ data }) => !data.draft);
+const postCount = new Set(blogPosts.map((post) => getBlogLocaleInfo(post).translationKey)).size;
+const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
+const alternatePaths = Astro.props.alternatePaths;
+const normalizedPath = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
+const isHomePage = currentPath === "/" || currentPath === "";
+const isProjectsPage = normalizedPath.startsWith("/projects/");
+const isBlogPage = normalizedPath.startsWith("/blog/");
+const locale = normalizeLocale(Astro.props.locale);
+const content = getSiteContent(locale);
+const homePath = localizePath('/', locale);
+const projectsPath = localizePath('/projects/', locale);
+const blogPath = localizePath('/blog/', locale);
+const languageLinks = supportedLocales.map((item) => ({
+    locale: item,
+    label: localeMeta[item].label,
+    href: alternatePaths?.[item] ?? localizePath(stripLocaleFromPath(currentPath), item),
+    active: item === locale,
+}));
+const localizedNormalizedPath = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
+const isLocalizedHomePage = localizedNormalizedPath === homePath;
+const isLocalizedProjectsPage = localizedNormalizedPath.startsWith(projectsPath);
+const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
+---
+
+<div class="full-shell">
+    <header class="full-header">
+        <div class="full-header-inner">
+            <a href={homePath} class="brand">{content.nav.brand}</a>
+            <nav class="page-nav" aria-label={content.nav.ariaPageNavigation}>
+                <a href={homePath} class={isHomePage || isLocalizedHomePage ? "page-nav-item active" : "page-nav-item"}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
+                    {content.nav.overview}
+                </a>
+                <a href={projectsPath} class={isProjectsPage || isLocalizedProjectsPage ? "page-nav-item active" : "page-nav-item"}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
+                    {content.nav.projects}
+                </a>
+                <a href={blogPath} class={isBlogPage || isLocalizedBlogPage ? "page-nav-item active" : "page-nav-item"}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"></path></svg>
+                    {content.nav.blog}
+                    <span class="page-nav-badge">{postCount}</span>
+                </a>
+            </nav>
+            <nav class="language-nav" aria-label={content.nav.ariaLanguageNavigation}>
+                {languageLinks.map((item) => (
+                    <a href={item.href} class={item.active ? "language-link active" : "language-link"} aria-current={item.active ? "true" : undefined}>
+                        {item.label}
+                    </a>
+                ))}
+            </nav>
+        </div>
+    </header>
+
+    <main class="full-main">
+        <slot />
+    </main>
+</div>
+
+<style>
+    .full-shell {
+        min-height: 100vh;
+        --content-gutter: clamp(16px, 4vw, 32px);
+    }
+
+    .full-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: color-mix(in srgb, var(--gh-base) 90%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--gh-border);
+    }
+
+    .full-header-inner {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 var(--content-gutter);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+    }
+
+    .brand {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--gh-text);
+        white-space: nowrap;
+        border-radius: 6px;
+    }
+
+    .page-nav {
+        display: flex;
+        overflow-x: auto;
+    }
+
+    .language-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .language-link {
+        border: 1px solid transparent;
+        border-radius: 6px;
+        color: var(--gh-text-secondary);
+        font-size: 11px;
+        line-height: 1;
+        padding: 5px 7px;
+        white-space: nowrap;
+    }
+
+    .language-link:hover,
+    .language-link.active {
+        background: var(--gh-surface);
+        border-color: var(--gh-border-muted);
+        color: var(--gh-text);
+    }
+
+    .page-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 14px 12px;
+        font-size: 12px;
+        color: var(--gh-text-secondary);
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+        transition: color 0.15s ease;
+    }
+
+    .page-nav-item:hover {
+        color: var(--gh-text);
+    }
+
+    .brand:focus-visible,
+    .page-nav-item:focus-visible,
+    .language-link:focus-visible {
+        outline: 2px solid var(--gh-accent);
+        outline-offset: 2px;
+    }
+
+    .page-nav-item.active {
+        color: var(--gh-text);
+        border-bottom-color: var(--gh-red);
+    }
+
+    .page-nav-item svg {
+        flex-shrink: 0;
+        opacity: 0.7;
+    }
+
+    .page-nav-badge {
+        font-size: 11px;
+        background: var(--gh-surface-2);
+        border-radius: 20px;
+        padding: 1px 7px;
+        color: var(--gh-text-secondary);
+    }
+
+    .full-main {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 28px var(--content-gutter) 96px;
+    }
+
+    @media (max-width: 768px) {
+        .full-header-inner {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0;
+        }
+
+        .brand {
+            padding-top: 12px;
+        }
+
+        .language-nav {
+            justify-content: flex-start;
+            padding: 0 0 10px;
+        }
+
+        .full-main {
+            padding-top: 18px;
+            padding-bottom: 72px;
+        }
+    }
+</style>

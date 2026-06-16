@@ -1,14 +1,16 @@
 import type { CollectionEntry } from 'astro:content';
 
-export type BlogLocale = 'en' | 'id';
+export type BlogLocale = 'en' | 'id' | 'cn' | 'jp';
 type BlogEntry = CollectionEntry<'blog'>;
 
-const slugSuffixPattern = /([-_])(id|en|eng)$/i;
+const slugSuffixPattern = /([-_])(id|cn|jp|en|eng)$/i;
 
 const normalizeLocale = (value?: string): BlogLocale | undefined => {
 	if (!value) return undefined;
 	const normalized = value.toLowerCase();
 	if (normalized === 'id') return 'id';
+	if (normalized === 'cn') return 'cn';
+	if (normalized === 'jp') return 'jp';
 	if (normalized === 'en' || normalized === 'eng') return 'en';
 	return undefined;
 };

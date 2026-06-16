@@ -1,0 +1,34 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BlogPostPage from '../../blog/[slug].astro';
+import { localizedLocales, localizePath, type SiteLocale } from '../../../data/siteContent';
+import { getBlogLocaleInfo } from '../../../utils/blogLocale';
+
+export async function getStaticPaths() {
+    const posts = await getCollection('blog', ({ data }) => !data.draft);
+
+    return localizedLocales.flatMap((locale) =>
+        posts
+            .filter((post) => getBlogLocaleInfo(post).locale === locale)
+            .map((post) => ({
+            params: {
+                locale,
+                slug: post.slug,
+            },
+            props: {
+                post,
+                locale,
+                path: localizePath(`/blog/${post.slug}/`, locale),
+            },
+        }))
+    );
+}
+
+const { post, locale, path } = Astro.props as {
+    post: CollectionEntry<'blog'>;
+    locale: SiteLocale;
+    path: string;
+};
+---
+
+<BlogPostPage post={post} locale={locale} path={path} />

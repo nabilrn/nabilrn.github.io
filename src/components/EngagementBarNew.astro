@@ -1,15 +1,18 @@
 ---
 import Icon from './Icon.astro';
+import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
 interface Props {
 	postId: string;
 	title: string;
 	variant?: 'inline' | 'floating';
+	locale?: SiteLocale;
 }
 
-const { postId, title, variant = 'inline' } = Astro.props;
+const { postId, title, variant = 'inline', locale: rawLocale } = Astro.props;
 const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
 const rootId = `engage-${postId}`;
+const content = getSiteContent(normalizeLocale(rawLocale)).engagement;
 ---
 
 <div id={rootId} class={`engage ${variant === 'floating' ? 'floating' : 'inline'}`} data-post-id={postId} data-api-base={apiBase} data-title={title} aria-live="polite">
@@ -19,8 +22,8 @@ const rootId = `engage-${postId}`;
 		<span class="engage-stat"><Icon name="share" /> <strong data-shares>0</strong></span>
 	</div>
 	<div class="engage-actions">
-		<button class="engage-btn" aria-label="Like post" data-like-btn><Icon name="heart" /> <span class="label">Like</span></button>
-		<button class="engage-btn" data-share-btn="copy" aria-label="Copy link"><Icon name="copy" /> <span class="label">Copy</span></button>
+		<button class="engage-btn" aria-label={content.likePost} data-like-btn><Icon name="heart" /> <span class="label">{content.like}</span></button>
+		<button class="engage-btn" data-share-btn="copy" aria-label={content.copyLink}><Icon name="copy" /> <span class="label">{content.copy}</span></button>
 	</div>
 </div>
 <div id={`${rootId}-toast`} aria-hidden="true" class="toast"></div>
@@ -86,8 +89,10 @@ const rootId = `engage-${postId}`;
 	}
 
 	.engage.floating {
-		position: sticky;
-		top: 84px;
+		position: fixed;
+		top: 92px;
+		left: calc(50% + 450px);
+		z-index: 30;
 		width: 84px;
 		padding: 8px;
 		flex-direction: column;
@@ -172,7 +177,7 @@ const rootId = `engage-${postId}`;
 	}
 </style>
 
-<script is:inline define:vars={{ rootId }}>
+<script is:inline define:vars={{ rootId, linkCopiedMessage: content.linkCopied, copiedMessage: content.copied }}>
 	const root = document.getElementById(rootId);
 	(function () {
 		const el = root;
@@ -301,7 +306,7 @@ const rootId = `engage-${postId}`;
 				try {
 					if (mode === 'copy') {
 						await navigator.clipboard.writeText(url);
-						showToast('Link copied');
+						showToast(linkCopiedMessage);
 					}
 					if (api) {
 						await fetchApi({ action: 'share' });
@@ -310,7 +315,7 @@ const rootId = `engage-${postId}`;
 						return;
 					}
 				} catch {
-					showToast('Copied');
+					showToast(copiedMessage);
 				}
 				const sharesKey = 'portfolio:shares:' + pid;
 				let count = Number(localStorage.getItem(sharesKey) || '0');

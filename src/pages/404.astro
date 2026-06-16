@@ -1,24 +1,28 @@
 ---
 import Page from '../components/Page.astro';
+import { getSiteContent } from '../data/siteContent';
+
+const content = getSiteContent('en').errors;
+const page = content.notFound;
 ---
 
 <Page
-	title="404 | Page Not Found"
-	description="The page you are looking for cannot be found."
+	title={page.title}
+	description={page.description}
 	path="/404/"
 	layoutVariant="blog-full"
 	robots="noindex, nofollow"
-	ogImageAlt="404 page not found for nabilrizkinavisa.me."
+	ogImageAlt={page.ogImageAlt}
 >
 	<section class="error-wrap">
-		<p class="code">404</p>
-		<h1>Page not found.</h1>
+		<p class="code">{page.code}</p>
+		<h1>{page.heading}</h1>
 		<p class="desc">
-			The link may be broken, moved, or removed. Use one of the options below to continue browsing.
+			{page.body}
 		</p>
 		<div class="actions">
-			<a href="/" class="btn primary">Go to portfolio</a>
-			<a href="/blog/" class="btn">Read the blog</a>
+			<a href="/" class="btn primary">{content.actions.portfolio}</a>
+			<a href="/blog/" class="btn">{content.actions.blog}</a>
 		</div>
 	</section>
 </Page>

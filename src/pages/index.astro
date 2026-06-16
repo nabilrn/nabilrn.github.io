@@ -1,194 +1,55 @@
 ---
 import Page from '../components/Page.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
+import { getRepositoryProjects, langColors } from '../data/projects';
+import { getSiteContent, localizePath, normalizeLocale, localeMeta, type SiteLocale } from '../data/siteContent';
 import { getCollection } from 'astro:content';
 
-const latestPosts = (await getCollection('blog', ({ data }) => !data.draft))
+interface Props {
+    locale?: SiteLocale;
+    path?: string;
+}
+
+const locale = normalizeLocale(Astro.props.locale);
+const pagePath = Astro.props.path ?? localizePath('/', locale);
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const preferredPostLocale = locale === 'en' ? 'en' : locale;
+const latestPosts = allPosts
+    .filter((post) => (post.data.locale ?? 'en') === preferredPostLocale)
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
     .slice(0, 3);
 
-const langColors: Record<string, string> = {
-    TypeScript: '#3178c6',
-    JavaScript: '#f1e05a',
-    Kotlin: '#7F52FF',
-    Dart: '#0553b1',
-    Python: '#3572A5',
-    Go: '#00ADD8',
-    React: '#61dafb',
-};
+const allProjects = await getRepositoryProjects({}, locale);
+const projects = allProjects.slice(0, 6);
+const content = getSiteContent(locale);
+const home = content.home;
 
-interface GitHubRepo {
-    name: string;
-    description: string | null;
-    language: string | null;
-    html_url: string;
-    stargazers_count: number;
-    topics: string[];
-}
-
-const GITHUB_USERNAME = 'nabilrn';
-
-// Org repos to include (manually curated, fetched from GitHub API)
-const ORG_REPOS = [
-    { owner: 'kk-infrastruktur-dan-tata-kelola-dsi', name: 'tkiti.github.io' },
-    { owner: 'NeoCentralSI', name: 'Neo-Central-Mobile' },
-    { owner: 'NeoCentralSI', name: 'website' },
-    { owner: 'NeoCentralSI', name: 'services' },
-];
-
-// Fallback data if API fails (name, desc, lang, url, stars, tags)
-const FALLBACK_PROJECTS = [
-    { name: 'Momentum', desc: 'Cross-platform habit-tracking app with real-time sync and notifications.', lang: 'Dart', url: 'https://github.com/nabilrn/Momentum', tags: ['Flutter', 'Supabase'] },
-    { name: 'express-api-starter', desc: 'Boilerplate for building REST APIs with Express.js and TypeScript.', lang: 'TypeScript', url: 'https://github.com/nabilrn/express-api-starter', stars: 4, tags: ['Express'] },
-    { name: 'moviecatalog-kmp', desc: 'Cross-platform movie catalog app built with Kotlin Multiplatform.', lang: 'Kotlin', url: 'https://github.com/nabilrn/moviecatalog-kmp', tags: ['KMP'] },
-    { name: 'Airbnb-BI', desc: 'BI dashboard for pricing insights using Kaggle datasets and ML recommendations.', lang: 'TypeScript', url: 'https://github.com/nabilrn/Airbnb-BI', tags: ['Next.js'] },
-    { name: 'android-firebase-starter', desc: 'Android starter template with Firebase integration.', lang: 'Kotlin', url: 'https://github.com/nabilrn/android-firebase-starter', stars: 2, tags: ['Firebase'] },
-    { name: 'Outfyt', desc: 'Bangkit Capstone - Smart OOTD Recommendation App based on skin tone analysis.', lang: 'Kotlin', url: 'https://github.com/nabilrn/Outfyt', tags: ['TensorFlow'] },
-];
-
-async function fetchPinnedRepos(): Promise<Array<{ name: string; desc: string; lang: string; url: string; stars?: number; tags: string[] }>> {
-    const token = import.meta.env.GITHUB_TOKEN;
-    const featuredRepos = (import.meta.env.FEATURED_REPOS as string)?.split(',').map((r: string) => r.trim()).filter(Boolean) || [];
-
-    // If FEATURED_REPOS env var is set, fetch details from GitHub API
-    if (featuredRepos.length > 0) {
-        try {
-            const results = await Promise.allSettled(
-                featuredRepos.map(async (repoName: string) => {
-                    const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${repoName}`, {
-                        headers: token ? { 'Authorization': `token ${token}` } : {},
-                    });
-                    if (!res.ok) throw new Error(`Failed to fetch ${repoName}`);
-                    const repo: GitHubRepo = await res.json();
-                    return {
-                        name: repo.name,
-                        desc: repo.description || '',
-                        lang: repo.language || 'Unknown',
-                        url: repo.html_url,
-                        stars: repo.stargazers_count,
-                        tags: repo.topics?.slice(0, 2) || [],
-                    };
-                })
-            );
-            const successful = results
-                .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
-                .map((r) => r.value);
-            if (successful.length > 0) return successful;
-        } catch {
-            // Fall through
-        }
-    }
-
-    // Fetch repos sorted by last commit date (requires token for higher rate limit)
-    if (token) {
-        try {
-            const res = await fetch(
-                `https://api.github.com/users/${GITHUB_USERNAME}/repos?sort=pushed&per_page=100&direction=desc&type=owner`,
-                {
-                    headers: { 'Authorization': `token ${token}` },
-                }
-            );
-            if (res.ok) {
-                const allRepos: GitHubRepo[] = await res.json();
-                if (Array.isArray(allRepos) && allRepos.length > 0) {
-                    // Filter: only repos pushed within the last 7 days
-                    const sevenDaysAgo = new Date();
-                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-                    const recentRepos = allRepos
-                        .filter((repo) => new Date(repo.pushed_at) >= sevenDaysAgo)
-                        .slice(0, 6);
-
-                    if (recentRepos.length > 0) {
-                        return recentRepos.map((r) => ({
-                            name: r.name,
-                            desc: r.description || '',
-                            lang: r.language || 'Unknown',
-                            url: r.html_url,
-                            stars: r.stargazers_count,
-                            tags: r.topics?.slice(0, 2) || [],
-                        }));
-                    }
-                }
-            }
-        } catch {
-            // Fall through to hardcoded list
-        }
-    }
-
-    // Fallback: hardcoded list (set FEATURED_REPOS or GITHUB_TOKEN to auto-sync)
-    return FALLBACK_PROJECTS;
-}
-
-async function fetchOrgRepos(): Promise<Array<{ name: string; desc: string; lang: string; url: string; stars?: number; tags: string[] }>> {
-    try {
-        const results = await Promise.allSettled(
-            ORG_REPOS.map(async ({ owner, name }) => {
-                const res = await fetch(`https://api.github.com/repos/${owner}/${name}`);
-                if (!res.ok) throw new Error(`Failed to fetch ${name}`);
-                const repo: GitHubRepo = await res.json();
-                return {
-                    name: repo.name,
-                    desc: repo.description || '',
-                    lang: repo.language || 'Unknown',
-                    url: repo.html_url,
-                    stars: repo.stargazers_count,
-                    tags: repo.topics?.slice(0, 2) || [],
-                };
-            })
-        );
-        return results
-            .filter((r): r is PromiseFulfilledResult<any> => r.status === 'fulfilled')
-            .map((r) => r.value);
-    } catch {
-        return [];
-    }
-}
-
-const personalRepos = await fetchPinnedRepos();
-const orgReposList = await fetchOrgRepos();
-const projects = [...personalRepos, ...orgReposList];
+const aboutPattern = new RegExp(`(${home.about.strongTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((part) => ({
+    text: part,
+    strong: home.about.strongTerms.includes(part),
+}));
 ---
 
-<Page title="Nabil Rizki Navisa | Software Engineer" description="Portfolio of Nabil Rizki Navisa - Software Engineer, AI Agent Enthusiast, and IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia." path="/">
-    <!-- Tab Bar -->
-    <div class="tab-bar">
-        <a href="/" class="tab active">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
-            Overview
-        </a>
-        <a href="/#showcase" class="tab">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"></path></svg>
-            Showcase
-        </a>
-        <a href="/#projects" class="tab">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
-            Projects
-            <span class="tab-badge">{projects.length}</span>
-        </a>
-        <a href="/blog/" class="tab">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"></path></svg>
-            Blog
-            <span class="tab-badge">{latestPosts.length}</span>
-        </a>
-    </div>
-
+<Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale}>
     <!-- About -->
     <section id="about" class="section">
         <div class="section-heading">
-            <h2>About</h2>
+            <h2>{home.about.heading}</h2>
         </div>
-        <p>Information Systems undergraduate focused on software engineering, AI agent workflows, and IT infrastructure management. Proficient in <strong>TypeScript</strong>, <strong>React</strong>, <strong>Node.js</strong>, <strong>Kotlin</strong>, and <strong>Python</strong>. Experienced in building and deploying production systems using Docker, CI/CD pipelines, and self-managed Proxmox virtualization environments. Combines strong software engineering fundamentals with practical DevOps skills, AI-assisted development workflows, and a passion for scalable system architecture.</p>
+        <p>
+            {aboutSegments.map((segment) => segment.strong ? <strong>{segment.text}</strong> : segment.text)}
+        </p>
     </section>
 
     <!-- Showcase -->
-    <ProjectShowcase />
+    <ProjectShowcase webLimit={3} mobileLimit={2} showAllLink locale={locale} />
 
     <!-- Projects -->
     <section id="projects" class="section">
         <div class="section-heading">
-            <h2>Project</h2>
-            <span class="section-sub">recent project working on</span>
+            <h2>{home.repositories.heading}</h2>
+            <span class="section-sub">{home.repositories.subheading}</span>
         </div>
         <div class="projects-grid">
             {projects.map((project) => (
@@ -196,7 +57,7 @@ const projects = [...personalRepos, ...orgReposList];
                     <div class="repo-header">
                         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" class="repo-icon"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
                         <span class="repo-name">{project.name}</span>
-                        <span class="repo-visibility">Public</span>
+                        <span class="repo-visibility">{home.repositories.visibility}</span>
                     </div>
                     <div class="repo-desc">{project.desc}</div>
                     <div class="repo-footer">
@@ -218,113 +79,61 @@ const projects = [...personalRepos, ...orgReposList];
             ))}
         </div>
         <div class="explore-link">
-            <a href="https://github.com/nabilrn?tab=repositories" target="_blank" rel="noopener">View all repositories</a>
+            <a href={localizePath('/projects/', locale)}>{home.repositories.viewAll}</a>
         </div>
     </section>
 
     <!-- Experiences -->
     <section id="experiences" class="section">
         <div class="section-heading">
-            <h2>Experience</h2>
-            <span class="section-sub">Work and academic roles</span>
+            <h2>{home.experiences.heading}</h2>
+            <span class="section-sub">{home.experiences.subheading}</span>
         </div>
 
-        <div class="exp-item exp-current">
-            <div class="exp-header">
-                <span class="exp-title">Laboratory Assistant - TKITI</span>
-                <span class="exp-period">Coordinator / 2025</span>
+        {home.experiences.items.map((item) => (
+            <div class={item.current ? 'exp-item exp-current' : 'exp-item'}>
+                <div class="exp-header">
+                    <span class="exp-title">{item.title}</span>
+                    <span class="exp-period">{item.period}</span>
+                </div>
+                <ul class="exp-list">
+                    {item.bullets.map((bullet) => <li>{bullet}</li>)}
+                </ul>
+                <div class="exp-tags">
+                    {item.tags.map((tag) => <span class="pill">{tag}</span>)}
+                </div>
             </div>
-            <ul class="exp-list">
-                <li>Led discussions on lab module design and curriculum alignment</li>
-                <li>Created strategic improvement plans for TKITI Lab development</li>
-                <li>Provided training and upgrading materials for new assistants</li>
-            </ul>
-            <div class="exp-tags">
-                <span class="pill">Leadership</span>
-                <span class="pill">Curriculum Design</span>
-                <span class="pill">Lab Management</span>
-            </div>
-        </div>
-
-        <div class="exp-item exp-current">
-            <div class="exp-header">
-                <span class="exp-title">Bank Nagari (Head Office)</span>
-                <span class="exp-period">Programmer Intern / 2025</span>
-            </div>
-            <ul class="exp-list">
-                <li>Built admin and intern modules in collaboration with one teammate</li>
-                <li>Taught Git fundamentals to in-house programmers</li>
-                <li>Learned banking IT practices, internal tech stacks, and system concepts</li>
-            </ul>
-            <div class="exp-tags">
-                <span class="pill">Express.js</span>
-                <span class="pill">React</span>
-                <span class="pill">PostgreSQL</span>
-                <span class="pill">Git</span>
-            </div>
-        </div>
-
-        <div class="exp-item">
-            <div class="exp-header">
-                <span class="exp-title">Laboratory Assistant - Basic Computing</span>
-                <span class="exp-period">Coordinator / 2024 - 2025</span>
-            </div>
-            <ul class="exp-list">
-                <li>Learned foundational IT infrastructure concepts, including server setup</li>
-                <li>Prepared lab environments, materials, and technical setups</li>
-            </ul>
-            <div class="exp-tags">
-                <span class="pill">IT Infrastructure</span>
-                <span class="pill">Server Management</span>
-            </div>
-        </div>
-
-        <div class="exp-item">
-            <div class="exp-header">
-                <span class="exp-title">Bangkit Academy 2024</span>
-                <span class="exp-period">Android Learning Path / 2024</span>
-            </div>
-            <ul class="exp-list">
-                <li>Learned modern Android development with Kotlin and XML</li>
-                <li>Built capstone project Outfyt - Smart OOTD Recommendation App</li>
-                <li>Collaborated with 8-person cross-functional team (ML, Cloud, Mobile)</li>
-            </ul>
-            <div class="exp-tags">
-                <span class="pill">Android</span>
-                <span class="pill">Kotlin</span>
-                <span class="pill">XML</span>
-            </div>
-        </div>
+        ))}
     </section>
 
     <!-- Contributions -->
     <section id="contributions" class="section">
         <div class="section-heading">
-            <h2>Contributions</h2>
-            <span class="section-sub">activity on GitHub</span>
+            <h2>{home.contributions.heading}</h2>
+            <span class="section-sub">{home.contributions.subheading}</span>
         </div>
         <img
             src="https://ghchart.rshah.org/3fb950/nabilrn"
-            alt="GitHub contribution chart"
+            alt={home.contributions.chartAlt}
             style="width:100%; border-radius:4px; filter: invert(1) hue-rotate(180deg);"
         />
-        <div class="contrib-label">nabilrn on GitHub</div>
+        <div class="contrib-label">{home.contributions.label}</div>
     </section>
 
     <!-- Blog -->
     <section id="blog" class="section">
         <div class="section-heading">
-            <h2>Latest posts</h2>
-            <span class="section-sub">Notes on software engineering</span>
+            <h2>{home.blog.heading}</h2>
+            <span class="section-sub">{home.blog.subheading}</span>
         </div>
         <div class="blog-cards">
             {latestPosts.map((post) => (
-                <a href={`/blog/${post.slug}/`} class="blog-card">
+                <a href={localizePath(`/blog/${post.slug}/`, locale)} class="blog-card">
                     <div class="blog-card-body">
                         <div class="blog-card-title">{post.data.title}</div>
                         <div class="blog-card-desc">{post.data.description}</div>
                         <div class="blog-card-meta">
-                            <span>{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                            <span>{post.data.pubDate.toLocaleDateString(localeMeta[locale].dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                             {post.data.tags.map((tag: string) => (
                                 <span class="pill">{tag}</span>
                             ))}
@@ -334,114 +143,44 @@ const projects = [...personalRepos, ...orgReposList];
             ))}
         </div>
         <div class="explore-link">
-            <a href="/blog/">View all posts</a>
+            <a href={localizePath('/blog/', locale)}>{home.blog.viewAll}</a>
         </div>
     </section>
 
     <!-- Skills -->
     <section id="skills" class="section">
         <div class="section-heading">
-            <h2>Skills</h2>
-            <span class="section-sub">Languages, tools, and infrastructure</span>
+            <h2>{home.skills.heading}</h2>
+            <span class="section-sub">{home.skills.subheading}</span>
         </div>
 
         <div class="skills-grid">
-            <div class="skill-group">
-                <div class="skill-label">PROGRAMMING</div>
-                <div class="skill-badges">
-                    <span class="pill pill-primary">JavaScript</span>
-                    <span class="pill pill-primary">TypeScript</span>
-                    <span class="pill pill-primary">Kotlin</span>
-                    <span class="pill">Dart</span>
-                    <span class="pill">Python</span>
+            {home.skills.groups.map((group) => (
+                <div class="skill-group">
+                    <div class="skill-label">{group.label}</div>
+                    <div class="skill-badges">
+                        {group.primary.map((skill) => <span class="pill pill-primary">{skill}</span>)}
+                        {group.items.map((skill) => <span class="pill">{skill}</span>)}
+                    </div>
                 </div>
-            </div>
-            <div class="skill-group">
-                <div class="skill-label">DEVOPS / INFRA</div>
-                <div class="skill-badges">
-                    <span class="pill">Proxmox</span>
-                    <span class="pill pill-primary">Docker</span>
-                    <span class="pill">Ubuntu</span>
-                    <span class="pill">GCP</span>
-                    <span class="pill">Cloudflare</span>
-                </div>
-            </div>
-            <div class="skill-group">
-                <div class="skill-label">DATABASES</div>
-                <div class="skill-badges">
-                    <span class="pill">MySQL</span>
-                    <span class="pill">PostgreSQL</span>
-                    <span class="pill">SQLite</span>
-                    <span class="pill">Redis</span>
-                </div>
-            </div>
-            <div class="skill-group">
-                <div class="skill-label">TOOLS</div>
-                <div class="skill-badges">
-                    <span class="pill">Git</span>
-                    <span class="pill">VS Code</span>
-                    <span class="pill">Android Studio</span>
-                    <span class="pill">Figma</span>
-                    <span class="pill">JetBrains</span>
-                </div>
-            </div>
+            ))}
         </div>
     </section>
 
     <!-- Certifications -->
     <section id="certifications" class="section">
         <div class="section-heading">
-            <h2>Certifications</h2>
+            <h2>{home.certifications.heading}</h2>
         </div>
         <ul class="cert-list">
-            <li><a href="https://dev.id/certificate/verify/41VQQG6VM8" target="_blank" rel="noopener">Dev Certification for Android (DCA) - Dev.id</a></li>
-            <li><a href="https://www.dicoding.com/certificates/1RXY27E8KXVM" target="_blank" rel="noopener">Android Developer - Dicoding 2024</a></li>
+            {home.certifications.items.map((item) => (
+                <li><a href={item.href} target="_blank" rel="noopener">{item.label}</a></li>
+            ))}
         </ul>
     </section>
 </Page>
 
 <style>
-    /* Tab Bar */
-    .tab-bar {
-        display: flex;
-        border-bottom: 1px solid var(--gh-border);
-        margin-bottom: 20px;
-    }
-
-    .tab {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        font-size: 12px;
-        color: var(--gh-text-secondary);
-        text-decoration: none;
-        border-bottom: 2px solid transparent;
-        margin-bottom: -1px;
-        transition: color 0.15s ease;
-    }
-
-    .tab:hover {
-        color: var(--gh-text);
-    }
-
-    .tab.active {
-        color: var(--gh-text);
-        border-bottom-color: var(--gh-red);
-    }
-
-    .tab svg {
-        opacity: 0.7;
-    }
-
-    .tab-badge {
-        font-size: 11px;
-        background: var(--gh-surface-2);
-        border-radius: 20px;
-        padding: 1px 7px;
-        color: var(--gh-text-secondary);
-    }
-
     /* Sections */
     .section {
         padding-top: 24px;
@@ -775,8 +514,5 @@ const projects = [...personalRepos, ...orgReposList];
             grid-template-columns: 1fr;
         }
 
-        .tab-bar {
-            overflow-x: auto;
-        }
     }
 </style>

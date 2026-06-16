@@ -1,126 +1,45 @@
 ---
-import tkitiImg from '../assets/tkiti.webp';
-import pondokpermaiImg from '../assets/pondokpermai.webp';
-// import neocentralImg from '../assets/neocentral.webp';
-import ezagentImg from '../assets/ez_agent.webp';
-import foodexplorer1Img from '../assets/foodexplorer1.webp';
-import foodexplorer2Img from '../assets/foodexplorer2.webp';
-import foodexplorer3Img from '../assets/foodexplorer3.webp';
-import foodexplorer4Img from '../assets/foodexplorer4.webp';
-import ghibligallery1Img from '../assets/ghibligallery1.webp';
-import ghibligallery2Img from '../assets/ghibligallery2.webp';
-import sspImg from '../assets/ssp.webp';
-import porschegalleryImg from '../assets/porschegallery.webp';
-import networkRookieImg from '../assets/network-rookie.webp';
+import { getLocalizedMobileProjects, getLocalizedWebProjects, getProjectSlug } from '../data/projects';
+import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
-
-
-interface WebProject {
-    name: string;
-    desc: string;
-    liveUrl: string;
-    repoUrl?: string;
-    stack: string[];
-    screenshot: ImageMetadata;
+interface Props {
+    heading?: string;
+    subheading?: string;
+    webLimit?: number;
+    mobileLimit?: number;
+    showAllLink?: boolean;
+    locale?: SiteLocale;
 }
 
-interface MobileProject {
-    name: string;
-    desc: string;
-    platform: string;
-    repoUrl?: string;
-    stack: string[];
-    screenshots?: ImageMetadata[];
-}
+const {
+    heading,
+    subheading,
+    webLimit,
+    mobileLimit,
+    showAllLink = false,
+    locale: rawLocale,
+} = Astro.props;
 
-const webProjects: WebProject[] = [
-    {
-        name: 'Network Rookie',
-        desc: 'An AI-Powered Interactive Visualization Of The Global Internet Infrastructure,',
-        liveUrl: 'https://nabilrizkinavisa.me/network-rookie',
-        repoUrl: 'https://github.com/nabilrn/network-rookie.git',
-        stack: ['React','Vite','Globe.GL','Three.js','GitHub Pages'],
-        screenshot: networkRookieImg,
-    },
-    {
-        name: 'Ez-Agent Landing Page',
-        desc: 'Landing page for EZ Agents, a multi-agent AI orchestration system for building software with coordinated intelligent agents.',
-        liveUrl: 'https://nabilrizkinavisa.me/ez-agent-landingpage/',
-        repoUrl: 'https://github.com/nabilrn/ez-agent-landingpage.git',
-        stack: ['Astro', 'Three.js', 'GitHub Pages'],
-        screenshot: ezagentImg,
-    },
-    {
-        name: 'Lab TKITI',
-        desc: 'Landing page and content system for Lab TKITI (campus lab at Universitas Andalas), with a bilingual (ID/EN) article system.',
-        liveUrl: 'https://tkiti.tech',
-        repoUrl: 'https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/tkiti.github.io',
-        stack: ['React', 'Vite', 'Hono', 'SQLite', 'GitHub Pages'],
-        screenshot: tkitiImg,
-    },
-    {
-        name: 'Bank Sampah Pondok Permai',
-        desc: 'Landing page for a community waste bank NGO in Padang, with a grounded, nature-driven aesthetic.',
-        liveUrl: 'https://pondokpermai.my.id',
-        repoUrl: 'https://github.com/nabilrn/permai-eco-landing',
-        stack: ['React', 'Vite', 'GitHub Pages'],
-        screenshot: pondokpermaiImg,
-    },
-    // {
-    //     name: 'Neocentral',
-    //     desc: 'Full-stack platform with a self-hosted deployment pipeline, containerized backend services, and a React frontend.',
-    //     liveUrl: 'https://neocentral.dev',
-    //     stack: ['React', 'Vite', 'Express', 'MySQL', 'Redis', 'Docker'],
-    //     screenshot: neocentralImg,
-    // },
-    {
-        name: 'Porsche Gallery',
-        desc: 'Porsche Gallery is an elegant, interactive single-page showcase of the Porsche 911 legacy and models.',
-        liveUrl: 'https://nabilrizkinavisa.me/porsche-gallery/',
-        repoUrl: 'https://github.com/nabilrn/porsche-gallery.git',
-        stack: ['Html', 'Css', 'JavaScript', ],
-        screenshot: porschegalleryImg,
-    },
-    {
-        name: 'Sumbar Smart Portal',
-        desc: 'AI-powered government portal prototype built in 24 hours during the 2025 Firetech Event by Neotelemetri.',
-        liveUrl: 'https://sumbar-smart-portal.vercel.app/',
-        repoUrl: 'https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/sumbar-smart-portal.git',
-        stack: ['Next.js', 'Google AI Studio', 'Vercel', ],
-        screenshot: sspImg,
-    },
-];
-
-const mobileProjects: MobileProject[] = [
-    {
-        name: 'Food Explorer',
-        desc: 'Browse and discover meals by category using TheMealDB public API.',
-        platform: 'Android · Jetpack Compose',
-        repoUrl: 'https://github.com/nabilrn/food-explorer',
-        stack: ['Kotlin', 'Jetpack Compose', 'TheMealDB API'],
-        screenshots: [foodexplorer1Img, foodexplorer2Img, foodexplorer3Img, foodexplorer4Img],
-    },
-    {
-        name: 'Ghibli Gallery',
-        desc: 'Gallery app showcasing Studio Ghibli films built from static object data.',
-        platform: 'Android · Jetpack Compose',
-        repoUrl: 'https://github.com/nabilrn/ghibli-gallery',
-        stack: ['Kotlin', 'Jetpack Compose'],
-        screenshots: [ghibligallery1Img, ghibligallery2Img],
-    },
-];
+const locale = normalizeLocale(rawLocale);
+const content = getSiteContent(locale).projectShowcase;
+const resolvedHeading = heading ?? content.heading;
+const resolvedSubheading = subheading ?? content.subheading;
+const webProjects = getLocalizedWebProjects(locale);
+const mobileProjects = getLocalizedMobileProjects(locale);
+const displayedWebProjects = typeof webLimit === 'number' ? webProjects.slice(0, webLimit) : webProjects;
+const displayedMobileProjects = typeof mobileLimit === 'number' ? mobileProjects.slice(0, mobileLimit) : mobileProjects;
 ---
 
 <section id="showcase" class="section">
     <div class="section-heading">
-        <h2>Showcase</h2>
-        <span class="section-sub">selected work</span>
+        <h2>{resolvedHeading}</h2>
+        <span class="section-sub">{resolvedSubheading}</span>
     </div>
 
     <!-- Web projects -->
-    <div class="group-label">Web</div>
+    <div class="group-label">{content.web}</div>
     <div class="web-list">
-        {webProjects.map((p) => (
+        {displayedWebProjects.map((p) => (
             <article class="web-card">
                 <div class="web-preview">
                     <div class="browser-chrome" aria-hidden="true">
@@ -132,7 +51,7 @@ const mobileProjects: MobileProject[] = [
                     <div class="preview-wrap">
                         <img
                             src={p.screenshot.src}
-                            alt={`${p.name} website preview`}
+                            alt={`${p.name} ${content.websitePreviewAlt}`}
                             class="preview-img"
                             loading="lazy"
                             width={p.screenshot.width}
@@ -156,7 +75,7 @@ const mobileProjects: MobileProject[] = [
                             <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                 <path d="M10.604 1h4.146a.25.25 0 01.25.25v4.146a.25.25 0 01-.427.177L13.03 4.03 9.28 7.78a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042l3.75-3.75-1.543-1.543A.25.25 0 0110.604 1zM3.75 2A1.75 1.75 0 002 3.75v8.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0014 12.25v-3.5a.75.75 0 00-1.5 0v3.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-8.5a.25.25 0 01.25-.25h3.5a.75.75 0 000-1.5h-3.5z" />
                             </svg>
-                            Visit site
+                            {content.visitSite}
                         </a>
                         {p.repoUrl && (
                             <a
@@ -168,7 +87,7 @@ const mobileProjects: MobileProject[] = [
                                 <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                                 </svg>
-                                GitHub
+                                {content.github}
                             </a>
                         )}
                     </div>
@@ -178,10 +97,10 @@ const mobileProjects: MobileProject[] = [
     </div>
 
     <!-- Mobile apps -->
-    <div class="group-label" style="margin-top: 20px;">Mobile</div>
+    <div class="group-label" style="margin-top: 20px;">{content.mobile}</div>
     <div class="mobile-grid">
-        {mobileProjects.map((p) => {
-            const slug = p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        {displayedMobileProjects.map((p) => {
+            const slug = getProjectSlug(p.name);
             const hasScreenshots = p.screenshots && p.screenshots.length > 0;
             const modalId = `modal-${slug}`;
             return (
@@ -203,7 +122,7 @@ const mobileProjects: MobileProject[] = [
                                         {p.screenshots!.map((img, i) => (
                                             <img
                                                 src={img.src}
-                                                alt={`${p.name} screenshot ${i + 1}`}
+                                                alt={`${p.name} ${content.screenshotAlt} ${i + 1}`}
                                                 class="phone-img"
                                                 loading="lazy"
                                                 width={img.width}
@@ -235,12 +154,12 @@ const mobileProjects: MobileProject[] = [
                             <button
                                 class="phone-expand-btn"
                                 data-modal={modalId}
-                                aria-label={`View ${p.name} screenshots`}
+                                aria-label={`${content.viewAll} ${p.name} ${content.screenshotAlt}s`}
                             >
                                 <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                     <path d="M1.75 10a.75.75 0 01.75.75v2.75h2.75a.75.75 0 010 1.5h-3.5A.75.75 0 011 14.25v-3.5a.75.75 0 01.75-.75zm12.5 0a.75.75 0 01.75.75v3.5a.75.75 0 01-.75.75h-3.5a.75.75 0 010-1.5h2.75v-2.75a.75.75 0 01.75-.75zM2.5 2.5v2.75a.75.75 0 01-1.5 0v-3.5A.75.75 0 011.75 1h3.5a.75.75 0 010 1.5H2.5zm10.25-.75h3.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0V2.5h-2.75a.75.75 0 010-1.5z"/>
                                 </svg>
-                                View all
+                                {content.viewAll}
                             </button>
                         )}
                     </div>
@@ -248,6 +167,7 @@ const mobileProjects: MobileProject[] = [
                     <div class="mobile-info">
                         <h3 class="card-title">{p.name}</h3>
                         <p class="mobile-platform">{p.platform}</p>
+                        <p class="card-desc">{p.desc}</p>
                         <div class="card-tags">
                             {p.stack.map((t) => <span class="pill">{t}</span>)}
                         </div>
@@ -261,7 +181,7 @@ const mobileProjects: MobileProject[] = [
                                 <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                                     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                                 </svg>
-                                GitHub
+                                {content.github}
                             </a>
                         )}
                     </div>
@@ -272,19 +192,19 @@ const mobileProjects: MobileProject[] = [
                             <div class="dialog-inner">
                                 <div class="dialog-header">
                                     <span class="dialog-title">{p.name}</span>
-                                    <button class="dialog-close" aria-label="Close">
+                                    <button class="dialog-close" aria-label={content.screenshotDialogClose}>
                                         <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.749.749 0 011.275.326.749.749 0 01-.215.734L9.06 8l3.22 3.22a.749.749 0 01-.326 1.275.749.749 0 01-.734-.215L8 9.06l-3.22 3.22a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042L6.94 8 3.72 4.78a.75.75 0 010-1.06z"/></svg>
                                     </button>
                                 </div>
                                 <div class="dialog-viewer">
-                                    <button class="dialog-arrow dialog-prev" aria-label="Previous screenshot">
+                                    <button class="dialog-arrow dialog-prev" aria-label={content.previousScreenshot}>
                                         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M9.78 12.78a.75.75 0 01-1.06 0L4.47 8.53a.75.75 0 010-1.06l4.25-4.25a.751.751 0 011.042.018.751.751 0 01.018 1.042L6.06 8l3.72 3.72a.75.75 0 010 1.06z"/></svg>
                                     </button>
                                     <div class="dialog-screen">
                                         {p.screenshots!.map((img, i) => (
                                             <img
                                                 src={img.src}
-                                                alt={`${p.name} screenshot ${i + 1}`}
+                                                alt={`${p.name} ${content.screenshotAlt} ${i + 1}`}
                                                 class={`dialog-img${i === 0 ? ' active' : ''}`}
                                                 loading="lazy"
                                                 width={img.width}
@@ -292,7 +212,7 @@ const mobileProjects: MobileProject[] = [
                                             />
                                         ))}
                                     </div>
-                                    <button class="dialog-arrow dialog-next" aria-label="Next screenshot">
+                                    <button class="dialog-arrow dialog-next" aria-label={content.nextScreenshot}>
                                         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M6.22 3.22a.75.75 0 011.06 0l4.25 4.25a.75.75 0 010 1.06l-4.25 4.25a.751.751 0 01-1.042-.018.751.751 0 01-.018-1.042L9.94 8 6.22 4.28a.75.75 0 010-1.06z"/></svg>
                                     </button>
                                 </div>
@@ -301,7 +221,7 @@ const mobileProjects: MobileProject[] = [
                                         {p.screenshots!.map((_, i) => (
                                             <button
                                                 class={`dialog-dot${i === 0 ? ' active' : ''}`}
-                                                aria-label={`Screenshot ${i + 1}`}
+                                                aria-label={`${content.screenshotAlt} ${i + 1}`}
                                             ></button>
                                         ))}
                                     </div>
@@ -314,6 +234,12 @@ const mobileProjects: MobileProject[] = [
             );
         })}
     </div>
+
+    {showAllLink && (
+        <div class="explore-link">
+            <a href={localizePath('/projects/', locale)}>{content.viewAllProjectShowcase}</a>
+        </div>
+    )}
 </section>
 
 <style>
@@ -366,19 +292,21 @@ const mobileProjects: MobileProject[] = [
 
     /* ── Web project cards ── */
     .web-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+        gap: 12px;
+        align-items: stretch;
     }
 
     .web-card {
-        display: grid;
-        grid-template-columns: 38% 1fr;
+        display: flex;
+        flex-direction: column;
         border: 1px solid var(--gh-border);
         border-radius: 6px;
         overflow: hidden;
         background: var(--gh-base);
         transition: border-color 0.15s ease;
+        min-height: 100%;
     }
 
     .web-card:hover {
@@ -395,15 +323,15 @@ const mobileProjects: MobileProject[] = [
         display: flex;
         flex-direction: column;
         background: var(--gh-surface);
-        border-right: 1px solid var(--gh-border);
+        border-bottom: 1px solid var(--gh-border);
     }
 
     .browser-chrome {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 0 10px;
-        height: 26px;
+        padding: 0 8px;
+        height: 22px;
         background: var(--gh-surface-2);
         border-bottom: 1px solid var(--gh-border);
         flex-shrink: 0;
@@ -433,9 +361,9 @@ const mobileProjects: MobileProject[] = [
     }
 
     .preview-wrap {
-        flex: 1;
         overflow: hidden;
-        min-height: 150px;
+        aspect-ratio: 16 / 9;
+        background: #000;
     }
 
     .preview-img {
@@ -447,11 +375,11 @@ const mobileProjects: MobileProject[] = [
 
     /* Info pane */
     .web-info {
-        padding: 16px;
+        padding: 14px;
         display: flex;
         flex-direction: column;
         gap: 8px;
-        justify-content: center;
+        flex: 1;
     }
 
     .card-title {
@@ -464,8 +392,15 @@ const mobileProjects: MobileProject[] = [
     .card-desc {
         font-size: 11px;
         color: var(--gh-text-secondary);
-        line-height: 1.6;
+        line-height: 1.5;
         margin: 0;
+    }
+
+    .web-info .card-desc {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .card-tags {
@@ -479,6 +414,7 @@ const mobileProjects: MobileProject[] = [
         align-items: center;
         gap: 12px;
         flex-wrap: wrap;
+        margin-top: auto;
     }
 
     .link-visit {
@@ -881,20 +817,24 @@ const mobileProjects: MobileProject[] = [
         min-width: 28px;
     }
 
+    .explore-link {
+        margin-top: 12px;
+        font-size: 12px;
+    }
+
+    .explore-link a {
+        color: var(--gh-accent);
+        text-decoration: none;
+    }
+
+    .explore-link a:hover {
+        text-decoration: underline;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 640px) {
-        .web-card {
+        .web-list {
             grid-template-columns: 1fr;
-        }
-
-        .web-preview {
-            border-right: none;
-            border-bottom: 1px solid var(--gh-border);
-        }
-
-        .preview-wrap {
-            min-height: 120px;
-            max-height: 160px;
         }
     }
 

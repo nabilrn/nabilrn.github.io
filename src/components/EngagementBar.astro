@@ -1,4 +1,6 @@
 ---
+import { getSiteContent } from '../data/siteContent';
+
 interface Props {
 	postId: string;
 	title: string;
@@ -6,21 +8,22 @@ interface Props {
 
 const { postId, title } = Astro.props;
 const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
+const content = getSiteContent('en').engagement;
 ---
 
 <div class="engagement-bar" data-post-id={postId} data-post-title={title} data-api-base={apiBase}>
 	<div class="stats">
-		<span>Views: <strong data-views>0</strong></span>
-		<span>Likes: <strong data-likes>0</strong></span>
-		<span>Shares: <strong data-shares>0</strong></span>
-		<span class="local-note">local MVP metrics</span>
+		<span>{content.views}: <strong data-views>0</strong></span>
+		<span>{content.likes}: <strong data-likes>0</strong></span>
+		<span>{content.shares}: <strong data-shares>0</strong></span>
+		<span class="local-note">{content.localMetricsNote}</span>
 	</div>
 	<div class="actions">
-		<button type="button" data-like-btn>Like</button>
-		<button type="button" data-share-btn="copy">Copy Link</button>
-		<button type="button" data-share-btn="linkedin">LinkedIn</button>
-		<button type="button" data-share-btn="x">X</button>
-		<button type="button" data-share-btn="whatsapp">WhatsApp</button>
+		<button type="button" data-like-btn>{content.like}</button>
+		<button type="button" data-share-btn="copy">{content.copyLinkTitle}</button>
+		<button type="button" data-share-btn="linkedin">{content.linkedin}</button>
+		<button type="button" data-share-btn="x">{content.x}</button>
+		<button type="button" data-share-btn="whatsapp">{content.whatsapp}</button>
 	</div>
 </div>
 
@@ -67,7 +70,7 @@ const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
 	}
 </style>
 
-<script>
+<script define:vars={{ likeLabel: content.like, likedLabel: content.liked, fallbackPostTitle: content.fallbackPostTitle }}>
 	type Metrics = { views: number; likes: number; shares: number; liked?: boolean };
 
 	const visitorStorageKey = 'portfolio:visitor-id';
@@ -99,7 +102,7 @@ const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
 	const bars = document.querySelectorAll<HTMLElement>('.engagement-bar');
 	for (const bar of bars) {
 		const postId = bar.dataset.postId;
-		const postTitle = bar.dataset.postTitle ?? 'Blog post';
+		const postTitle = bar.dataset.postTitle ?? fallbackPostTitle;
 		const apiBase = bar.dataset.apiBase?.trim() ?? '';
 		if (!postId) continue;
 
@@ -128,7 +131,7 @@ const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
 			if (viewsEl) viewsEl.textContent = String(views);
 			if (likesEl) likesEl.textContent = String(likes);
 			if (sharesEl) sharesEl.textContent = String(shares);
-			if (likeButton) likeButton.textContent = liked ? 'Liked' : 'Like';
+			if (likeButton) likeButton.textContent = liked ? likedLabel : likeLabel;
 		};
 
 		const renderFromApi = (metrics: Metrics) => {

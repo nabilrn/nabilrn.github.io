@@ -1,0 +1,18 @@
+---
+import HomePage from '../index.astro';
+import { localizedLocales, localizePath, type SiteLocale } from '../../data/siteContent';
+
+export function getStaticPaths() {
+    return localizedLocales.map((locale) => ({
+        params: { locale },
+        props: {
+            locale,
+            path: localizePath('/', locale),
+        },
+    }));
+}
+
+const { locale, path } = Astro.props as { locale: SiteLocale; path: string };
+---
+
+<HomePage locale={locale} path={path} />

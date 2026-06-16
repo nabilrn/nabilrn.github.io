@@ -1,15 +1,17 @@
 ---
 import Icon from './Icon.astro';
+import { authorName, getSiteContent } from '../data/siteContent';
 interface Props { date: string; readingTime: number; tags: string[] }
 const { date, readingTime, tags } = Astro.props;
+const content = getSiteContent('en');
 ---
 <div class="post-meta-bar">
   <div class="meta-left">
-    <span class="author">By <strong>Nabil Rizki Navisa</strong></span>
+    <span class="author">{content.blog.article.by} <strong>{authorName}</strong></span>
     <span class="dot">/</span>
     <span class="date">{date}</span>
     <span class="dot">/</span>
-    <span class="reading"><Icon name="clock" /> {readingTime} min</span>
+    <span class="reading"><Icon name="clock" /> {content.blog.minRead(readingTime)}</span>
   </div>
   <div class="meta-right">
     <div class="tag-list">

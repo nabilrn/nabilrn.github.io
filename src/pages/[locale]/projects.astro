@@ -1,0 +1,18 @@
+---
+import ProjectsPage from '../projects.astro';
+import { localizedLocales, localizePath, type SiteLocale } from '../../data/siteContent';
+
+export function getStaticPaths() {
+    return localizedLocales.map((locale) => ({
+        params: { locale },
+        props: {
+            locale,
+            path: localizePath('/projects/', locale),
+        },
+    }));
+}
+
+const { locale, path } = Astro.props as { locale: SiteLocale; path: string };
+---
+
+<ProjectsPage locale={locale} path={path} />
