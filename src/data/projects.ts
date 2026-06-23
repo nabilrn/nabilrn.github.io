@@ -13,6 +13,7 @@ import sspImg from "../assets/ssp.webp";
 import porschegalleryImg from "../assets/porschegallery.webp";
 import networkRookieImg from "../assets/network-rookie.webp";
 import ftiImg from "../assets/fti.webp";
+import unandLibDashboardImg from "../assets/unandlibdashboard.webp";
 import neocentral1Img from "../assets/neocentral1.webp";
 import neocentral2Img from "../assets/neocentral2.webp";
 import neocentral3Img from "../assets/neocentral3.webp";
@@ -75,6 +76,14 @@ export const webProjects: WebProject[] = [
     liveUrl: "https://fti.unand.online",
     stack: ["Astro", "TypeScript", "Github Pages"],
     screenshot: ftiImg,
+  },
+  {
+    name: "UNAND Library Public Dashboard",
+    desc: "Fullscreen information dashboard for Universitas Andalas Library, built as a frontend-only app for landscape displays. It presents library services, visitor counts, facilities, agendas, visit statistics, borrowing activity, leaderboards, and collection summaries from local data without an API or backend.",
+    liveUrl: "https://nabilrizkinavisa.me/lib-unand-dashboard/",
+    repoUrl: "https://github.com/nabilrn/lib-unand-dashboard/",
+    stack: ["React", "Vite", "Localization", "TypeScript", "GitHub Pages"],
+    screenshot: unandLibDashboardImg,
   },
   {
     name: "Network Rookie",
@@ -184,6 +193,11 @@ const webProjectDescriptions: LocalizedDescriptions = {
     cn: "Universitas Andalas 信息技术学院官网的品牌重塑与重建，采用更清晰的机构信息架构。",
     jp: "Universitas Andalas 情報技術学部プロフィールサイトのリブランディングと再構築。より整理された機関向け情報設計を採用しています。",
   },
+  "UNAND Library Public Dashboard": {
+    id: "Dashboard informasi fullscreen untuk Perpustakaan Universitas Andalas, dibuat sebagai aplikasi frontend-only untuk layar landscape. Dashboard menampilkan layanan perpustakaan, jumlah pengunjung, fasilitas, agenda, statistik kunjungan, peminjaman, leaderboard, dan ikhtisar koleksi memakai data lokal tanpa API/backend.",
+    cn: "Universitas Andalas 图书馆的全屏信息仪表板，作为面向横向屏幕的纯前端应用构建。使用本地数据展示图书馆服务、访客数量、设施、日程、访问统计、借阅情况、排行榜和馆藏概览，无需 API 或后端。",
+    jp: "Universitas Andalas 図書館向けのフルスクリーン情報ダッシュボード。横向きディスプレイ用のフロントエンドのみのアプリとして構築し、API やバックエンドなしでローカルデータから図書館サービス、来館者数、施設、予定、来館統計、貸出状況、ランキング、蔵書概要を表示します。",
+  },
   "Network Rookie": {
     id: "Visualisasi interaktif berbasis AI untuk memahami infrastruktur internet global secara lebih intuitif.",
     cn: "由 AI 驱动的全球互联网基础设施交互式可视化项目。",
@@ -274,6 +288,11 @@ const repositoryDescriptions: LocalizedDescriptions = {
     id: "Website Lab TKITI dengan landing page, dokumentasi, dan sistem artikel bilingual.",
     cn: "Lab TKITI 网站，包含落地页、文档和双语文章系统。",
     jp: "ランディングページ、ドキュメント、バイリンガル記事システムを備えた Lab TKITI の Web サイト。",
+  },
+  "lib-unand-dashboard": {
+    id: "Dashboard informasi fullscreen untuk Perpustakaan Universitas Andalas dengan data lokal tanpa API/backend.",
+    cn: "Universitas Andalas 图书馆的全屏信息仪表板，使用本地数据且无需 API 或后端。",
+    jp: "Universitas Andalas 図書館向けのフルスクリーン情報ダッシュボード。API やバックエンドなしでローカルデータを使用します。",
   },
   "Neo-Central-Mobile": {
     id: "Aplikasi mobile Neo Central untuk pengalaman pengguna lintas fitur pada ekosistem Neocentral.",
