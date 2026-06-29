@@ -1,6 +1,7 @@
 ---
 import profilePic from "../assets/profilepict.webp";
 import { getCollection } from "astro:content";
+import { Image } from "astro:assets";
 import SiteSearch from "./SiteSearch.astro";
 import ThemeToggle from "./ThemeToggle.astro";
 import { getSiteContent, localeMeta, localizePath, normalizeLocale, stripLocaleFromPath, supportedLocales, type SiteLocale } from "../data/siteContent";
@@ -42,7 +43,7 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
             <div class="sidebar-inner">
                 <div class="profile">
                     <div class="avatar">
-                        <img src={profilePic.src} alt={content.profile.avatarAlt} />
+                        <Image src={profilePic} alt={content.profile.avatarAlt} />
                     </div>
                     <div class="profile-name">{content.profile.name}</div>
                     <div class="profile-role">{content.profile.role}</div>

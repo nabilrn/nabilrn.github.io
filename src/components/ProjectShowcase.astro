@@ -1,6 +1,7 @@
 ---
 import { getLocalizedMobileProjects, getLocalizedWebProjects, getProjectSlug } from '../data/projects';
 import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import { Image } from "astro:assets";
 
 interface Props {
     heading?: string;
@@ -49,13 +50,11 @@ const displayedMobileProjects = typeof mobileLimit === 'number' ? mobileProjects
                         <div class="browser-url">{p.liveUrl.replace('https://', '')}</div>
                     </div>
                     <div class="preview-wrap">
-                        <img
-                            src={p.screenshot.src}
+                        <Image
+                            src={p.screenshot}
                             alt={`${p.name} ${content.websitePreviewAlt}`}
                             class="preview-img"
                             loading="lazy"
-                            width={p.screenshot.width}
-                            height={p.screenshot.height}
                         />
                     </div>
                 </div>
@@ -120,13 +119,11 @@ const displayedMobileProjects = typeof mobileLimit === 'number' ? mobileProjects
                                         style={`width: ${p.screenshots!.length * 100}%; --n: ${p.screenshots!.length};`}
                                     >
                                         {p.screenshots!.map((img, i) => (
-                                            <img
-                                                src={img.src}
+                                            <Image
+                                                src={img}
                                                 alt={`${p.name} ${content.screenshotAlt} ${i + 1}`}
                                                 class="phone-img"
                                                 loading="lazy"
-                                                width={img.width}
-                                                height={img.height}
                                             />
                                         ))}
                                     </div>
@@ -202,13 +199,11 @@ const displayedMobileProjects = typeof mobileLimit === 'number' ? mobileProjects
                                     </button>
                                     <div class="dialog-screen">
                                         {p.screenshots!.map((img, i) => (
-                                            <img
-                                                src={img.src}
+                                            <Image
+                                                src={img}
                                                 alt={`${p.name} ${content.screenshotAlt} ${i + 1}`}
                                                 class={`dialog-img${i === 0 ? ' active' : ''}`}
                                                 loading="lazy"
-                                                width={img.width}
-                                                height={img.height}
                                             />
                                         ))}
                                     </div>

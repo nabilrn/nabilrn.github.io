@@ -33,6 +33,7 @@ const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((p
 ---
 
 <Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale}>
+    <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{home.seoTitle}</h1>
     <!-- About -->
     <section id="about" class="section">
         <div class="section-heading">
