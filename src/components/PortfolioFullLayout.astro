@@ -1,5 +1,7 @@
 ---
 import { getCollection } from "astro:content";
+import SiteSearch from "./SiteSearch.astro";
+import ThemeToggle from "./ThemeToggle.astro";
 import { getSiteContent, localeMeta, localizePath, normalizeLocale, stripLocaleFromPath, supportedLocales, type SiteLocale } from "../data/siteContent";
 import { getBlogLocaleInfo } from "../utils/blogLocale";
 
@@ -53,13 +55,17 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
                     <span class="page-nav-badge">{postCount}</span>
                 </a>
             </nav>
-            <nav class="language-nav" aria-label={content.nav.ariaLanguageNavigation}>
-                {languageLinks.map((item) => (
-                    <a href={item.href} class={item.active ? "language-link active" : "language-link"} aria-current={item.active ? "true" : undefined}>
-                        {item.label}
-                    </a>
-                ))}
-            </nav>
+            <div class="header-actions">
+                <nav class="language-nav" aria-label={content.nav.ariaLanguageNavigation}>
+                    {languageLinks.map((item) => (
+                        <a href={item.href} class={item.active ? "language-link active" : "language-link"} aria-current={item.active ? "true" : undefined}>
+                            {item.label}
+                        </a>
+                    ))}
+                </nav>
+                <SiteSearch locale={locale} />
+                <ThemeToggle locale={locale} />
+            </div>
         </div>
     </header>
 
@@ -112,6 +118,14 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
         gap: 4px;
         flex-wrap: wrap;
         justify-content: flex-end;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-left: 16px;
     }
 
     .language-link {
@@ -192,6 +206,11 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
 
         .language-nav {
             justify-content: flex-start;
+        }
+
+        .header-actions {
+            gap: 10px;
+            justify-content: space-between;
             padding: 0 0 10px;
         }
 

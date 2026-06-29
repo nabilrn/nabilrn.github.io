@@ -1,0 +1,434 @@
+---
+import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
+
+interface Props {
+	locale?: SiteLocale;
+}
+
+const locale = normalizeLocale(Astro.props.locale);
+const copy = getSiteContent(locale).search;
+const rootId = `site-search-${locale}`;
+---
+
+<div class="site-search" id={rootId} data-site-search>
+	<button class="site-search-trigger" type="button" aria-label={copy.ariaOpen} data-search-open>
+		<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+			<path d="M10.68 11.74a6 6 0 111.06-1.06l3.29 3.29a.75.75 0 01-1.06 1.06zM11.5 7a4.5 4.5 0 10-9 0 4.5 4.5 0 009 0z"></path>
+		</svg>
+		<span>{copy.open}</span>
+		<kbd>{copy.shortcut}</kbd>
+	</button>
+
+	<div class="search-dialog" data-search-dialog hidden>
+		<div class="search-backdrop" data-search-close></div>
+		<div class="search-panel" role="dialog" aria-modal="true" aria-label={copy.ariaOpen}>
+			<div class="search-input-row">
+				<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+					<path d="M10.68 11.74a6 6 0 111.06-1.06l3.29 3.29a.75.75 0 01-1.06 1.06zM11.5 7a4.5 4.5 0 10-9 0 4.5 4.5 0 009 0z"></path>
+				</svg>
+				<input type="search" placeholder={copy.placeholder} autocomplete="off" data-search-input />
+				<button class="search-close" type="button" aria-label={copy.close} data-search-close>
+					<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+						<path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"></path>
+					</svg>
+				</button>
+			</div>
+			<div class="search-meta">
+				<span data-search-status>{copy.hint}</span>
+			</div>
+			<div class="search-results" data-search-results></div>
+		</div>
+	</div>
+</div>
+
+<style is:global>
+	.site-search {
+		display: contents;
+	}
+
+	.site-search-trigger {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 34px;
+		padding: 0 10px;
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 6px;
+		background: var(--gh-base);
+		color: var(--gh-text-secondary);
+		cursor: pointer;
+		font: inherit;
+		font-size: 12px;
+		transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+	}
+
+	.site-search-trigger:hover {
+		background: var(--gh-surface);
+		border-color: var(--gh-accent);
+		color: var(--gh-text);
+	}
+
+	.site-search-trigger kbd {
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 4px;
+		background: var(--gh-surface);
+		color: var(--gh-text-secondary);
+		font-size: 10px;
+		font-family: inherit;
+		line-height: 1;
+		padding: 3px 5px;
+	}
+
+	.search-dialog {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: grid;
+		place-items: start center;
+		padding: min(12vh, 96px) 16px 24px;
+	}
+
+	.search-dialog[hidden] {
+		display: none;
+	}
+
+	.search-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(1, 4, 9, 0.62);
+		backdrop-filter: blur(8px);
+	}
+
+	[data-theme='light'] .search-backdrop {
+		background: rgba(246, 248, 250, 0.72);
+	}
+
+	.search-panel {
+		position: relative;
+		width: min(760px, 100%);
+		max-height: min(720px, 78vh);
+		overflow: hidden;
+		border: 1px solid var(--gh-border);
+		border-radius: 8px;
+		background: var(--gh-base);
+		box-shadow: var(--gh-shadow-floating);
+	}
+
+	.search-input-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		padding: 14px 14px;
+		border-bottom: 1px solid var(--gh-border);
+		color: var(--gh-text-secondary);
+	}
+
+	.search-input-row input {
+		flex: 1;
+		min-width: 0;
+		border: 0;
+		outline: 0;
+		background: transparent;
+		color: var(--gh-text);
+		font: inherit;
+		font-size: 16px;
+	}
+
+	.search-input-row input::placeholder {
+		color: var(--gh-text-secondary);
+	}
+
+	.search-close {
+		width: 28px;
+		height: 28px;
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 6px;
+		background: var(--gh-surface);
+		color: var(--gh-text-secondary);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+	}
+
+	.search-close:hover {
+		color: var(--gh-text);
+		border-color: var(--gh-accent);
+	}
+
+	.search-meta {
+		padding: 8px 14px;
+		border-bottom: 1px solid var(--gh-border);
+		color: var(--gh-text-secondary);
+		font-size: 12px;
+	}
+
+	.search-results {
+		max-height: calc(min(720px, 78vh) - 104px);
+		overflow-y: auto;
+		padding: 8px;
+		display: grid;
+		gap: 6px;
+	}
+
+	.search-empty {
+		color: var(--gh-text-secondary);
+		font-size: 13px;
+		padding: 18px 10px;
+	}
+
+	.search-result {
+		display: grid;
+		grid-template-columns: 82px minmax(0, 1fr) auto;
+		align-items: start;
+		gap: 12px;
+		padding: 12px;
+		border: 1px solid var(--gh-border-muted);
+		border-radius: 6px;
+		background: color-mix(in srgb, var(--gh-surface) 45%, transparent);
+		color: inherit;
+		text-decoration: none;
+		transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+	}
+
+	.search-result:hover,
+	.search-result:focus-visible {
+		background: var(--gh-surface);
+		border-color: var(--gh-accent);
+		outline: none;
+		transform: translateY(-1px);
+	}
+
+	.search-result-type {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 24px;
+		border: 1px solid var(--gh-border);
+		border-radius: 999px;
+		background: var(--gh-base);
+		color: var(--gh-text);
+		font-size: 10px;
+		font-weight: 700;
+		line-height: 1;
+		padding: 6px 8px;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.search-result[data-result-type='project'] .search-result-type {
+		border-color: color-mix(in srgb, var(--gh-done) 50%, var(--gh-border));
+		color: var(--gh-done);
+	}
+
+	.search-result[data-result-type='post'] .search-result-type {
+		border-color: color-mix(in srgb, var(--gh-accent) 50%, var(--gh-border));
+		color: var(--gh-accent);
+	}
+
+	.search-result-body {
+		display: grid;
+		gap: 5px;
+		min-width: 0;
+	}
+
+	.search-result-title {
+		color: var(--gh-text);
+		font-size: 13px;
+		font-weight: 600;
+		line-height: 1.35;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.search-result-desc {
+		color: var(--gh-text-secondary);
+		font-size: 12px;
+		line-height: 1.45;
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+
+	.search-result-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.search-result-tag {
+		color: var(--gh-text-secondary);
+		font-size: 11px;
+	}
+
+	.search-result-path {
+		color: var(--gh-text-secondary);
+		font-size: 11px;
+		max-width: 160px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	@media (max-width: 640px) {
+		.site-search-trigger span,
+		.site-search-trigger kbd {
+			display: none;
+		}
+
+		.site-search-trigger {
+			width: 32px;
+			justify-content: center;
+			padding: 0;
+		}
+
+		.search-dialog {
+			padding: 72px 10px 18px;
+		}
+
+		.search-result {
+			grid-template-columns: 1fr;
+			gap: 8px;
+		}
+
+		.search-result-type {
+			justify-self: start;
+		}
+
+		.search-result-path {
+			max-width: 100%;
+		}
+	}
+</style>
+
+<script is:inline define:vars={{ rootId, locale, copy }}>
+	(() => {
+		const root = document.getElementById(rootId);
+		if (!root) return;
+
+		const openButton = root.querySelector('[data-search-open]');
+		const dialog = root.querySelector('[data-search-dialog]');
+		const input = root.querySelector('[data-search-input]');
+		const results = root.querySelector('[data-search-results]');
+		const status = root.querySelector('[data-search-status]');
+		const closeTargets = root.querySelectorAll('[data-search-close]');
+		let indexPromise;
+		let items = [];
+
+		const normalize = (value) => (value || '').toLowerCase().normalize('NFKD');
+		const escapeText = (value) => {
+			const span = document.createElement('span');
+			span.textContent = value || '';
+			return span.innerHTML;
+		};
+		const escapeAttr = (value) => escapeText(value).replace(/"/g, '&quot;');
+
+		const loadIndex = async () => {
+			if (!indexPromise) {
+				indexPromise = fetch('/search-index.json')
+					.then((response) => response.json())
+					.then((data) => data.items || [])
+					.catch(() => []);
+			}
+			items = await indexPromise;
+			return items;
+		};
+
+		const scoreItem = (item, query) => {
+			const q = normalize(query);
+			const title = normalize(item.title);
+			const description = normalize(item.description);
+			const content = normalize(item.content);
+			const tags = normalize((item.tags || []).join(' '));
+			let score = item.locale === locale ? 40 : 0;
+
+			if (title === q) score += 120;
+			if (title.includes(q)) score += 70;
+			if (description.includes(q)) score += 35;
+			if (tags.includes(q)) score += 25;
+			if (content.includes(q)) score += 12;
+			if (item.type === 'page') score += 6;
+
+			return score;
+		};
+
+		const render = async () => {
+			const query = input.value.trim();
+			await loadIndex();
+
+			if (!query) {
+				status.textContent = copy.hint;
+				results.innerHTML = '';
+				return;
+			}
+
+			const matches = items
+				.map((item) => ({ item, score: scoreItem(item, query) }))
+				.filter((entry) => entry.score > 0)
+				.sort((a, b) => b.score - a.score)
+				.slice(0, 10)
+				.map((entry) => entry.item);
+
+			status.textContent = `${matches.length} ${copy.results}`;
+
+			if (matches.length === 0) {
+				results.innerHTML = `<p class="search-empty">${escapeText(copy.noResults)}</p>`;
+				return;
+			}
+
+			results.innerHTML = matches
+				.map((item) => {
+					const type = copy.resultTypes[item.type] || item.type;
+					const tags = (item.tags || [])
+						.slice(0, 4)
+						.map((tag) => `<span class="search-result-tag">#${escapeText(tag)}</span>`)
+						.join('');
+					return `<a class="search-result" href="${escapeAttr(item.url)}" data-result-type="${escapeAttr(item.type)}">
+						<span class="search-result-type">${escapeText(type)}</span>
+						<span class="search-result-body">
+							<span class="search-result-title">${escapeText(item.title)}</span>
+							<span class="search-result-desc">${escapeText(item.description)}</span>
+							${tags ? `<span class="search-result-tags">${tags}</span>` : ''}
+						</span>
+						<span class="search-result-path">${escapeText(item.url)}</span>
+					</a>`;
+				})
+				.join('');
+		};
+
+		const open = async () => {
+			dialog.hidden = false;
+			document.body.style.overflow = 'hidden';
+			await loadIndex();
+			input.focus();
+			render();
+		};
+
+		const close = () => {
+			dialog.hidden = true;
+			document.body.style.overflow = '';
+			openButton?.focus();
+		};
+
+		openButton?.addEventListener('click', open);
+		closeTargets.forEach((target) => target.addEventListener('click', close));
+		input?.addEventListener('input', render);
+		results?.addEventListener('click', (event) => {
+			if (event.target.closest('a')) close();
+		});
+
+		window.addEventListener('keydown', (event) => {
+			const isShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
+			if (isShortcut) {
+				event.preventDefault();
+				open();
+			}
+			if (event.key === 'Escape' && !dialog.hidden) {
+				event.preventDefault();
+				close();
+			}
+		});
+	})();
+</script>

@@ -1,11 +1,15 @@
 ---
-import { getSiteContent } from '../data/siteContent';
+import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
-const content = getSiteContent('en').theme;
+interface Props {
+	locale?: SiteLocale;
+}
+
+const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 ---
 
 <theme-toggle>
-	<button class="theme-toggle" aria-label={content.toggle} title={content.toggle}>
+	<button class="theme-toggle" aria-label={content.toggle} title={content.toggle} aria-pressed="false">
 		<span class="icon sun-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
         </span>
@@ -16,36 +20,25 @@ const content = getSiteContent('en').theme;
 </theme-toggle>
 
 <style is:global>
-    /* Theme Toggle Button */
 	.theme-toggle {
-		background: none;
-		border: 1px solid var(--sl-color-hairline, #27272a);
+		background: var(--gh-base);
+		border: 1px solid var(--gh-border-muted);
 		cursor: pointer;
-		padding: 0.5rem;
-		border-radius: 8px;
-		color: var(--sl-color-gray-3, #71717a);
+		padding: 0;
+		border-radius: 6px;
+		color: var(--gh-text-secondary);
 		display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
-        width: 40px;
-        height: 40px;
+        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        width: 32px;
+        height: 32px;
 	}
     
     .theme-toggle:hover {
-        color: var(--sl-color-white, #fff);
-        border-color: var(--sl-color-gray-4, #52525b);
-        transform: scale(1.05);
-    }
-    
-    [data-theme='light'] .theme-toggle {
-        color: var(--sl-color-gray-3, #52525b);
-        border-color: var(--sl-color-hairline, #e4e4e7);
-    }
-    
-    [data-theme='light'] .theme-toggle:hover {
-        color: var(--sl-color-white, #18181b);
-        border-color: var(--sl-color-gray-4, #a1a1aa);
+        background: var(--gh-surface);
+        color: var(--gh-text);
+        border-color: var(--gh-accent);
     }
 
     .theme-toggle .icon {
@@ -53,17 +46,14 @@ const content = getSiteContent('en').theme;
         line-height: 0;
     }
 
-    /* Dark mode: show SUN icon (to switch to light) */
 	[data-theme='dark'] .theme-toggle .sun-icon {
 		display: flex;
 	}
     
-    /* Light mode: show MOON icon (to switch to dark) */
     [data-theme='light'] .theme-toggle .moon-icon {
 		display: flex;
 	}
     
-    /* Default (no attribute): show SUN */
     html:not([data-theme]) .theme-toggle .sun-icon {
         display: flex;
     }
@@ -74,6 +64,7 @@ const content = getSiteContent('en').theme;
 		constructor() {
 			super();
 			const button = this.querySelector('button');
+			this.syncButtonState();
             
 			button?.addEventListener('click', () => {
 				const currentTheme = document.documentElement.dataset.theme || 'dark';
@@ -85,6 +76,12 @@ const content = getSiteContent('en').theme;
 		setTheme(theme: string) {
 			document.documentElement.dataset.theme = theme;
 			localStorage.setItem('starlight-theme', theme);
+			this.syncButtonState();
+		}
+
+		syncButtonState() {
+			const button = this.querySelector('button');
+			button?.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'light'));
 		}
 	}
 	customElements.define('theme-toggle', ThemeToggle);

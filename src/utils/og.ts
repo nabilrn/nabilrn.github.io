@@ -11,7 +11,8 @@ const escapeXml = (value: string) =>
 
 const clampText = (value: string, maxLength: number) => {
 	if (value.length <= maxLength) return value;
-	return `${value.slice(0, maxLength - 1).trimEnd()}...`;
+	const trimmed = value.slice(0, Math.max(1, maxLength - 3)).trimEnd().replace(/[.,;:!?]+$/g, '');
+	return `${trimmed}...`;
 };
 
 export const wrapText = (value: string, maxCharsPerLine: number, maxLines: number) => {
@@ -60,6 +61,7 @@ export const extractExcerpt = (markdown: string) => {
 	const plainText = firstBodyParagraph
 		.replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
 		.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+		.replace(/\[\^[^\]]+]/g, ' ')
 		.replace(/[`*_~]/g, '')
 		.replace(/<[^>]+>/g, ' ')
 		.replace(/\s+/g, ' ')
@@ -75,13 +77,13 @@ interface OgCardData {
 }
 
 export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
-	const titleLines = wrapText(clampText(title, 160), 36, 3);
-	const excerptLines = wrapText(clampText(excerpt, 260), 60, 3);
+	const titleLines = wrapText(clampText(title, 150), 32, 3);
+	const excerptLines = wrapText(clampText(excerpt, 240), 56, 3);
 
 	const renderedTitle = titleLines
 		.map(
 			(line, index) =>
-				`<text x="96" y="${196 + index * 62}" font-size="52" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#e6edf3">${escapeXml(
+				`<text x="88" y="${204 + index * 66}" font-size="58" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">${escapeXml(
 					line
 				)}</text>`
 		)
@@ -90,30 +92,21 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
 	const renderedExcerpt = excerptLines
 		.map(
 			(line, index) =>
-				`<text x="96" y="${428 + index * 42}" font-size="28" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(
+				`<text x="88" y="${438 + index * 38}" font-size="27" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="400" fill="#ffffff" opacity="0.72">${escapeXml(
 					line
 				)}</text>`
 		)
 		.join('');
 
 	return `<svg width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0d1117"/>
-      <stop offset="1" stop-color="#161b22"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
-      <stop stop-color="#58a6ff"/>
-      <stop offset="1" stop-color="#3fb950"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <rect x="48" y="36" width="1104" height="558" rx="40" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
-  <rect x="96" y="76" width="280" height="10" rx="5" fill="url(#accent)"/>
-  <text x="96" y="134" font-size="28" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#8b949e">${escapeXml(kicker)}</text>
+  <rect width="1200" height="630" fill="#030303"/>
+  <rect x="40" y="38" width="1120" height="554" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1.5"/>
+  <text x="88" y="112" font-size="25" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="600" fill="#ffffff" opacity="0.78">${escapeXml(kicker)}</text>
+  <text x="1094" y="112" text-anchor="end" font-size="20" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.58">nabilrizkinavisa.me</text>
+  <line x1="88" y1="146" x2="1112" y2="146" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1"/>
   ${renderedTitle}
-  <line x1="96" y1="390" x2="1104" y2="390" stroke="#30363d" stroke-width="2"/>
+  <line x1="88" y1="386" x2="1112" y2="386" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
   ${renderedExcerpt}
-  <text x="96" y="600" font-size="26" font-family="Inter, Segoe UI, Arial, sans-serif" fill="#6e7681">nabilrizkinavisa.me</text>
+  <text x="88" y="558" font-size="21" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.62">Software Engineer / Information Systems Graduate</text>
 </svg>`;
 };

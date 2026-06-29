@@ -122,4 +122,4 @@ Our stats look great on paper. But if 83% of Indonesian AI users can't remember 
 
 ---
 
-*Personal opinion. The author is an Information Systems student interested in tech infrastructure and AI adoption in the local context.*
+*Personal opinion. The author is an Information Systems graduate interested in tech infrastructure and AI adoption in the local context.*

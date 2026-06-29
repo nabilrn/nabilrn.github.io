@@ -31,17 +31,17 @@ export const siteContent = {
     en: {
         profile: {
             name: authorName,
-            role: 'lifetime learn',
-            bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast. Information Systems at Universitas Andalas.',
+            role: 'software engineer / lifelong learner',
+            bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast. Information Systems graduate from Universitas Andalas, GPA 3.71.',
             avatarAlt: authorName,
         },
         seo: {
-            defaultTitle: 'Nabil Rizki Navisa | Software Engineer',
+            defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
             defaultDescription:
-                'Portfolio of Nabil Rizki Navisa - Software Engineer, AI Agent Enthusiast, and IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia.',
+                'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
             siteAlternateName: ['nabilrn', 'Nabil Portfolio'],
             keywords:
-                'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, AI Agent Enthusiast, IT Infrastructure Enthusiast, Backend Developer, Frontend Developer, Android Developer, Mobile Developer, Kotlin Developer, Flutter Developer, React Developer, Node.js Developer, TypeScript Developer, Python Developer, IT Infrastructure, DevOps, Proxmox, Docker, GCP, Web Developer, Indonesia, Padang, Universitas Andalas, UNAND, Information Systems, Bangkit Academy, Portfolio, Programmer, Tech Enthusiast',
+                'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, Information Systems Graduate, GPA 3.71, Universitas Andalas Graduate, AI Agent Enthusiast, IT Infrastructure Enthusiast, Backend Developer, Frontend Developer, Android Developer, Mobile Developer, Kotlin Developer, Flutter Developer, React Developer, Node.js Developer, TypeScript Developer, Python Developer, IT Infrastructure, DevOps, Proxmox, Docker, GCP, Web Developer, Indonesia, Padang, Universitas Andalas, UNAND, Information Systems, Bangkit Academy, Portfolio, Programmer, Tech Enthusiast',
             ogSiteName: authorName,
             themeColor: '#0d1117',
         },
@@ -50,7 +50,7 @@ export const siteContent = {
             email: 'nabilrizkinavisa@gmail.com',
             jobTitle: 'Software Engineer',
             personDescription:
-                'Software Engineer, AI Agent Enthusiast, and IT Infrastructure Enthusiast based in Indonesia. Specializing in web development, mobile development, and DevOps.',
+                'Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Based in Indonesia and focused on web development, mobile development, AI agent workflows, DevOps, and IT infrastructure.',
             sameAs: [
                 'https://github.com/nabilrn',
                 'https://www.linkedin.com/in/nabilrizkinavisa2004',
@@ -59,6 +59,11 @@ export const siteContent = {
             ],
             alumniName: 'Universitas Andalas',
             alumniAlternateName: 'UNAND',
+            degreeName: 'Bachelor of Information Systems',
+            credentialCategory: 'Bachelor degree',
+            educationalLevel: 'Undergraduate degree',
+            graduationDate: 'June 2026',
+            gpa: '3.71/4.00',
             worksFor: 'Freelance / Open for Opportunities',
             nationality: 'Indonesia',
             knowsAbout: [
@@ -90,6 +95,7 @@ export const siteContent = {
             ariaLanguageNavigation: 'Language selection',
             home: 'Home',
             overview: 'Overview',
+            education: 'Education',
             showcase: 'Showcase',
             repositories: 'Repositories',
             experience: 'Experience',
@@ -97,7 +103,6 @@ export const siteContent = {
             skills: 'Skills',
             projects: 'Projects',
             blog: 'Blog',
-            downloadCv: 'Download CV',
             brand: authorName,
         },
         social: {
@@ -108,14 +113,25 @@ export const siteContent = {
             instagram: 'Instagram',
         },
         home: {
-            seoTitle: 'Nabil Rizki Navisa | Software Engineer',
+            seoTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
             seoDescription:
-                'Portfolio of Nabil Rizki Navisa - Software Engineer, AI Agent Enthusiast, and IT Infrastructure Enthusiast. Proficient in Node.js, Kotlin, React, Flutter, and Python. Based in Indonesia.',
+                'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
             about: {
                 heading: 'About',
                 body:
-                    'Information Systems undergraduate focused on software engineering, AI agent workflows, and IT infrastructure management. Proficient in TypeScript, React, Node.js, Kotlin, and Python. Experienced in building and deploying production systems using Docker, CI/CD pipelines, and self-managed Proxmox virtualization environments. Combines strong software engineering fundamentals with practical DevOps skills, AI-assisted development workflows, and a passion for scalable system architecture.',
-                strongTerms: ['TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+                    'Information Systems graduate from Universitas Andalas, graduated in June 2026 with GPA 3.71/4.00. Focused on software engineering, AI agent workflows, and IT infrastructure management. Proficient in TypeScript, React, Node.js, Kotlin, and Python. Experienced in building and deploying production systems using Docker, CI/CD pipelines, and self-managed Proxmox virtualization environments. Combines strong software engineering fundamentals with practical DevOps skills, AI-assisted development workflows, and a passion for scalable system architecture.',
+                strongTerms: ['Information Systems graduate', 'GPA 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+            },
+            education: {
+                heading: 'Education',
+                subheading: 'Academic background',
+                degree: 'Bachelor of Information Systems',
+                institution: 'Universitas Andalas',
+                period: 'Graduated June 2026',
+                gpa: 'GPA 3.71/4.00',
+                summary:
+                    'Completed an Information Systems degree with emphasis on software engineering, AI-assisted workflows, IT infrastructure, and production system delivery.',
+                tags: ['Information Systems', 'Universitas Andalas', 'GPA 3.71', 'Graduated June 2026'],
             },
             repositories: {
                 heading: 'Project',
@@ -136,7 +152,7 @@ export const siteContent = {
                             'Provided training and upgrading materials for new assistants',
                         ],
                         tags: ['Leadership', 'Curriculum Design', 'Lab Management'],
-                        current: true,
+                        current: false,
                     },
                     {
                         title: 'Bank Nagari (Head Office)',
@@ -147,7 +163,7 @@ export const siteContent = {
                             'Learned banking IT practices, internal tech stacks, and system concepts',
                         ],
                         tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
-                        current: true,
+                        current: false,
                     },
                     {
                         title: 'Laboratory Assistant - Basic Computing',
@@ -177,6 +193,11 @@ export const siteContent = {
                 subheading: 'activity on GitHub',
                 chartAlt: 'GitHub contribution chart',
                 label: 'nabilrn on GitHub',
+                totalLabel: (total: number) => `${total} contributions in the last year`,
+                contributionLabel: (count: number, date: string) =>
+                    `${count} ${count === 1 ? 'contribution' : 'contributions'} on ${date}`,
+                less: 'Less',
+                more: 'More',
             },
             blog: {
                 heading: 'Latest posts',
@@ -190,7 +211,7 @@ export const siteContent = {
                     { label: 'PROGRAMMING', primary: ['JavaScript', 'TypeScript', 'Kotlin'], items: ['Dart', 'Python'] },
                     { label: 'DEVOPS / INFRA', primary: ['Docker'], items: ['Proxmox', 'Ubuntu', 'GCP', 'Cloudflare'] },
                     { label: 'DATABASES', primary: [], items: ['MySQL', 'PostgreSQL', 'SQLite', 'Redis'] },
-                    { label: 'TOOLS', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains'] },
+                    { label: 'TOOLS', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains', 'AI Coding CLI'] },
                 ],
             },
             certifications: {
@@ -324,6 +345,21 @@ export const siteContent = {
         theme: {
             toggle: 'Toggle theme',
         },
+        search: {
+            open: 'Search',
+            ariaOpen: 'Open site search',
+            placeholder: 'Search portfolio, projects, and posts...',
+            close: 'Close search',
+            noResults: 'No results found.',
+            hint: 'Search all portfolio context',
+            shortcut: 'Ctrl K',
+            results: 'Results',
+            resultTypes: {
+                page: 'Page',
+                project: 'Project',
+                post: 'Article',
+            },
+        },
         errors: {
             notFound: {
                 title: '404 | Page Not Found',
@@ -378,17 +414,22 @@ const mergeContent = <T extends Record<string, unknown>>(base: T, override: Deep
 
 const idContent: DeepPartial<SiteContent> = {
     profile: {
-        role: 'belajar seumur hidup',
-        bio: 'SWE | Penggemar AI Agent | Penggemar Infrastruktur TI. Mahasiswa Sistem Informasi di Universitas Andalas.',
+        role: 'software engineer / pembelajar seumur hidup',
+        bio: 'SWE | Penggemar AI Agent | Penggemar Infrastruktur TI. Lulusan Sistem Informasi Universitas Andalas, IPK 3.71.',
     },
     seo: {
-        defaultTitle: 'Nabil Rizki Navisa | Software Engineer',
+        defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Lulusan Sistem Informasi',
         defaultDescription:
-            'Portfolio Nabil Rizki Navisa - Software Engineer, penggemar AI Agent, dan penggemar Infrastruktur TI. Berpengalaman dengan Node.js, Kotlin, React, Flutter, dan Python. Berbasis di Indonesia.',
+            'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
     },
     schema: {
         personDescription:
-            'Software Engineer, penggemar AI Agent, dan penggemar Infrastruktur TI berbasis di Indonesia. Berfokus pada pengembangan web, mobile, dan DevOps.',
+            'Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berbasis di Indonesia dan berfokus pada pengembangan web, mobile, workflow AI agent, DevOps, dan infrastruktur TI.',
+        degreeName: 'Sarjana Sistem Informasi',
+        credentialCategory: 'Gelar sarjana',
+        educationalLevel: 'Sarjana',
+        graduationDate: 'Juni 2026',
+        gpa: '3.71/4.00',
         worksFor: 'Freelance / Terbuka untuk peluang kerja',
         nationality: 'Indonesia',
     },
@@ -398,6 +439,7 @@ const idContent: DeepPartial<SiteContent> = {
         ariaLanguageNavigation: 'Pilihan bahasa',
         home: 'Beranda',
         overview: 'Ringkasan',
+        education: 'Pendidikan',
         showcase: 'Showcase',
         repositories: 'Repositori',
         experience: 'Pengalaman',
@@ -405,16 +447,27 @@ const idContent: DeepPartial<SiteContent> = {
         skills: 'Keahlian',
         projects: 'Proyek',
         blog: 'Blog',
-        downloadCv: 'Unduh CV',
     },
     home: {
-        seoTitle: 'Nabil Rizki Navisa | Software Engineer',
+        seoTitle: 'Nabil Rizki Navisa | Software Engineer & Lulusan Sistem Informasi',
         seoDescription:
-            'Portfolio Nabil Rizki Navisa - Software Engineer, penggemar AI Agent, dan penggemar Infrastruktur TI. Berpengalaman dengan Node.js, Kotlin, React, Flutter, dan Python. Berbasis di Indonesia.',
+            'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
         about: {
             heading: 'Tentang',
             body:
-                'Mahasiswa Sistem Informasi yang berfokus pada software engineering, workflow AI agent, dan manajemen infrastruktur TI. Berpengalaman dengan TypeScript, React, Node.js, Kotlin, dan Python. Terbiasa membangun dan menerapkan sistem produksi menggunakan Docker, pipeline CI/CD, dan lingkungan virtualisasi Proxmox yang dikelola mandiri. Menggabungkan dasar software engineering yang kuat dengan kemampuan DevOps praktis, workflow pengembangan berbantuan AI, dan minat pada arsitektur sistem yang skalabel.',
+                'Lulusan Sistem Informasi Universitas Andalas, lulus Juni 2026 dengan IPK 3.71/4.00. Berfokus pada software engineering, workflow AI agent, dan manajemen infrastruktur TI. Berpengalaman dengan TypeScript, React, Node.js, Kotlin, dan Python. Terbiasa membangun dan menerapkan sistem produksi menggunakan Docker, pipeline CI/CD, dan lingkungan virtualisasi Proxmox yang dikelola mandiri. Menggabungkan dasar software engineering yang kuat dengan kemampuan DevOps praktis, workflow pengembangan berbantuan AI, dan minat pada arsitektur sistem yang skalabel.',
+            strongTerms: ['Lulusan Sistem Informasi', 'IPK 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+        },
+        education: {
+            heading: 'Pendidikan',
+            subheading: 'latar akademik',
+            degree: 'Sarjana Sistem Informasi',
+            institution: 'Universitas Andalas',
+            period: 'Lulus Juni 2026',
+            gpa: 'IPK 3.71/4.00',
+            summary:
+                'Menyelesaikan studi Sistem Informasi dengan fokus pada software engineering, workflow berbantuan AI, infrastruktur TI, dan delivery sistem produksi.',
+            tags: ['Sistem Informasi', 'Universitas Andalas', 'IPK 3.71', 'Lulus Juni 2026'],
         },
         repositories: {
             heading: 'Proyek',
@@ -433,9 +486,9 @@ const idContent: DeepPartial<SiteContent> = {
                         'Memimpin diskusi perancangan modul praktikum dan penyelarasan kurikulum',
                         'Menyusun rencana peningkatan strategis untuk pengembangan Lab TKITI',
                         'Menyediakan materi pelatihan dan upgrading untuk asisten baru',
-                    ],
-                    tags: ['Leadership', 'Curriculum Design', 'Lab Management'],
-                    current: true,
+                        ],
+                        tags: ['Leadership', 'Curriculum Design', 'Lab Management'],
+                        current: false,
                 },
                 {
                     title: 'Bank Nagari (Kantor Pusat)',
@@ -444,9 +497,9 @@ const idContent: DeepPartial<SiteContent> = {
                         'Membangun modul admin dan magang bersama satu rekan tim',
                         'Mengajarkan dasar Git kepada programmer internal',
                         'Mempelajari praktik TI perbankan, tech stack internal, dan konsep sistem',
-                    ],
-                    tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
-                    current: true,
+                        ],
+                        tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
+                        current: false,
                 },
                 {
                     title: 'Asisten Laboratorium - Komputasi Dasar',
@@ -476,6 +529,10 @@ const idContent: DeepPartial<SiteContent> = {
             subheading: 'aktivitas di GitHub',
             chartAlt: 'Grafik kontribusi GitHub',
             label: 'nabilrn di GitHub',
+            totalLabel: (total: number) => `${total} kontribusi dalam setahun terakhir`,
+            contributionLabel: (count: number, date: string) => `${count} kontribusi pada ${date}`,
+            less: 'Lebih sedikit',
+            more: 'Lebih banyak',
         },
         blog: {
             heading: 'Posting terbaru',
@@ -489,7 +546,7 @@ const idContent: DeepPartial<SiteContent> = {
                 { label: 'PEMROGRAMAN', primary: ['JavaScript', 'TypeScript', 'Kotlin'], items: ['Dart', 'Python'] },
                 { label: 'DEVOPS / INFRA', primary: ['Docker'], items: ['Proxmox', 'Ubuntu', 'GCP', 'Cloudflare'] },
                 { label: 'DATABASE', primary: [], items: ['MySQL', 'PostgreSQL', 'SQLite', 'Redis'] },
-                { label: 'TOOLS', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains'] },
+                { label: 'TOOLS', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains', 'AI Coding CLI'] },
             ],
         },
         certifications: {
@@ -599,6 +656,21 @@ const idContent: DeepPartial<SiteContent> = {
     theme: {
         toggle: 'Ganti tema',
     },
+    search: {
+        open: 'Cari',
+        ariaOpen: 'Buka pencarian situs',
+        placeholder: 'Cari portfolio, proyek, dan posting...',
+        close: 'Tutup pencarian',
+        noResults: 'Tidak ada hasil yang cocok.',
+        hint: 'Cari seluruh konteks portfolio',
+        shortcut: 'Ctrl K',
+        results: 'Hasil',
+        resultTypes: {
+            page: 'Halaman',
+            project: 'Proyek',
+            post: 'Artikel',
+        },
+    },
     errors: {
         notFound: {
             title: '404 | Halaman Tidak Ditemukan',
@@ -621,17 +693,22 @@ const idContent: DeepPartial<SiteContent> = {
 
 const cnContent: DeepPartial<SiteContent> = {
     profile: {
-        role: '终身学习者',
-        bio: '软件工程师 | AI Agent 爱好者 | IT 基础设施爱好者。安达拉斯大学信息系统专业学生。',
+        role: '软件工程师 / 终身学习者',
+        bio: '软件工程师 | AI Agent 爱好者 | IT 基础设施爱好者。安达拉斯大学信息系统毕业生，GPA 3.71。',
     },
     seo: {
-        defaultTitle: 'Nabil Rizki Navisa | 软件工程师',
+        defaultTitle: 'Nabil Rizki Navisa | 软件工程师与信息系统毕业生',
         defaultDescription:
-            'Nabil Rizki Navisa 的作品集 - 软件工程师、AI Agent 爱好者和 IT 基础设施爱好者。熟悉 Node.js、Kotlin、React、Flutter 和 Python。常驻印度尼西亚。',
+            'Nabil Rizki Navisa 的作品集 - 软件工程师，安达拉斯大学信息系统毕业生，GPA 3.71。专注于 AI agent、Web、移动端和 IT 基础设施。',
     },
     schema: {
         personDescription:
-            '常驻印度尼西亚的软件工程师、AI Agent 爱好者和 IT 基础设施爱好者，专注于 Web 开发、移动开发和 DevOps。',
+            '常驻印度尼西亚的软件工程师，安达拉斯大学信息系统毕业生，GPA 3.71。专注于 Web 开发、移动开发、AI agent 工作流、DevOps 和 IT 基础设施。',
+        degreeName: '信息系统学士',
+        credentialCategory: '学士学位',
+        educationalLevel: '本科',
+        graduationDate: '2026 年 6 月',
+        gpa: '3.71/4.00',
         worksFor: '自由职业 / 开放机会',
         nationality: '印度尼西亚',
     },
@@ -641,6 +718,7 @@ const cnContent: DeepPartial<SiteContent> = {
         ariaLanguageNavigation: '语言选择',
         home: '首页',
         overview: '概览',
+        education: '教育',
         showcase: '作品',
         repositories: '代码仓库',
         experience: '经历',
@@ -648,16 +726,27 @@ const cnContent: DeepPartial<SiteContent> = {
         skills: '技能',
         projects: '项目',
         blog: '博客',
-        downloadCv: '下载简历',
     },
     home: {
-        seoTitle: 'Nabil Rizki Navisa | 软件工程师',
+        seoTitle: 'Nabil Rizki Navisa | 软件工程师与信息系统毕业生',
         seoDescription:
-            'Nabil Rizki Navisa 的作品集 - 软件工程师、AI Agent 爱好者和 IT 基础设施爱好者。熟悉 Node.js、Kotlin、React、Flutter 和 Python。常驻印度尼西亚。',
+            'Nabil Rizki Navisa 的作品集 - 软件工程师，安达拉斯大学信息系统毕业生，GPA 3.71。专注于 AI agent、Web、移动端和 IT 基础设施。',
         about: {
             heading: '关于',
             body:
-                '信息系统专业本科生，专注于软件工程、AI agent 工作流和 IT 基础设施管理。熟悉 TypeScript、React、Node.js、Kotlin 和 Python。具备使用 Docker、CI/CD pipeline 和自主管理的 Proxmox 虚拟化环境构建与部署生产系统的经验。结合扎实的软件工程基础、实用 DevOps 能力、AI 辅助开发工作流，以及对可扩展系统架构的兴趣。',
+                '安达拉斯大学信息系统毕业生，2026 年 6 月毕业，GPA 3.71/4.00。专注于软件工程、AI agent 工作流和 IT 基础设施管理。熟悉 TypeScript、React、Node.js、Kotlin 和 Python。具备使用 Docker、CI/CD pipeline 和自主管理的 Proxmox 虚拟化环境构建与部署生产系统的经验。结合扎实的软件工程基础、实用 DevOps 能力、AI 辅助开发工作流，以及对可扩展系统架构的兴趣。',
+            strongTerms: ['信息系统毕业生', 'GPA 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+        },
+        education: {
+            heading: '教育',
+            subheading: '学术背景',
+            degree: '信息系统学士',
+            institution: '安达拉斯大学',
+            period: '2026 年 6 月毕业',
+            gpa: 'GPA 3.71/4.00',
+            summary:
+                '完成信息系统学位，重点关注软件工程、AI 辅助工作流、IT 基础设施和生产系统交付。',
+            tags: ['信息系统', '安达拉斯大学', 'GPA 3.71', '2026 年 6 月毕业'],
         },
         repositories: {
             heading: '项目',
@@ -678,7 +767,7 @@ const cnContent: DeepPartial<SiteContent> = {
                         '为新助理提供培训与能力提升材料',
                     ],
                     tags: ['Leadership', 'Curriculum Design', 'Lab Management'],
-                    current: true,
+                    current: false,
                 },
                 {
                     title: 'Bank Nagari（总部）',
@@ -689,7 +778,7 @@ const cnContent: DeepPartial<SiteContent> = {
                         '学习银行 IT 实践、内部技术栈和系统概念',
                     ],
                     tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
-                    current: true,
+                    current: false,
                 },
                 {
                     title: '基础计算实验室助理',
@@ -719,6 +808,10 @@ const cnContent: DeepPartial<SiteContent> = {
             subheading: 'GitHub 活动',
             chartAlt: 'GitHub 贡献图',
             label: 'GitHub 上的 nabilrn',
+            totalLabel: (total: number) => `过去一年 ${total} 次贡献`,
+            contributionLabel: (count: number, date: string) => `${date} 有 ${count} 次贡献`,
+            less: '少',
+            more: '多',
         },
         blog: {
             heading: '最新文章',
@@ -732,7 +825,7 @@ const cnContent: DeepPartial<SiteContent> = {
                 { label: '编程', primary: ['JavaScript', 'TypeScript', 'Kotlin'], items: ['Dart', 'Python'] },
                 { label: 'DEVOPS / 基础设施', primary: ['Docker'], items: ['Proxmox', 'Ubuntu', 'GCP', 'Cloudflare'] },
                 { label: '数据库', primary: [], items: ['MySQL', 'PostgreSQL', 'SQLite', 'Redis'] },
-                { label: '工具', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains'] },
+                { label: '工具', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains', 'AI Coding CLI'] },
             ],
         },
         certifications: {
@@ -842,6 +935,21 @@ const cnContent: DeepPartial<SiteContent> = {
     theme: {
         toggle: '切换主题',
     },
+    search: {
+        open: '搜索',
+        ariaOpen: '打开站内搜索',
+        placeholder: '搜索作品集、项目和文章...',
+        close: '关闭搜索',
+        noResults: '没有找到匹配结果。',
+        hint: '搜索作品集全部内容',
+        shortcut: 'Ctrl K',
+        results: '结果',
+        resultTypes: {
+            page: '页面',
+            project: '项目',
+            post: '文章',
+        },
+    },
     errors: {
         notFound: {
             title: '404 | 页面未找到',
@@ -864,17 +972,22 @@ const cnContent: DeepPartial<SiteContent> = {
 
 const jpContent: DeepPartial<SiteContent> = {
     profile: {
-        role: '生涯学習',
-        bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast。アンダラス大学 情報システム専攻。',
+        role: 'ソフトウェアエンジニア / 生涯学習者',
+        bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast。アンダラス大学 情報システム卒業、GPA 3.71。',
     },
     seo: {
-        defaultTitle: 'Nabil Rizki Navisa | ソフトウェアエンジニア',
+        defaultTitle: 'Nabil Rizki Navisa | ソフトウェアエンジニア・情報システム卒業生',
         defaultDescription:
-            'Nabil Rizki Navisa のポートフォリオ - ソフトウェアエンジニア、AI Agent と IT インフラの愛好家。Node.js、Kotlin、React、Flutter、Python を扱います。インドネシア在住。',
+            'Nabil Rizki Navisa のポートフォリオ - アンダラス大学情報システム卒業のソフトウェアエンジニア。GPA 3.71。AI agent、Web、モバイル、IT インフラに注力しています。',
     },
     schema: {
         personDescription:
-            'インドネシア在住のソフトウェアエンジニア、AI Agent と IT インフラの愛好家。Web 開発、モバイル開発、DevOps を専門としています。',
+            'インドネシア在住のソフトウェアエンジニア。アンダラス大学情報システム卒業、GPA 3.71。Web 開発、モバイル開発、AI agent ワークフロー、DevOps、IT インフラに注力しています。',
+        degreeName: '情報システム学士',
+        credentialCategory: '学士号',
+        educationalLevel: '学士',
+        graduationDate: '2026年6月',
+        gpa: '3.71/4.00',
         worksFor: 'フリーランス / 機会を募集中',
         nationality: 'インドネシア',
     },
@@ -884,6 +997,7 @@ const jpContent: DeepPartial<SiteContent> = {
         ariaLanguageNavigation: '言語選択',
         home: 'ホーム',
         overview: '概要',
+        education: '学歴',
         showcase: 'ショーケース',
         repositories: 'リポジトリ',
         experience: '経験',
@@ -891,16 +1005,27 @@ const jpContent: DeepPartial<SiteContent> = {
         skills: 'スキル',
         projects: 'プロジェクト',
         blog: 'ブログ',
-        downloadCv: 'CV をダウンロード',
     },
     home: {
-        seoTitle: 'Nabil Rizki Navisa | ソフトウェアエンジニア',
+        seoTitle: 'Nabil Rizki Navisa | ソフトウェアエンジニア・情報システム卒業生',
         seoDescription:
-            'Nabil Rizki Navisa のポートフォリオ - ソフトウェアエンジニア、AI Agent と IT インフラの愛好家。Node.js、Kotlin、React、Flutter、Python を扱います。インドネシア在住。',
+            'Nabil Rizki Navisa のポートフォリオ - アンダラス大学情報システム卒業のソフトウェアエンジニア。GPA 3.71。AI agent、Web、モバイル、IT インフラに注力しています。',
         about: {
             heading: '概要',
             body:
-                'ソフトウェアエンジニアリング、AI agent ワークフロー、IT インフラ管理に注力する情報システム専攻の学部生です。TypeScript、React、Node.js、Kotlin、Python に精通しています。Docker、CI/CD パイプライン、自主管理の Proxmox 仮想化環境を使った本番システムの構築とデプロイ経験があります。堅実なソフトウェアエンジニアリングの基礎、実践的な DevOps スキル、AI 支援開発ワークフロー、そしてスケーラブルなシステム設計への関心を組み合わせています。',
+                'アンダラス大学情報システム卒業生です。2026年6月に卒業し、GPA は 3.71/4.00 です。ソフトウェアエンジニアリング、AI agent ワークフロー、IT インフラ管理に注力しています。TypeScript、React、Node.js、Kotlin、Python に精通しています。Docker、CI/CD パイプライン、自主管理の Proxmox 仮想化環境を使った本番システムの構築とデプロイ経験があります。堅実なソフトウェアエンジニアリングの基礎、実践的な DevOps スキル、AI 支援開発ワークフロー、そしてスケーラブルなシステム設計への関心を組み合わせています。',
+            strongTerms: ['情報システム卒業生', 'GPA は 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+        },
+        education: {
+            heading: '学歴',
+            subheading: '学業背景',
+            degree: '情報システム学士',
+            institution: 'アンダラス大学',
+            period: '2026年6月卒業',
+            gpa: 'GPA 3.71/4.00',
+            summary:
+                '情報システム学位を修了し、ソフトウェアエンジニアリング、AI 支援ワークフロー、IT インフラ、本番システムのデリバリーに重点を置きました。',
+            tags: ['情報システム', 'アンダラス大学', 'GPA 3.71', '2026年6月卒業'],
         },
         repositories: {
             heading: 'プロジェクト',
@@ -921,7 +1046,7 @@ const jpContent: DeepPartial<SiteContent> = {
                         '新しいアシスタント向けの研修とアップグレード資料を提供',
                     ],
                     tags: ['Leadership', 'Curriculum Design', 'Lab Management'],
-                    current: true,
+                    current: false,
                 },
                 {
                     title: 'Bank Nagari（本社）',
@@ -932,7 +1057,7 @@ const jpContent: DeepPartial<SiteContent> = {
                         '銀行 IT の実務、社内技術スタック、システム概念を学習',
                     ],
                     tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
-                    current: true,
+                    current: false,
                 },
                 {
                     title: '基礎コンピューティング ラボアシスタント',
@@ -962,6 +1087,10 @@ const jpContent: DeepPartial<SiteContent> = {
             subheading: 'GitHub の活動',
             chartAlt: 'GitHub コントリビューショングラフ',
             label: 'GitHub の nabilrn',
+            totalLabel: (total: number) => `過去1年のコントリビューション ${total} 件`,
+            contributionLabel: (count: number, date: string) => `${date} のコントリビューション ${count} 件`,
+            less: '少ない',
+            more: '多い',
         },
         blog: {
             heading: '最新記事',
@@ -975,7 +1104,7 @@ const jpContent: DeepPartial<SiteContent> = {
                 { label: 'プログラミング', primary: ['JavaScript', 'TypeScript', 'Kotlin'], items: ['Dart', 'Python'] },
                 { label: 'DEVOPS / インフラ', primary: ['Docker'], items: ['Proxmox', 'Ubuntu', 'GCP', 'Cloudflare'] },
                 { label: 'データベース', primary: [], items: ['MySQL', 'PostgreSQL', 'SQLite', 'Redis'] },
-                { label: 'ツール', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains'] },
+                { label: 'ツール', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains', 'AI Coding CLI'] },
             ],
         },
         certifications: {
@@ -1084,6 +1213,21 @@ const jpContent: DeepPartial<SiteContent> = {
     },
     theme: {
         toggle: 'テーマを切り替え',
+    },
+    search: {
+        open: '検索',
+        ariaOpen: 'サイト検索を開く',
+        placeholder: 'ポートフォリオ、プロジェクト、記事を検索...',
+        close: '検索を閉じる',
+        noResults: '一致する結果がありません。',
+        hint: 'ポートフォリオ全体を検索',
+        shortcut: 'Ctrl K',
+        results: '結果',
+        resultTypes: {
+            page: 'ページ',
+            project: 'プロジェクト',
+            post: '記事',
+        },
     },
     errors: {
         notFound: {

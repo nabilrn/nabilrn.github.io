@@ -1,5 +1,6 @@
 ---
 import Page from '../components/Page.astro';
+import GitHubContributionGrid from '../components/GitHubContributionGrid.astro';
 import ProjectShowcase from '../components/ProjectShowcase.astro';
 import { getRepositoryProjects, langColors } from '../data/projects';
 import { getSiteContent, localizePath, normalizeLocale, localeMeta, type SiteLocale } from '../data/siteContent';
@@ -40,6 +41,30 @@ const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((p
         <p>
             {aboutSegments.map((segment) => segment.strong ? <strong>{segment.text}</strong> : segment.text)}
         </p>
+    </section>
+
+    <!-- Education -->
+    <section id="education" class="section">
+        <div class="section-heading">
+            <h2>{home.education.heading}</h2>
+            <span class="section-sub">{home.education.subheading}</span>
+        </div>
+        <div class="education-card">
+            <div class="education-header">
+                <div>
+                    <h3>{home.education.degree}</h3>
+                    <p class="education-institution">{home.education.institution}</p>
+                </div>
+                <div class="education-meta">
+                    <span>{home.education.period}</span>
+                    <span>{home.education.gpa}</span>
+                </div>
+            </div>
+            <p class="education-summary">{home.education.summary}</p>
+            <div class="education-tags">
+                {home.education.tags.map((tag) => <span class="pill pill-primary">{tag}</span>)}
+            </div>
+        </div>
     </section>
 
     <!-- Showcase -->
@@ -112,12 +137,7 @@ const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((p
             <h2>{home.contributions.heading}</h2>
             <span class="section-sub">{home.contributions.subheading}</span>
         </div>
-        <img
-            src="https://ghchart.rshah.org/3fb950/nabilrn"
-            alt={home.contributions.chartAlt}
-            style="width:100%; border-radius:4px; filter: invert(1) hue-rotate(180deg);"
-        />
-        <div class="contrib-label">{home.contributions.label}</div>
+        <GitHubContributionGrid username="nabilrn" locale={locale} />
     </section>
 
     <!-- Blog -->
@@ -211,6 +231,56 @@ const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((p
         color: var(--gh-text-secondary);
         font-weight: 400;
         margin-left: 6px;
+    }
+
+    /* Education */
+    .education-card {
+        background: var(--gh-base);
+        border: 1px solid var(--gh-border);
+        border-radius: 6px;
+        padding: 14px 16px;
+    }
+
+    .education-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 8px;
+    }
+
+    .education-header h3 {
+        font-size: 14px;
+        line-height: 1.35;
+        margin: 0 0 4px 0;
+    }
+
+    .education-institution,
+    .education-summary {
+        color: var(--gh-text-secondary);
+        margin: 0;
+    }
+
+    .education-summary {
+        font-size: 12px;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+
+    .education-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        color: var(--gh-text-secondary);
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .education-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
     }
 
     /* Projects Grid */
@@ -497,15 +567,17 @@ const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((p
         text-decoration: underline;
     }
 
-    /* Contributions */
-    .contrib-label {
-        text-align: right;
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-        margin-top: 6px;
-    }
-
     @media (max-width: 768px) {
+        .education-header {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .education-meta {
+            align-items: flex-start;
+            white-space: normal;
+        }
+
         .projects-grid {
             grid-template-columns: 1fr;
         }

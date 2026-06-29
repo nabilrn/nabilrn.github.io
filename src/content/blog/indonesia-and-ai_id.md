@@ -122,4 +122,4 @@ Statistik kita keren di atas kertas. Tapi kalau 83% dari pengguna AI Indonesia g
 
 ---
 
-*Opini pribadi. Penulis adalah mahasiswa Sistem Informasi yang tertarik pada infrastruktur teknologi dan adopsi AI di konteks lokal.*
+*Opini pribadi. Penulis adalah lulusan Sistem Informasi yang tertarik pada infrastruktur teknologi dan adopsi AI di konteks lokal.*

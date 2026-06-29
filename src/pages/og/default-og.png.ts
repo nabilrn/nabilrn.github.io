@@ -4,7 +4,7 @@ import { buildOgSvg } from '../../utils/og';
 export async function GET() {
 	const svg = buildOgSvg({
 		title: 'Nabil Rizki Navisa',
-		excerpt: 'Software engineering notes, practical workflows, and hands-on infrastructure writeups.',
+		excerpt: 'Software engineer and Information Systems graduate from Universitas Andalas. GPA 3.71. AI agents, web, mobile, and IT infrastructure.',
 		kicker: 'nabilrn / portfolio',
 	});
 
