@@ -120,7 +120,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Bank Sampah Pondok Permai",
     desc: "Landing page for a community waste bank NGO in Padang, with a grounded nature-driven aesthetic.",
-    liveUrl: "https://pondokpermai.my.id",
+    liveUrl: "https://permai-eco-landing.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/permai-eco-landing",
     stack: ["React", "Vite", "GitHub Pages"],
     screenshot: pondokpermaiImg,
