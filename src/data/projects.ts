@@ -80,7 +80,7 @@ export const webProjects: WebProject[] = [
   {
     name: "UNAND Library Public Dashboard",
     desc: "Fullscreen information dashboard for Universitas Andalas Library, built as a frontend-only app for landscape displays. It presents library services, visitor counts, facilities, agendas, visit statistics, borrowing activity, leaderboards, and collection summaries from local data without an API or backend.",
-    liveUrl: "https://nabilrizkinavisa.me/lib-unand-dashboard/",
+    liveUrl: "https://lib-unand-dashboard.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/lib-unand-dashboard/",
     stack: ["React", "Vite", "Localization", "TypeScript", "GitHub Pages"],
     screenshot: unandLibDashboardImg,
@@ -88,7 +88,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Network Rookie",
     desc: "An AI-powered interactive visualization of the global internet infrastructure.",
-    liveUrl: "https://nabilrizkinavisa.me/network-rookie",
+    liveUrl: "https://network-rookie.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/network-rookie.git",
     stack: ["React", "Vite", "Globe.GL", "Three.js", "GitHub Pages"],
     screenshot: networkRookieImg,
@@ -96,7 +96,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Ez-Agent Landing Page",
     desc: "Landing page for EZ Agents, a multi-agent AI orchestration system for building software with coordinated intelligent agents.",
-    liveUrl: "https://nabilrizkinavisa.me/ez-agent-landingpage/",
+    liveUrl: "https://ez-agent.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/ez-agent-landingpage.git",
     stack: ["Astro", "Three.js", "GitHub Pages"],
     screenshot: ezagentImg,
@@ -128,7 +128,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Porsche Gallery",
     desc: "Elegant, interactive single-page showcase of the Porsche 911 legacy and models.",
-    liveUrl: "https://nabilrizkinavisa.me/porsche-gallery/",
+    liveUrl: "https://porsche-gallery.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/porsche-gallery.git",
     stack: ["HTML", "CSS", "JavaScript"],
     screenshot: porschegalleryImg,

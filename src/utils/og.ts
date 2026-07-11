@@ -102,7 +102,7 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
   <rect width="1200" height="630" fill="#030303"/>
   <rect x="40" y="38" width="1120" height="554" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1.5"/>
   <text x="88" y="112" font-size="25" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="600" fill="#ffffff" opacity="0.78">${escapeXml(kicker)}</text>
-  <text x="1094" y="112" text-anchor="end" font-size="20" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.58">nabilrizkinavisa.me</text>
+  <text x="1094" y="112" text-anchor="end" font-size="20" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.58">portfolio.nabilrn.space</text>
   <line x1="88" y1="146" x2="1112" y2="146" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1"/>
   ${renderedTitle}
   <line x1="88" y1="386" x2="1112" y2="386" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>

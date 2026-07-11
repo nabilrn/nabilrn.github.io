@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nabilrizkinavisa.me/sitemap.xml
+Sitemap: https://portfolio.nabilrn.space/sitemap.xml

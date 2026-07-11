@@ -3,7 +3,7 @@ export type SiteLocale = 'en' | 'id' | 'cn' | 'jp';
 export const defaultLocale: SiteLocale = 'en';
 export const supportedLocales = ['en', 'id', 'cn', 'jp'] as const satisfies readonly SiteLocale[];
 export const localizedLocales = ['id', 'cn', 'jp'] as const satisfies readonly SiteLocale[];
-export const siteUrl = 'https://nabilrizkinavisa.me';
+export const siteUrl = 'https://portfolio.nabilrn.space';
 export const authorName = 'Nabil Rizki Navisa';
 export const localeMeta: Record<SiteLocale, { label: string; htmlLang: string; ogLocale: string; pathPrefix: string; dateLocale: string }> = {
     en: { label: 'English', htmlLang: 'en', ogLocale: 'en_US', pathPrefix: '', dateLocale: 'en-US' },
@@ -364,7 +364,7 @@ export const siteContent = {
             notFound: {
                 title: '404 | Page Not Found',
                 description: 'The page you are looking for cannot be found.',
-                ogImageAlt: '404 page not found for nabilrizkinavisa.me.',
+                ogImageAlt: '404 page not found for portfolio.nabilrn.space.',
                 code: '404',
                 heading: 'Page not found.',
                 body: 'The link may be broken, moved, or removed. Use one of the options below to continue browsing.',
@@ -372,7 +372,7 @@ export const siteContent = {
             server: {
                 title: '500 | Server Error',
                 description: 'The server encountered an unexpected error.',
-                ogImageAlt: '500 server error page for nabilrizkinavisa.me.',
+                ogImageAlt: '500 server error page for portfolio.nabilrn.space.',
                 code: '500',
                 heading: 'Unexpected server error.',
                 body: 'Something went wrong while loading this page. Please try again in a moment, or return to the homepage.',
