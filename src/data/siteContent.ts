@@ -31,7 +31,7 @@ export const siteContent = {
     en: {
         profile: {
             name: authorName,
-            role: 'software engineer / lifelong learner',
+            role: 'software engineer / lifetime learner',
             bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast. Information Systems graduate from Universitas Andalas, GPA 3.71.',
             avatarAlt: authorName,
         },

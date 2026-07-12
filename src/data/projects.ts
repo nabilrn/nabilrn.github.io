@@ -74,7 +74,7 @@ export const webProjects: WebProject[] = [
     name: "FTI Universitas Andalas",
     desc: "Rebranding and rebuild of the Faculty of Information Technology Universitas Andalas profile website with a cleaner institutional information architecture.",
     liveUrl: "https://fti.unand.online",
-    stack: ["Astro", "TypeScript", "Github Pages"],
+    stack: ["Astro", "TypeScript"],
     screenshot: ftiImg,
   },
   {
@@ -82,7 +82,7 @@ export const webProjects: WebProject[] = [
     desc: "Fullscreen information dashboard for Universitas Andalas Library, built as a frontend-only app for landscape displays. It presents library services, visitor counts, facilities, agendas, visit statistics, borrowing activity, leaderboards, and collection summaries from local data without an API or backend.",
     liveUrl: "https://lib-unand-dashboard.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/lib-unand-dashboard/",
-    stack: ["React", "Vite", "Localization", "TypeScript", "GitHub Pages"],
+    stack: ["React", "Vite", "Localization", "TypeScript"],
     screenshot: unandLibDashboardImg,
   },
   {
@@ -90,7 +90,7 @@ export const webProjects: WebProject[] = [
     desc: "An AI-powered interactive visualization of the global internet infrastructure.",
     liveUrl: "https://network-rookie.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/network-rookie.git",
-    stack: ["React", "Vite", "Globe.GL", "Three.js", "GitHub Pages"],
+    stack: ["React", "Vite", "Globe.GL", "Three.js"],
     screenshot: networkRookieImg,
   },
   {
@@ -98,7 +98,7 @@ export const webProjects: WebProject[] = [
     desc: "Landing page for EZ Agents, a multi-agent AI orchestration system for building software with coordinated intelligent agents.",
     liveUrl: "https://ez-agent.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/ez-agent-landingpage.git",
-    stack: ["Astro", "Three.js", "GitHub Pages"],
+    stack: ["Astro", "Three.js"],
     screenshot: ezagentImg,
   },
   {
@@ -114,7 +114,7 @@ export const webProjects: WebProject[] = [
     liveUrl: "https://tkiti.tech",
     repoUrl:
       "https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/tkiti.github.io",
-    stack: ["React", "Vite", "Hono", "SQLite", "GitHub Pages"],
+    stack: ["React", "Vite", "Hono", "SQLite"],
     screenshot: tkitiImg,
   },
   {
@@ -122,7 +122,7 @@ export const webProjects: WebProject[] = [
     desc: "Landing page for a community waste bank NGO in Padang, with a grounded nature-driven aesthetic.",
     liveUrl: "https://permai-eco-landing.nabilrn.space",
     repoUrl: "https://github.com/nabilrn/permai-eco-landing",
-    stack: ["React", "Vite", "GitHub Pages"],
+    stack: ["React", "Vite"],
     screenshot: pondokpermaiImg,
   },
   {
