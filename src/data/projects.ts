@@ -14,6 +14,7 @@ import porschegalleryImg from "../assets/porschegallery.webp";
 import networkRookieImg from "../assets/network-rookie.webp";
 import ftiImg from "../assets/fti.webp";
 import unandLibDashboardImg from "../assets/unandlibdashboard.webp";
+import mypaasImg from "../assets/mypaas.webp";
 import neocentral1Img from "../assets/neocentral1.webp";
 import neocentral2Img from "../assets/neocentral2.webp";
 import neocentral3Img from "../assets/neocentral3.webp";
@@ -70,6 +71,13 @@ export const langColors: Record<string, string> = {
 };
 
 export const webProjects: WebProject[] = [
+  {
+    name: "myPaaS",
+    desc: "Self-hosted platform as a service for single virtual machine.",
+    liveUrl: "#",
+    stack: ["Go", "Svelte", "Caddy", "PostgreSQL"],
+    screenshot: mypaasImg,
+  },
   {
     name: "FTI Universitas Andalas",
     desc: "Rebranding and rebuild of the Faculty of Information Technology Universitas Andalas profile website with a cleaner institutional information architecture.",
@@ -188,6 +196,11 @@ type LocalizedDescriptions = Record<
 >;
 
 const webProjectDescriptions: LocalizedDescriptions = {
+  myPaaS: {
+    id: "Platform as a service (PaaS) self-hosted untuk single virtual machine.",
+    cn: "面向单虚拟机的自托管平台即服务 (PaaS)。",
+    jp: "シングル仮想マシン向けのセルフホスト型 Platform as a Service (PaaS)。",
+  },
   "FTI Universitas Andalas": {
     id: "Rebranding dan pembangunan ulang website profil Fakultas Teknologi Informasi Universitas Andalas dengan arsitektur informasi institusional yang lebih bersih.",
     cn: "Universitas Andalas 信息技术学院官网的品牌重塑与重建，采用更清晰的机构信息架构。",
