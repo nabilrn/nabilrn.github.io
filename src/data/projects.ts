@@ -74,7 +74,7 @@ export const webProjects: WebProject[] = [
   {
     name: "myPaaS",
     desc: "Self-hosted platform as a service for single virtual machine.",
-    liveUrl: "#",
+    liveUrl: "https://mypaas.my.id",
     stack: ["Go", "Svelte", "Caddy", "PostgreSQL"],
     screenshot: mypaasImg,
   },
