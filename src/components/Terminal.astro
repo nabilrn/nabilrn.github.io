@@ -1,0 +1,521 @@
+---
+interface Props {
+    termData: Record<string, unknown>;
+}
+
+const { termData } = Astro.props;
+---
+
+<div class="term-shell" id="term-shell" data-phosphor="green">
+    <div class="term-chrome" aria-hidden="true">
+        <span class="term-chrome-title">nsh — visitor@nabilrn: ~</span>
+        <span class="term-chrome-hint">scroll to read &middot; type 'help' to play</span>
+    </div>
+    <div class="term-body" id="term-body" role="log" aria-label="Interactive terminal. Type help to list commands.">
+        <div id="term-out"></div>
+        <div class="term-line term-inputline">
+            <span class="prompt" id="term-prompt"></span>
+            <span class="term-edit">
+                <span id="term-echo-a"></span><span class="term-cursor" id="term-cursor">&nbsp;</span><span id="term-echo-b"></span>
+            </span>
+            <input
+                id="term-input"
+                type="text"
+                autocomplete="off"
+                autocapitalize="off"
+                autocorrect="off"
+                spellcheck="false"
+                aria-label="Terminal input"
+            />
+        </div>
+    </div>
+</div>
+
+<style>
+    .term-shell {
+        --ph: var(--text);
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        font-family: var(--font-mono);
+    }
+
+    .term-shell[data-phosphor='green'] { --ph: #4ade80; }
+    .term-shell[data-phosphor='amber'] { --ph: #fbbf24; }
+    .term-shell[data-phosphor='white'] { --ph: var(--text); }
+
+    .term-chrome {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 14px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
+        user-select: none;
+    }
+
+    .term-chrome-title {
+        font-size: 12px;
+        color: var(--muted);
+    }
+
+    .term-chrome-hint {
+        font-size: 11px;
+        color: var(--border-strong);
+    }
+
+    .term-body {
+        position: relative;
+        height: min(680px, calc(100vh - 170px));
+        min-height: 380px;
+        overflow-y: auto;
+        padding: 14px 16px 20px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        cursor: text;
+    }
+
+    .term-body :global(.tl) {
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+        color: var(--text-body);
+    }
+
+    .term-body :global(.tl-cmd) {
+        color: var(--text);
+        margin-top: 10px;
+    }
+
+    .term-body :global(.tl-dim) { color: var(--muted); }
+    .term-body :global(.tl-err) { color: var(--danger); }
+    .term-body :global(.tl-ok) { color: var(--ph); }
+
+    .term-body :global(.boot-head) {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin: 4px 0 6px;
+    }
+
+    .term-body :global(.boot-photo) {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+        flex-shrink: 0;
+    }
+
+    .term-body :global(.boot-name) {
+        white-space: pre;
+        font-family: inherit;
+        font-size: clamp(4px, 1.15vw, 8px);
+        line-height: 1.2;
+        color: var(--ph);
+        margin: 0;
+    }
+
+    .term-body :global(.term-photo) {
+        display: block;
+        width: 24ch;
+        image-rendering: pixelated;
+        margin: 2px 0;
+    }
+
+    .term-body :global(.c-ph) { color: var(--ph); }
+    .term-body :global(.c-dir) { color: var(--dir); font-weight: 600; }
+    .term-body :global(.c-dim) { color: var(--muted); }
+    .term-body :global(.c-text) { color: var(--text); }
+    .term-body :global(.c-err) { color: var(--danger); }
+    .term-body :global(.c-warn) { color: var(--warn); }
+    .term-body :global(.c-key) { color: var(--text); font-weight: 600; }
+
+    .term-body :global(a) {
+        color: var(--ph);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+
+    .term-line {
+        display: flex;
+        align-items: baseline;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .term-inputline {
+        position: relative;
+        margin-top: 10px;
+    }
+
+    .prompt {
+        color: var(--ph);
+        font-weight: 700;
+        white-space: pre;
+        flex-shrink: 0;
+    }
+
+    .term-edit {
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: var(--text);
+    }
+
+    .term-cursor {
+        display: inline-block;
+        width: 0.62em;
+        background: var(--ph);
+        color: transparent;
+        animation: term-blink 1.05s steps(1) infinite;
+    }
+
+    @keyframes term-blink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .term-cursor { animation: none; }
+    }
+
+    #term-input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        opacity: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: transparent;
+        font-size: 16px; /* prevents mobile zoom; visually irrelevant */
+        caret-color: transparent;
+        cursor: text;
+    }
+
+    @media (max-width: 768px) {
+        .term-body {
+            height: calc(100vh - 210px);
+            min-height: 320px;
+            font-size: 12.5px;
+            padding: 12px 12px 16px;
+        }
+    }
+</style>
+
+<script is:inline define:vars={{ termData }}>
+    (() => {
+        const D = termData;
+        const shell = document.getElementById('term-shell');
+        const body = document.getElementById('term-body');
+        const out = document.getElementById('term-out');
+        const input = document.getElementById('term-input');
+        const echoA = document.getElementById('term-echo-a');
+        const echoB = document.getElementById('term-echo-b');
+        const promptEl = document.getElementById('term-prompt');
+        if (!shell || !body || !out || !input || !echoA || !echoB || !promptEl) return;
+
+        /* ---------- output helpers ---------- */
+        const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const scroll = () => { body.scrollTop = body.scrollHeight; };
+        const printHtml = (html, cls) => {
+            const d = document.createElement('div');
+            d.className = 'tl' + (cls ? ' ' + cls : '');
+            d.innerHTML = html === '' ? '&nbsp;' : html;
+            out.appendChild(d);
+            scroll();
+        };
+        const print = (text, cls) => printHtml(esc(text), cls);
+        const printLines = (lines, cls) => { for (const l of lines) print(l, cls); };
+
+        /* ---------- virtual filesystem ---------- */
+        const F = (content) => ({ t: 'f', c: content });
+        const DIR = (children) => ({ t: 'd', ch: children });
+        const projectChildren = {};
+        for (const p of D.projects) projectChildren[p.file] = F(p.lines);
+        const ROOT = DIR({
+            'about.txt': F(D.files.about),
+            'experience.txt': F(D.files.experience),
+            'education.txt': F(D.files.education),
+            'skills.txt': F(D.files.skills),
+            'certifications.txt': F(D.files.certifications),
+            'contact.txt': F(D.files.contact),
+            'projects': DIR(projectChildren),
+        });
+
+        let cwd = ['~'];
+        const cwdStr = () => cwd.join('/');
+        const setPrompt = () => {
+            promptEl.innerHTML = esc(D.promptUser) + ':' + esc(cwdStr()) + '$&nbsp;';
+        };
+
+        const resolve = (path) => {
+            if (!path) return cwd.slice();
+            let parts = path.startsWith('~') ? ['~'] : cwd.slice();
+            for (const seg of path.split('/')) {
+                if (seg === '' || seg === '.') continue;
+                if (seg === '~') { parts = ['~']; continue; }
+                if (seg === '..') { if (parts.length > 1) parts.pop(); continue; }
+                parts.push(seg);
+            }
+            return parts;
+        };
+
+        const getNode = (path) => {
+            const parts = resolve(path);
+            let node = ROOT;
+            for (let i = 1; i < parts.length; i++) {
+                if (!node || node.t !== 'd') return null;
+                node = node.ch[parts[i]];
+            }
+            return node || null;
+        };
+
+        /* ---------- commands ---------- */
+        const fileAlias = (file) => () => printLines(D.files[file]);
+
+        const commands = {
+            help: () => printLines(D.help),
+            overview: () => { for (const line of D.overview) printHtml(line); },
+            info: () => commands.overview(),
+            all: () => commands.overview(),
+            neofetch: () => {
+                for (const line of D.neofetch) printHtml(line);
+            },
+            whoami: () => {
+                print('visitor');
+                print("guest session — try: cat about.txt", 'tl-dim');
+            },
+            pwd: () => print('/home/visitor' + (cwdStr() === '~' ? '' : '/' + cwd.slice(1).join('/'))),
+            ls: (args) => {
+                const node = getNode(args[0]);
+                if (!node) return print(`ls: cannot access '${args[0]}': No such file or directory`, 'tl-err');
+                if (node.t === 'f') return print(args[0]);
+                const names = Object.keys(node.ch).sort((a, b) => {
+                    const da = node.ch[a].t === 'd' ? 0 : 1;
+                    const db = node.ch[b].t === 'd' ? 0 : 1;
+                    return da - db || a.localeCompare(b);
+                });
+                printHtml(names.map((n) => node.ch[n].t === 'd'
+                    ? `<span class="c-dir">${esc(n)}/</span>`
+                    : esc(n)).join('   '));
+            },
+            cd: (args) => {
+                if (!args[0] || args[0] === '~') { cwd = ['~']; return; }
+                const node = getNode(args[0]);
+                if (!node) return print(`nsh: cd: ${args[0]}: No such file or directory`, 'tl-err');
+                if (node.t !== 'd') return print(`nsh: cd: ${args[0]}: Not a directory`, 'tl-err');
+                cwd = resolve(args[0]);
+            },
+            cat: (args) => {
+                if (!args[0]) return print('cat: missing operand', 'tl-err');
+                const node = getNode(args[0]);
+                if (!node) return print(`cat: ${args[0]}: No such file or directory`, 'tl-err');
+                if (node.t === 'd') return print(`cat: ${args[0]}: Is a directory`, 'tl-err');
+                printLines(node.c);
+            },
+            echo: (args) => print(args.join(' ')),
+            clear: () => { out.innerHTML = ''; },
+            history: () => {
+                hist.forEach((h, i) => print(`  ${String(i + 1).padStart(4)}  ${h}`));
+            },
+            date: () => print(new Date().toString()),
+            uname: () => print('nabilOS web 1.0 nabilrn nsh 6.1.0-homelab x86_64'),
+            skills: fileAlias('skills'),
+            experience: fileAlias('experience'),
+            education: fileAlias('education'),
+            contact: fileAlias('contact'),
+            certifications: fileAlias('certifications'),
+            projects: () => {
+                printHtml('<span class="c-dir">projects/</span>');
+                for (const p of D.projects) print('  ' + p.file);
+                print("hint: cat projects/<file> — or 'open projects' for the full page", 'tl-dim');
+            },
+            blog: () => {
+                printLines(D.postsLines);
+                print("hint: 'open blog' to read", 'tl-dim');
+            },
+            open: (args) => {
+                const target = (args[0] || '').toLowerCase();
+                const url = D.links[target];
+                if (!url) {
+                    print(`open: unknown target '${args[0] || ''}'`, 'tl-err');
+                    return print('targets: ' + Object.keys(D.links).join(', '), 'tl-dim');
+                }
+                print(`[nsh] opening ${url} ...`, 'tl-dim');
+                if (url.startsWith('http') || url.startsWith('mailto')) {
+                    window.open(url, '_blank', 'noopener');
+                } else {
+                    window.location.href = url;
+                }
+            },
+            theme: (args) => {
+                const t = (args[0] || '').toLowerCase();
+                if (!['green', 'amber', 'white'].includes(t)) {
+                    print('usage: theme [green|amber|white]', 'tl-dim');
+                    return;
+                }
+                shell.dataset.phosphor = t;
+                print(`[nsh] phosphor set to ${t}`);
+            },
+            lang: (args) => {
+                const l = (args[0] || '').toLowerCase();
+                if (!D.langs[l]) {
+                    print('usage: lang [en|id|cn|jp]', 'tl-dim');
+                    return;
+                }
+                print(`[nsh] switching language to ${l} ...`);
+                window.location.href = D.langs[l];
+            },
+            ping: () => print('PONG portfolio.nabilrn.space time=0.042ms'),
+            sudo: () => print('visitor is not in the sudoers file. This incident will be reported.', 'tl-err'),
+            vim: () => print('E492: not an editor command — this is a portfolio', 'tl-err'),
+            vi: () => commands.vim(),
+            nvim: () => commands.vim(),
+            emacs: () => print('nsh: emacs: command not found (try vim)', 'tl-dim'),
+            nano: () => print('nano: use cat, it is safer here', 'tl-dim'),
+            man: () => print('no manual entry — try: help', 'tl-dim'),
+            ssh: () => print('ssh: connect to host portfolio.nabilrn.space port 22: Connection refused', 'tl-err'),
+            exit: () => {
+                print('logout');
+                print('[nsh] there is no escape. this is a website.', 'tl-dim');
+            },
+            gui: () => { window.location.href = D.links.projects; },
+        };
+        commands.rm = () => print('rm: permission denied (and rude)', 'tl-err');
+
+        /* ---------- input handling ---------- */
+        const hist = [];
+        let hIdx = -1;
+        let draft = '';
+        let awaitingOverview = true;
+
+        const render = () => {
+            const pos = input.selectionStart ?? input.value.length;
+            echoA.textContent = input.value.slice(0, pos);
+            echoB.textContent = input.value.slice(pos);
+            scroll();
+        };
+
+        const run = (raw) => {
+            const line = raw.trim();
+            setPrompt();
+            printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc(raw)}`, 'tl-cmd');
+            if (!line) return;
+            hist.push(line);
+            hIdx = hist.length;
+            draft = '';
+            const tokens = line.split(/\s+/);
+            const cmd = tokens[0].toLowerCase();
+            const fn = commands[cmd];
+            if (fn) {
+                try { fn(tokens.slice(1)); } catch { print('nsh: internal error', 'tl-err'); }
+            } else {
+                print(`nsh: command not found: ${tokens[0]}`, 'tl-err');
+            }
+            setPrompt();
+        };
+
+        const complete = () => {
+            const val = input.value;
+            const tokens = val.split(/\s+/);
+            if (tokens.length <= 1) {
+                const matches = Object.keys(commands).filter((c) => c.startsWith(tokens[0].toLowerCase()));
+                if (matches.length === 1) {
+                    input.value = matches[0] + ' ';
+                } else if (matches.length > 1) {
+                    printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc(val)}`, 'tl-cmd');
+                    print(matches.join('   '), 'tl-dim');
+                }
+                return render();
+            }
+            const last = tokens[tokens.length - 1];
+            const slash = last.lastIndexOf('/');
+            const dirPart = slash >= 0 ? last.slice(0, slash) || '~' : '';
+            const base = slash >= 0 ? last.slice(slash + 1) : last;
+            const dirNode = getNode(dirPart || undefined);
+            if (!dirNode || dirNode.t !== 'd') return render();
+            const matches = Object.keys(dirNode.ch).filter((n) => n.startsWith(base));
+            if (matches.length === 1) {
+                const done = dirNode.ch[matches[0]].t === 'd' ? matches[0] + '/' : matches[0];
+                tokens[tokens.length - 1] = (slash >= 0 ? last.slice(0, slash + 1) : '') + done;
+                input.value = tokens.join(' ');
+            } else if (matches.length > 1) {
+                printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc(val)}`, 'tl-cmd');
+                print(matches.join('   '), 'tl-dim');
+            }
+            render();
+        };
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const v = input.value;
+                if (awaitingOverview && v.trim() === '') {
+                    awaitingOverview = false;
+                    printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc('overview')}`, 'tl-cmd');
+                    commands.overview();
+                    print("[nsh] end of overview — type 'help' for commands, 'clear' to clean up.", 'tl-dim');
+                    input.value = '';
+                    render();
+                    body.scrollTop = 0;
+                    return;
+                }
+                awaitingOverview = false;
+                input.value = '';
+                render();
+                run(v);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (hIdx > 0) {
+                    if (hIdx === hist.length) draft = input.value;
+                    hIdx--;
+                    input.value = hist[hIdx] || '';
+                    render();
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (hIdx < hist.length) {
+                    hIdx++;
+                    input.value = hIdx === hist.length ? draft : (hist[hIdx] || '');
+                    render();
+                }
+            } else if (e.key === 'Tab') {
+                e.preventDefault();
+                complete();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc(input.value)}^C`, 'tl-cmd');
+                input.value = '';
+                render();
+            } else if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+                e.preventDefault();
+                out.innerHTML = '';
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                setTimeout(render, 0);
+            }
+        });
+
+        input.addEventListener('input', render);
+        input.addEventListener('click', () => setTimeout(render, 0));
+        body.addEventListener('click', () => input.focus({ preventScroll: true }));
+        input.addEventListener('blur', () => {
+            /* keep cursor visible state consistent */
+            render();
+        });
+
+        /* ---------- boot ---------- */
+        setPrompt();
+        for (const line of D.boot) print(line, 'tl-dim');
+        printHtml(D.headerHtml);
+        print('');
+        print(D.enterHint, 'tl-ok');
+        print(D.enterSubHint, 'tl-dim');
+        body.scrollTop = 0;
+        if (window.matchMedia('(pointer: fine)').matches) {
+            input.focus({ preventScroll: true });
+        }
+    })();
+</script>

@@ -1,10 +1,12 @@
 ---
 import Page from '../components/Page.astro';
-import GitHubContributionGrid from '../components/GitHubContributionGrid.astro';
-import ProjectShowcase from '../components/ProjectShowcase.astro';
-import { getRepositoryProjects, langColors } from '../data/projects';
-import { getSiteContent, localizePath, normalizeLocale, localeMeta, type SiteLocale } from '../data/siteContent';
+import Terminal from '../components/Terminal.astro';
+import { getLocalizedMobileProjects, getLocalizedWebProjects, getRepositoryProjects } from '../data/projects';
+import { getSiteContent, localizePath, normalizeLocale, supportedLocales, type SiteLocale } from '../data/siteContent';
 import { getCollection } from 'astro:content';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import sharp from 'sharp';
 
 interface Props {
     locale?: SiteLocale;
@@ -13,6 +15,37 @@ interface Props {
 
 const locale = normalizeLocale(Astro.props.locale);
 const pagePath = Astro.props.path ?? localizePath('/', locale);
+const content = getSiteContent(locale);
+const home = content.home;
+
+/* Pixel portrait: monochrome, rendered as chunky pixels via CSS */
+const pixelPng = await sharp(await readFile(join(process.cwd(), 'src', 'assets', 'profilepict.webp')))
+    .resize(96, 96, { fit: 'cover' })
+    .grayscale()
+    .png({ compressionLevel: 9 })
+    .toBuffer();
+const pixelPhoto = `data:image/png;base64,${pixelPng.toString('base64')}`;
+
+/* Full name ASCII banner — one line, small block letters */
+const nameArtLines = [
+    '███╗   ██╗  █████╗  ██████╗  ██╗ ██╗        ██████╗  ██╗ ███████╗ ██╗  ██╗ ██╗   ███╗   ██╗  █████╗  ██╗   ██╗ ██╗ ███████╗  █████╗ ',
+    '████╗  ██║ ██╔══██╗ ██╔══██╗ ██║ ██║        ██╔══██╗ ██║ ╚══███╔╝ ██║ ██╔╝ ██║   ████╗  ██║ ██╔══██╗ ██║   ██║ ██║ ██╔════╝ ██╔══██╗',
+    '██╔██╗ ██║ ███████║ ██████╔╝ ██║ ██║        ██████╔╝ ██║   ███╔╝  █████╔╝  ██║   ██╔██╗ ██║ ███████║ ██║   ██║ ██║ ███████╗ ███████║',
+    '██║╚██╗██║ ██╔══██║ ██╔══██╗ ██║ ██║        ██╔══██╗ ██║  ███╔╝   ██╔═██╗  ██║   ██║╚██╗██║ ██╔══██║ ╚██╗ ██╔╝ ██║ ╚════██║ ██╔══██║',
+    '██║ ╚████║ ██║  ██║ ██████╔╝ ██║ ███████╗   ██║  ██║ ██║ ███████╗ ██║  ██╗ ██║   ██║ ╚████║ ██║  ██║  ╚████╔╝  ██║ ███████║ ██║  ██║',
+    '╚═╝  ╚═══╝ ╚═╝  ╚═╝ ╚═════╝  ╚═╝ ╚══════╝   ╚═╝  ╚═╝ ╚═╝ ╚══════╝ ╚═╝  ╚═╝ ╚═╝   ╚═╝  ╚═══╝ ╚═╝  ╚═╝   ╚═══╝   ╚═╝ ╚══════╝ ╚═╝  ╚═╝',
+];
+
+/* Header block: pixel photo beside the name banner (neofetch layout) */
+const headerHtml = [
+    '<div class="boot-head">',
+    '<div class="boot-photo"><span class="c-dim">+----------------------+</span>',
+    `<img class="term-photo" src="${pixelPhoto}" alt="Pixel portrait of ${content.profile.name}">`,
+    '<span class="c-dim">+----------------------+</span></div>',
+    `<pre class="boot-name">${nameArtLines.join('\n')}</pre>`,
+    '</div>',
+].join('');
+
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const preferredPostLocale = locale === 'en' ? 'en' : locale;
 const latestPosts = allPosts
@@ -20,572 +53,231 @@ const latestPosts = allPosts
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
     .slice(0, 3);
 
-const allProjects = await getRepositoryProjects({}, locale);
-const projects = allProjects.slice(0, 6);
-const content = getSiteContent(locale);
-const home = content.home;
+const webProjects = getLocalizedWebProjects(locale);
+const mobileProjects = getLocalizedMobileProjects(locale);
+const repositories = await getRepositoryProjects({}, locale);
 
-const aboutPattern = new RegExp(`(${home.about.strongTerms.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
-const aboutSegments = home.about.body.split(aboutPattern).filter(Boolean).map((part) => ({
-    text: part,
-    strong: home.about.strongTerms.includes(part),
-}));
+const slugify = (name: string) =>
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+const projects = [
+    ...webProjects.map((p) => ({
+        file: `${slugify(p.name)}.txt`,
+        lines: [
+            p.name,
+            '',
+            p.desc,
+            '',
+            `Type:  Web`,
+            `Stack: ${p.stack.join(', ')}`,
+            `URL:   ${p.liveUrl}`,
+            ...(p.repoUrl ? [`Repo:  ${p.repoUrl}`] : []),
+        ],
+    })),
+    ...mobileProjects.map((p) => ({
+        file: `${slugify(p.name)}.txt`,
+        lines: [
+            p.name,
+            '',
+            p.desc,
+            '',
+            `Type:  Mobile (${p.platform})`,
+            `Stack: ${p.stack.join(', ')}`,
+            ...(p.repoUrl ? [`Repo:  ${p.repoUrl}`] : []),
+        ],
+    })),
+    ...repositories.slice(0, 6).map((p) => ({
+        file: `${slugify(p.name)}.txt`,
+        lines: [
+            p.name,
+            '',
+            p.desc,
+            '',
+            `Type:  Repository`,
+            `Lang:  ${p.lang}${p.stars ? `   Stars: ${p.stars}` : ''}`,
+            `URL:   ${p.url}`,
+        ],
+    })),
+];
+
+const postsLines = latestPosts.map((post) => {
+    const date = post.data.pubDate.toISOString().slice(0, 10);
+    return `${date}  ${post.data.title}`;
+});
+
+const files = {
+    about: [
+        content.profile.name,
+        content.profile.role,
+        '',
+        home.about.body,
+    ],
+    experience: home.experiences.items.flatMap((item) => [
+        item.title,
+        `  ${item.period}`,
+        ...item.bullets.map((b) => `  - ${b}`),
+        `  [${item.tags.join('] [')}]`,
+        '',
+    ]),
+    education: [
+        home.education.degree,
+        home.education.institution,
+        `${home.education.period} — ${home.education.gpa}`,
+        '',
+        home.education.summary,
+    ],
+    skills: home.skills.groups.flatMap((group) => [
+        `## ${group.label.toLowerCase()}`,
+        `  ${[...group.primary, ...group.items].join('  ')}`,
+        '',
+    ]),
+    certifications: home.certifications.items.map((item) => `- ${item.label}\n  ${item.href}`),
+    contact: [
+        `Email      nabilrizkinavisa@gmail.com`,
+        `GitHub     github.com/nabilrn`,
+        `LinkedIn   linkedin.com/in/nabilrizkinavisa2004`,
+        `X          x.com/NabilrizkiN`,
+        `Instagram  instagram.com/nabilrizkinavisa`,
+        '',
+        `hint: 'open mail' | 'open github' | 'open linkedin'`,
+    ],
+};
+
+/* overview — everything at once, for visitors who just want to scroll */
+const escOv = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const ovHeader = (title: string) =>
+    `<span class="c-ph">+-- ${escOv(title.toUpperCase())} ${'-'.repeat(Math.max(2, 36 - title.length))}</span>`;
+const ovBlock = (title: string, lines: string[]) => [
+    '',
+    ovHeader(title),
+    '',
+    ...lines.map(escOv),
+];
+const overview = [
+    ...ovBlock(home.about.heading, files.about),
+    ...ovBlock(home.education.heading, files.education),
+    ...ovBlock(home.experiences.heading, files.experience),
+    ...ovBlock(home.skills.heading, files.skills),
+    ...ovBlock(home.repositories.heading, [
+        ...projects.map((p) => p.file),
+        '',
+        `hint: cat projects/<file> — or 'open projects'`,
+    ]),
+    ...ovBlock(home.blog.heading, [...postsLines, '', `hint: 'open blog' to read`]),
+    ...ovBlock('contact', files.contact),
+];
+
+const termData = {
+    promptUser: 'visitor@nabilrn',
+    files,
+    overview,
+    headerHtml,
+    projects,
+    postsLines,
+    links: {
+        blog: localizePath('/blog/', locale),
+        projects: localizePath('/projects/', locale),
+        github: 'https://github.com/nabilrn',
+        linkedin: 'https://www.linkedin.com/in/nabilrizkinavisa2004',
+        x: 'https://x.com/NabilrizkiN',
+        instagram: 'https://www.instagram.com/nabilrizkinavisa',
+        mail: 'mailto:nabilrizkinavisa@gmail.com',
+    },
+    langs: Object.fromEntries(supportedLocales.map((l) => [l, localizePath('/', l)])),
+    help: [
+        'nsh — nabil shell. available commands:',
+        '',
+        '  overview        print EVERYTHING at once (aliases: info, all)',
+        '  help            show this message',
+        '  neofetch        system information',
+        '  whoami          who is using this terminal',
+        '  ls [path]       list files',
+        '  cd <dir>        change directory (try: cd projects)',
+        '  cat <file>      print file (try: cat about.txt)',
+        '  pwd             print working directory',
+        '  projects        list all projects',
+        '  blog            latest posts',
+        '  skills          tech stack',
+        '  experience      work history',
+        '  education       academic background',
+        '  contact         get in touch',
+        '  open <target>   open page: blog, projects, github, linkedin, x, instagram, mail',
+        '  theme <name>    phosphor: green | amber | white',
+        '  lang <code>     switch language: en | id | cn | jp',
+        '  history         command history',
+        '  date            current date',
+        '  echo <text>     print text',
+        '  ping            pong',
+        '  clear           clear screen (ctrl+l)',
+        '  exit            logout (good luck)',
+        '',
+        'tips: tab = autocomplete, up/down = history, ctrl+c = interrupt',
+    ],
+    neofetch: [
+        `<span class="c-ph"> ███╗   ██╗</span>  <span class="c-key">visitor</span>@<span class="c-key">nabilrn</span>`,
+        `<span class="c-ph"> ████╗  ██║</span>  -----------------`,
+        `<span class="c-ph"> ██╔██╗ ██║</span>  <span class="c-key">OS</span>: nabilOS web x86_64`,
+        `<span class="c-ph"> ██║╚██╗██║</span>  <span class="c-key">Host</span>: portfolio.nabilrn.space`,
+        `<span class="c-ph"> ██║ ╚████║</span>  <span class="c-key">Shell</span>: nsh 1.0.0`,
+        `<span class="c-ph"> ╚═╝  ╚═══╝</span>  <span class="c-key">Uptime</span>: 21 years`,
+        `            <span class="c-key">Locales</span>: en, id, cn, jp`,
+        `            <span class="c-key">Stack</span>: TypeScript, React, Node.js, Kotlin, Python`,
+        `            <span class="c-key">Infra</span>: Proxmox, Docker, Cloudflare`,
+        `            <span class="c-key">CPU</span>: human (1) @ 3.71GHz`,
+        `            <span class="c-key">Memory</span>: ${latestPosts.length} posts / ${projects.length} projects indexed`,
+        '',
+        `<span style="color:#3f3f46">███</span><span style="color:#f87171">███</span><span style="color:#4ade80">███</span><span style="color:#fbbf24">███</span><span style="color:#6ea8fe">███</span><span style="color:#c084fc">███</span><span style="color:#22d3ee">███</span><span style="color:#e4e4e7">███</span>`,
+    ],
+    boot: [
+        'nabilOS web tty1',
+        'portfolio login: visitor',
+        'Password: ********',
+        `Last login: ${new Date().toDateString()} from 127.0.0.1`,
+        '',
+    ],
+    enterHint: 'press ENTER to show information',
+    enterSubHint: "(or type 'help' to explore commands)",
+};
 ---
 
-<Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale}>
+<Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale} layoutVariant="portfolio-full">
     <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{home.seoTitle}</h1>
-    <!-- About -->
-    <section id="about" class="section">
-        <div class="section-heading">
+
+    <Terminal termData={termData} />
+
+    <noscript>
+        <section>
             <h2>{home.about.heading}</h2>
-        </div>
-        <p>
-            {aboutSegments.map((segment) => segment.strong ? <strong>{segment.text}</strong> : segment.text)}
-        </p>
-    </section>
-
-    <!-- Education -->
-    <section id="education" class="section">
-        <div class="section-heading">
-            <h2>{home.education.heading}</h2>
-            <span class="section-sub">{home.education.subheading}</span>
-        </div>
-        <div class="education-card">
-            <div class="education-header">
-                <div>
-                    <h3>{home.education.degree}</h3>
-                    <p class="education-institution">{home.education.institution}</p>
-                </div>
-                <div class="education-meta">
-                    <span>{home.education.period}</span>
-                    <span>{home.education.gpa}</span>
-                </div>
-            </div>
-            <p class="education-summary">{home.education.summary}</p>
-            <div class="education-tags">
-                {home.education.tags.map((tag) => <span class="pill pill-primary">{tag}</span>)}
-            </div>
-        </div>
-    </section>
-
-    <!-- Showcase -->
-    <ProjectShowcase webLimit={6} mobileLimit={2} showAllLink locale={locale} />
-
-    <!-- Projects -->
-    <section id="projects" class="section">
-        <div class="section-heading">
-            <h2>{home.repositories.heading}</h2>
-            <span class="section-sub">{home.repositories.subheading}</span>
-        </div>
-        <div class="projects-grid">
-            {projects.map((project) => (
-                <a href={project.url} target="_blank" rel="noopener" class="repo-card">
-                    <div class="repo-header">
-                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" class="repo-icon"><path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5zm10.5-1h-8a1 1 0 00-1 1v6.708A2.486 2.486 0 014.5 9h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"></path></svg>
-                        <span class="repo-name">{project.name}</span>
-                        <span class="repo-visibility">{home.repositories.visibility}</span>
-                    </div>
-                    <div class="repo-desc">{project.desc}</div>
-                    <div class="repo-footer">
-                        <span class="repo-lang">
-                            <span class="lang-dot" style={`background:${langColors[project.lang] || '#8b949e'}`}></span>
-                            {project.lang}
-                        </span>
-                        {project.stars && (
-                            <span class="repo-stars">
-                                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"></path></svg>
-                                {project.stars}
-                            </span>
-                        )}
-                        {project.tags.map((tag) => (
-                            <span class="repo-tag">{tag}</span>
-                        ))}
-                    </div>
-                </a>
-            ))}
-        </div>
-        <div class="explore-link">
-            <a href={localizePath('/projects/', locale)}>{home.repositories.viewAll}</a>
-        </div>
-    </section>
-
-    <!-- Experiences -->
-    <section id="experiences" class="section">
-        <div class="section-heading">
+            <p>{home.about.body}</p>
             <h2>{home.experiences.heading}</h2>
-            <span class="section-sub">{home.experiences.subheading}</span>
-        </div>
-
-        {home.experiences.items.map((item) => (
-            <div class={item.current ? 'exp-item exp-current' : 'exp-item'}>
-                <div class="exp-header">
-                    <span class="exp-title">{item.title}</span>
-                    <span class="exp-period">{item.period}</span>
-                </div>
-                <ul class="exp-list">
-                    {item.bullets.map((bullet) => <li>{bullet}</li>)}
-                </ul>
-                <div class="exp-tags">
-                    {item.tags.map((tag) => <span class="pill">{tag}</span>)}
-                </div>
-            </div>
-        ))}
-    </section>
-
-    <!-- Contributions -->
-    <section id="contributions" class="section">
-        <div class="section-heading">
-            <h2>{home.contributions.heading}</h2>
-            <span class="section-sub">{home.contributions.subheading}</span>
-        </div>
-        <GitHubContributionGrid username="nabilrn" locale={locale} />
-    </section>
-
-    <!-- Blog -->
-    <section id="blog" class="section">
-        <div class="section-heading">
+            <ul>
+                {home.experiences.items.map((item) => <li>{item.title} — {item.period}</li>)}
+            </ul>
             <h2>{home.blog.heading}</h2>
-            <span class="section-sub">{home.blog.subheading}</span>
-        </div>
-        <div class="blog-cards">
-            {latestPosts.map((post) => (
-                <a href={localizePath(`/blog/${post.slug}/`, locale)} class="blog-card">
-                    <div class="blog-card-body">
-                        <div class="blog-card-title">{post.data.title}</div>
-                        <div class="blog-card-desc">{post.data.description}</div>
-                        <div class="blog-card-meta">
-                            <span>{post.data.pubDate.toLocaleDateString(localeMeta[locale].dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                            {post.data.tags.map((tag: string) => (
-                                <span class="pill">{tag}</span>
-                            ))}
-                        </div>
-                    </div>
-                </a>
-            ))}
-        </div>
-        <div class="explore-link">
-            <a href={localizePath('/blog/', locale)}>{home.blog.viewAll}</a>
-        </div>
-    </section>
-
-    <!-- Skills -->
-    <section id="skills" class="section">
-        <div class="section-heading">
-            <h2>{home.skills.heading}</h2>
-            <span class="section-sub">{home.skills.subheading}</span>
-        </div>
-
-        <div class="skills-grid">
-            {home.skills.groups.map((group) => (
-                <div class="skill-group">
-                    <div class="skill-label">{group.label}</div>
-                    <div class="skill-badges">
-                        {group.primary.map((skill) => <span class="pill pill-primary">{skill}</span>)}
-                        {group.items.map((skill) => <span class="pill">{skill}</span>)}
-                    </div>
-                </div>
-            ))}
-        </div>
-    </section>
-
-    <!-- Certifications -->
-    <section id="certifications" class="section">
-        <div class="section-heading">
-            <h2>{home.certifications.heading}</h2>
-        </div>
-        <ul class="cert-list">
-            {home.certifications.items.map((item) => (
-                <li><a href={item.href} target="_blank" rel="noopener">{item.label}</a></li>
-            ))}
-        </ul>
-    </section>
+            <ul>
+                {latestPosts.map((post) => (
+                    <li><a href={localizePath(`/blog/${post.slug}/`, locale)}>{post.data.title}</a></li>
+                ))}
+            </ul>
+            <h2>{home.repositories.heading}</h2>
+            <ul>
+                {repositories.slice(0, 6).map((p) => <li><a href={p.url}>{p.name}</a> — {p.desc}</li>)}
+            </ul>
+        </section>
+    </noscript>
 </Page>
 
 <style>
-    /* Sections */
-    .section {
-        padding-top: 24px;
+    noscript section {
         margin-top: 24px;
-        border-top: 1px solid var(--gh-border);
     }
 
-    .section:first-of-type {
-        border-top: none;
-        margin-top: 0;
-        padding-top: 0;
-    }
-
-    .section-heading {
-        margin-bottom: 12px;
-    }
-
-    .section-heading h2 {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--gh-text);
-        margin: 0;
-        display: inline;
-    }
-
-    .section-sub {
-        font-size: 12px;
-        color: var(--gh-text-secondary);
-        font-weight: 400;
-        margin-left: 6px;
-    }
-
-    /* Education */
-    .education-card {
-        background: var(--gh-base);
-        border: 1px solid var(--gh-border);
-        border-radius: 6px;
-        padding: 14px 16px;
-    }
-
-    .education-header {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 8px;
-    }
-
-    .education-header h3 {
+    noscript h2 {
         font-size: 14px;
-        line-height: 1.35;
-        margin: 0 0 4px 0;
+        margin: 18px 0 8px;
     }
 
-    .education-institution,
-    .education-summary {
-        color: var(--gh-text-secondary);
-        margin: 0;
-    }
-
-    .education-summary {
-        font-size: 12px;
-        line-height: 1.6;
-        margin-bottom: 10px;
-    }
-
-    .education-meta {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        gap: 4px;
-        color: var(--gh-text-secondary);
-        font-size: 11px;
-        white-space: nowrap;
-    }
-
-    .education-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    /* Projects Grid */
-    .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .repo-card {
-        background: var(--gh-base);
-        border: 1px solid var(--gh-border);
-        border-radius: 6px;
-        padding: 12px 14px;
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        transition: border-color 0.15s ease;
-    }
-
-    .repo-card:hover {
-        border-color: var(--gh-accent);
-    }
-
-    .repo-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-    }
-
-    .repo-icon {
-        opacity: 0.5;
-        color: var(--gh-text-secondary);
-        flex-shrink: 0;
-    }
-
-    .repo-name {
-        font-size: 12px;
-        font-weight: 600;
-        color: var(--gh-accent);
-    }
-
-    .repo-visibility {
-        font-size: 11px;
-        border: 1px solid var(--gh-border-muted);
-        border-radius: 20px;
-        padding: 0 5px;
-        color: var(--gh-text-secondary);
-        margin-left: auto;
-        line-height: 1.6;
-    }
-
-    .repo-desc {
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-        line-height: 1.5;
-        margin-bottom: 10px;
-    }
-
-    .repo-footer {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .repo-lang {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-    }
-
-    .lang-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .repo-stars {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-    }
-
-    .repo-stars svg {
-        opacity: 0.6;
-    }
-
-    .repo-tag {
-        font-size: 11px;
-        background: var(--gh-surface);
-        border: 1px solid var(--gh-border-muted);
-        border-radius: 20px;
-        padding: 1px 8px;
-        color: var(--gh-text-secondary);
-    }
-
-    /* Experience */
-    .exp-item {
-        border-left: 2px solid var(--gh-border-muted);
-        padding-left: 14px;
-        margin-bottom: 20px;
-    }
-
-    .exp-item.exp-current {
-        border-left-color: var(--gh-green);
-    }
-
-    .exp-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 6px;
-    }
-
-    .exp-title {
+    noscript li {
         font-size: 13px;
-        font-weight: 600;
-        color: var(--gh-text);
-    }
-
-    .exp-period {
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-    }
-
-    .exp-list {
-        list-style: disc;
-        padding-left: 16px;
-        margin: 0 0 8px 0;
-    }
-
-    .exp-list li {
-        font-size: 12px;
-        color: var(--gh-text-body);
-        margin-bottom: 4px;
-    }
-
-    .exp-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    /* Shared pill badge */
-    .pill {
-        font-size: 11px;
-        background: var(--gh-surface);
-        border: 1px solid var(--gh-border-muted);
-        border-radius: 20px;
-        padding: 1px 8px;
-        color: var(--gh-text-secondary);
-        display: inline-block;
-    }
-
-    .pill-primary {
-        background: var(--gh-green-bg);
-        border-color: var(--gh-green-border);
-        color: var(--gh-green);
-    }
-
-    /* Blog Cards */
-    .blog-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .blog-card {
-        background: var(--gh-base);
-        border: 1px solid var(--gh-border);
-        border-radius: 6px;
-        padding: 14px 16px;
-        display: flex;
-        gap: 12px;
-        text-decoration: none;
-        color: inherit;
-        transition: border-color 0.15s ease;
-    }
-
-    .blog-card:hover {
-        border-color: var(--gh-accent);
-    }
-
-    .blog-card-title {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--gh-accent);
-        margin-bottom: 4px;
-    }
-
-    .blog-card-desc {
-        font-size: 12px;
-        color: var(--gh-text-secondary);
-        margin-bottom: 8px;
-        line-height: 1.5;
-    }
-
-    .blog-card-meta {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        font-size: 11px;
-        color: var(--gh-text-secondary);
-        flex-wrap: wrap;
-    }
-
-    /* Skills */
-    .skills-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-
-    .skill-group {
-        margin-bottom: 4px;
-    }
-
-    .skill-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: var(--gh-text-secondary);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
-
-    .skill-badges {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-    }
-
-    /* Certifications */
-    .cert-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .cert-list li {
-        padding: 8px 0;
-        border-bottom: 1px solid var(--gh-border);
-        font-size: 13px;
-    }
-
-    .cert-list li:last-child {
-        border-bottom: none;
-    }
-
-    .cert-list li::marker {
-        content: none;
-    }
-
-    .cert-list a {
-        color: var(--gh-accent);
-        text-decoration: none;
-    }
-
-    .cert-list a:hover {
-        text-decoration: underline;
-    }
-
-    /* Explore link */
-    .explore-link {
-        margin-top: 12px;
-        font-size: 12px;
-    }
-
-    .explore-link a {
-        color: var(--gh-accent);
-        text-decoration: none;
-    }
-
-    .explore-link a:hover {
-        text-decoration: underline;
-    }
-
-    @media (max-width: 768px) {
-        .education-header {
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .education-meta {
-            align-items: flex-start;
-            white-space: normal;
-        }
-
-        .projects-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .skills-grid {
-            grid-template-columns: 1fr;
-        }
-
     }
 </style>

@@ -5,24 +5,34 @@ description: Creates implementation-ready design-system guidance with tokens, co
 
 <!-- TYPEUI_SH_MANAGED_START -->
 
-# nabilrn (Nabil) · GitHub
+# nabilrn (Nabil) · Monochrome Terminal ("nsh")
 
 ## Mission
-Deliver implementation-ready design-system guidance for nabilrn (Nabil) · GitHub that can be applied consistently across marketing site interfaces.
+Deliver implementation-ready design-system guidance for nabilrn (Nabil) · Monochrome Terminal that can be applied consistently across portfolio and blog interfaces.
 
 ## Brand
-- Product/brand: nabilrn (Nabil) · GitHub
-- URL: https://github.com/nabilrn
+- Product/brand: nabilrn (Nabil) · Monochrome Terminal — the home page is a real interactive shell ("nsh"), not a terminal-styled page
+- URL: https://portfolio.nabilrn.space
 - Audience: developers and technical teams
-- Product surface: marketing site
+- Product surface: portfolio site + blog
 
 ## Style Foundations
-- Visual style: structured, accessible, implementation-first
-- Main font style: `font.family.primary=Mona Sans VF`, `font.family.stack=Mona Sans VF, -apple-system, BlinkMacSystemFont, Segoe UI, Noto Sans, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji`, `font.size.base=14px`, `font.weight.base=400`, `font.lineHeight.base=21px`
-- Typography scale: `font.size.xs=12px`, `font.size.sm=14px`, `font.size.md=16px`, `font.size.lg=17.5px`, `font.size.xl=20px`, `font.size.2xl=24px`, `font.size.3xl=28px`, `font.size.4xl=32px`
-- Color palette: `color.text.primary=#f0f6fc`, `color.text.secondary=#4493f8`, `color.text.tertiary=#9198a1`, `color.text.inverse=#ffffff`, `color.surface.base=#000000`, `color.surface.muted=#151b23`, `color.surface.raised=#033a16`, `color.surface.strong=#1f6feb`, `color.border.strong=#010409`
-- Spacing scale: `space.1=1.5px`, `space.2=3.5px`, `space.3=4px`, `space.4=5px`, `space.5=6px`, `space.6=8px`, `space.7=8.4px`, `space.8=12px`
-- Radius/shadow/motion tokens: `radius.xs=2px`, `radius.sm=6px` | `motion.duration.instant=80ms`, `motion.duration.fast=200ms`, `motion.duration.normal=500ms`
+- Visual style: authentic monochrome Linux terminal. Dark-first, near-black, white/grey text, monospace UI, block cursor, ASCII-only UI copy (no emoji anywhere). Color is opt-in only — `theme green|amber` inside the terminal.
+- Interactive core: `src/components/Terminal.astro` — virtual FS (`ls`/`cd`/`cat`), ~25 commands, history, tab completion, Ctrl+C/L, phosphor themes (white default, green/amber opt-in). Boot shows a one-line ASCII name banner beside a grayscale pixel portrait, then an `overview` gate on ENTER. All content via the `termData` prop.
+- Main font style: `font.family.mono=var(--font-mono)` (JetBrains Mono Variable, self-hosted) for all UI; `font.family.sans=var(--font-sans)` (Inter Variable) only for long-form article prose; `font.size.base=14px`
+- Color tokens (dark, default): `--bg=#0a0a0a`, `--surface=#111111`, `--surface-2=#181818`, `--border=#1f1f1f`, `--border-strong=#2e2e2e`, `--text=#e8e8e8`, `--muted=#8a8a8a`, `--text-body=#b8b8b8`, `--accent=#f0f0f0`, `--accent-hover=#ffffff`, `--hint=#d4d4d4`, `--dir=#b8b8b8` (ls directories), `--warn=#fbbf24`, `--danger=#f87171`
+- Light theme: same token names with light values defined in `Page.astro`
+- Contribution heatmap ramp: greyscale `--contrib-0..4` (#161616 → #c0c0c0 dark)
+- Radius: 6-8px (terminal window chrome, cards); full radius 999px only for pills/chips
+- Motion: cursor blink (steps), `150ms ease` color transitions; respect `prefers-reduced-motion`
+
+## Token Usage Rules
+- Always use semantic tokens (`var(--text)`), never raw hex or the retired `--gh-*` names.
+- The palette is monochrome by default — do not introduce accent colors; phosphor green/amber exist only inside the terminal's opt-in `theme` command (hardcoded there, not in tokens).
+- Prompt format: `visitor@nabilrn:~$` — user/host in terminal `--ph` color (default `--text`), path in default text.
+- `ls` directories use `--dir` (grey, bold) with trailing `/`; errors use `--danger`; hints use `--muted`.
+- Terminal output lines use `white-space: pre-wrap`; block cursor is `--ph` background with blink animation.
+- Text selection is `--accent` background with `--bg` color.
 
 ## Accessibility
 - Target: WCAG 2.2 AA

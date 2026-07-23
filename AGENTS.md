@@ -46,10 +46,12 @@ Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`,
 ### Page structure
 
 - `src/components/Page.astro` — root HTML shell with all global CSS, meta tags, JSON-LD, and theme setup. All pages use this.
-- `src/components/PortfolioLayout.astro` — layout wrapper (header, nav, footer) used inside Page.
-- `src/pages/index.astro` — landing page with about, experiences, projects, blog preview, skills, certifications.
+- `src/pages/index.astro` — landing page: a full **interactive terminal** (`src/components/Terminal.astro`). Builds a `termData` payload (about, experience, education, skills, projects, posts, links) from `siteContent` + `projects` data and passes it to the terminal. Uses `layoutVariant="portfolio-full"`. Has a `<noscript>` fallback.
+- `src/components/Terminal.astro` — self-contained shell ("nsh"): virtual filesystem (`ls`/`cd`/`cat`), ~25 commands (`help`, `neofetch`, `skills`, `projects`, `blog`, `open`, `theme`, `lang`, jokes), command history (up/down), tab completion, Ctrl+C/Ctrl+L, phosphor themes (green/amber/white). All output is driven by the `termData` prop — no fetch calls.
+- `src/components/PortfolioFullLayout.astro` — top-header layout (brand prompt `nabil@nabilrn:~`, nav, language links, search, theme toggle). Used by home and projects; `blog-full` variant wraps blog pages.
+- `src/components/PortfolioLayout.astro` — legacy sidebar layout, currently unused by any page.
 - `src/pages/blog/index.astro` — blog listing page.
-- `src/pages/blog/[slug].astro` — individual blog post page. Uses `EngagementBarNew.astro`.
+- `src/pages/blog/[slug].astro` — individual blog post page. Uses `EngagementBarNew.astro`. Article prose uses `--font-sans` (Inter); UI uses `--font-mono` (JetBrains Mono).
 
 ### Engagement metrics flow
 
@@ -70,4 +72,4 @@ Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`,
 
 ### Theming
 
-CSS variables defined in `Page.astro` with `--sl-color-*` prefix. Supports `data-theme="dark"` (default) and `data-theme="light"`. Theme persisted in localStorage under `starlight-theme`.
+The design language is a **monochrome Linux terminal**: near-black background (`#0a0a0a`), white/grey text, JetBrains Mono as the default UI font (`--font-mono`; Inter/`--font-sans` only for long-form article prose). Color is opt-in only: the terminal's `theme green|amber` command switches phosphor colors locally. The home page IS an interactive terminal — keep UI copy emoji-free and ASCII-only. CSS variables are defined in `Page.astro` as semantic tokens: `--bg`, `--surface`, `--surface-2`, `--border`, `--border-strong`, `--text`, `--muted`, `--text-body`, `--accent` (near-white), `--accent-hover`, `--hint`, `--dir` (grey, for `ls` directories), `--ok`, `--ok-bg`, `--ok-border`, `--warn`, `--danger`, `--done`, `--shadow`, `--contrib-0..4` (greyscale contribution ramp), `--font-sans`, `--font-mono`. Fonts are self-hosted via `@fontsource-variable/inter` + `@fontsource-variable/jetbrains-mono` (imported in `Page.astro`). Legacy `--sl-color-*` aliases still map to these tokens. Supports `data-theme="dark"` (default) and `data-theme="light"`. Theme persisted in localStorage under `starlight-theme`.

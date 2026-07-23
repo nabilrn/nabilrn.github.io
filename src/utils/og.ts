@@ -83,7 +83,7 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
 	const renderedTitle = titleLines
 		.map(
 			(line, index) =>
-				`<text x="88" y="${204 + index * 66}" font-size="58" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#ffffff">${escapeXml(
+				`<text x="88" y="${204 + index * 66}" font-size="58" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700" fill="#ededed">${escapeXml(
 					line
 				)}</text>`
 		)
@@ -92,21 +92,21 @@ export const buildOgSvg = ({ title, excerpt, kicker }: OgCardData) => {
 	const renderedExcerpt = excerptLines
 		.map(
 			(line, index) =>
-				`<text x="88" y="${438 + index * 38}" font-size="27" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="400" fill="#ffffff" opacity="0.72">${escapeXml(
+				`<text x="88" y="${438 + index * 38}" font-size="27" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="400" fill="#a3a3a3">${escapeXml(
 					line
 				)}</text>`
 		)
 		.join('');
 
 	return `<svg width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#030303"/>
-  <rect x="40" y="38" width="1120" height="554" rx="28" fill="none" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1.5"/>
-  <text x="88" y="112" font-size="25" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="600" fill="#ffffff" opacity="0.78">${escapeXml(kicker)}</text>
-  <text x="1094" y="112" text-anchor="end" font-size="20" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.58">portfolio.nabilrn.space</text>
-  <line x1="88" y1="146" x2="1112" y2="146" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1"/>
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+  <circle cx="88" cy="103" r="7" fill="#737373"/>
+  <text x="110" y="112" font-size="25" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="600" fill="#ededed">${escapeXml(kicker)}</text>
+  <text x="1094" y="112" text-anchor="end" font-size="20" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#737373">portfolio.nabilrn.space</text>
+  <line x1="88" y1="146" x2="1112" y2="146" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
   ${renderedTitle}
-  <line x1="88" y1="386" x2="1112" y2="386" stroke="#ffffff" stroke-opacity="0.14" stroke-width="1"/>
+  <line x1="88" y1="386" x2="1112" y2="386" stroke="#ffffff" stroke-opacity="0.1" stroke-width="1"/>
   ${renderedExcerpt}
-  <text x="88" y="558" font-size="21" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#ffffff" opacity="0.62">Software Engineer / Information Systems Graduate</text>
+  <text x="88" y="558" font-size="21" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="500" fill="#737373">Software Engineer — AI Agents — Infrastructure</text>
 </svg>`;
 };

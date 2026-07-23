@@ -32,6 +32,7 @@ export const siteContent = {
         profile: {
             name: authorName,
             role: 'software engineer / lifetime learner',
+            status: 'open to opportunities',
             bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast. Information Systems graduate from Universitas Andalas, GPA 3.71.',
             avatarAlt: authorName,
         },
@@ -43,7 +44,7 @@ export const siteContent = {
             keywords:
                 'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, Information Systems Graduate, GPA 3.71, Universitas Andalas Graduate, AI Agent Enthusiast, IT Infrastructure Enthusiast, Backend Developer, Frontend Developer, Android Developer, Mobile Developer, Kotlin Developer, Flutter Developer, React Developer, Node.js Developer, TypeScript Developer, Python Developer, IT Infrastructure, DevOps, Proxmox, Docker, GCP, Web Developer, Indonesia, Padang, Universitas Andalas, UNAND, Information Systems, Bangkit Academy, Portfolio, Programmer, Tech Enthusiast',
             ogSiteName: authorName,
-            themeColor: '#0d1117',
+            themeColor: '#0a0a0a',
         },
         schema: {
             alternateName: ['Nabil Navisa', 'Nabil Rizki', 'nabilrn', 'nabilrizkinavisa'],
@@ -118,6 +119,7 @@ export const siteContent = {
                 'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
             about: {
                 heading: 'About',
+                headline: 'Building software, AI agents, and self-hosted infrastructure.',
                 body:
                     'Information Systems graduate from Universitas Andalas, graduated in June 2026 with GPA 3.71/4.00. Focused on software engineering, AI agent workflows, and IT infrastructure management. Proficient in TypeScript, React, Node.js, Kotlin, and Python. Experienced in building and deploying production systems using Docker, CI/CD pipelines, and self-managed Proxmox virtualization environments. Combines strong software engineering fundamentals with practical DevOps skills, AI-assisted development workflows, and a passion for scalable system architecture.',
                 strongTerms: ['Information Systems graduate', 'GPA 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
@@ -247,7 +249,7 @@ export const siteContent = {
             seoTitle: 'Projects | Nabil Rizki Navisa',
             seoDescription:
                 'Project showcase and repository index for Nabil Rizki Navisa, covering web applications, mobile apps, infrastructure projects, and AI-assisted software builds.',
-            ogImageAlt: 'Nabil Rizki Navisa project showcase and repository index in GitHub-inspired dark style.',
+            ogImageAlt: 'Nabil Rizki Navisa project showcase and repository index in terminal-inspired dark style.',
             eyebrow: 'Projects',
             heading: 'Project showcase and repository index.',
             intro: 'A fuller catalog of shipped web builds, Android experiments, infrastructure work, and selected repositories.',
@@ -282,7 +284,7 @@ export const siteContent = {
             navigationAria: 'Blog navigation',
             seoTitle: 'Blog | Nabil Rizki Navisa',
             seoDescription: 'Notes on software engineering, project lessons, and practical workflows by Nabil Rizki Navisa.',
-            ogImageAlt: 'Nabil Rizki Navisa blog article listing in GitHub-inspired dark style.',
+            ogImageAlt: 'Nabil Rizki Navisa blog article listing in terminal-inspired dark style.',
             eyebrow: 'Blog',
             heading: 'Technical notes, shipped learnings, and practical guides.',
             intro: 'A focused reading space with tutorials and engineering notes from real projects and homelab experiments.',
@@ -415,6 +417,7 @@ const mergeContent = <T extends Record<string, unknown>>(base: T, override: Deep
 const idContent: DeepPartial<SiteContent> = {
     profile: {
         role: 'software engineer / pembelajar seumur hidup',
+        status: 'terbuka untuk peluang',
         bio: 'SWE | Penggemar AI Agent | Penggemar Infrastruktur TI. Lulusan Sistem Informasi Universitas Andalas, IPK 3.71.',
     },
     seo: {
@@ -454,6 +457,7 @@ const idContent: DeepPartial<SiteContent> = {
             'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
         about: {
             heading: 'Tentang',
+            headline: 'Membangun perangkat lunak, agen AI, dan infrastruktur self-hosted.',
             body:
                 'Lulusan Sistem Informasi Universitas Andalas, lulus Juni 2026 dengan IPK 3.71/4.00. Berfokus pada software engineering, workflow AI agent, dan manajemen infrastruktur TI. Berpengalaman dengan TypeScript, React, Node.js, Kotlin, dan Python. Terbiasa membangun dan menerapkan sistem produksi menggunakan Docker, pipeline CI/CD, dan lingkungan virtualisasi Proxmox yang dikelola mandiri. Menggabungkan dasar software engineering yang kuat dengan kemampuan DevOps praktis, workflow pengembangan berbantuan AI, dan minat pada arsitektur sistem yang skalabel.',
             strongTerms: ['Lulusan Sistem Informasi', 'IPK 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
@@ -694,6 +698,7 @@ const idContent: DeepPartial<SiteContent> = {
 const cnContent: DeepPartial<SiteContent> = {
     profile: {
         role: '软件工程师 / 终身学习者',
+        status: '开放新机会',
         bio: '软件工程师 | AI Agent 爱好者 | IT 基础设施爱好者。安达拉斯大学信息系统毕业生，GPA 3.71。',
     },
     seo: {
@@ -733,6 +738,7 @@ const cnContent: DeepPartial<SiteContent> = {
             'Nabil Rizki Navisa 的作品集 - 软件工程师，安达拉斯大学信息系统毕业生，GPA 3.71。专注于 AI agent、Web、移动端和 IT 基础设施。',
         about: {
             heading: '关于',
+            headline: '构建软件、AI 代理与自托管基础设施。',
             body:
                 '安达拉斯大学信息系统毕业生，2026 年 6 月毕业，GPA 3.71/4.00。专注于软件工程、AI agent 工作流和 IT 基础设施管理。熟悉 TypeScript、React、Node.js、Kotlin 和 Python。具备使用 Docker、CI/CD pipeline 和自主管理的 Proxmox 虚拟化环境构建与部署生产系统的经验。结合扎实的软件工程基础、实用 DevOps 能力、AI 辅助开发工作流，以及对可扩展系统架构的兴趣。',
             strongTerms: ['信息系统毕业生', 'GPA 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
@@ -973,6 +979,7 @@ const cnContent: DeepPartial<SiteContent> = {
 const jpContent: DeepPartial<SiteContent> = {
     profile: {
         role: 'ソフトウェアエンジニア / 生涯学習者',
+        status: '新しい機会を探しています',
         bio: 'SWE | AI Agent Enthusiast | IT Infrastructure Enthusiast。アンダラス大学 情報システム卒業、GPA 3.71。',
     },
     seo: {
@@ -1012,6 +1019,7 @@ const jpContent: DeepPartial<SiteContent> = {
             'Nabil Rizki Navisa のポートフォリオ - アンダラス大学情報システム卒業のソフトウェアエンジニア。GPA 3.71。AI agent、Web、モバイル、IT インフラに注力しています。',
         about: {
             heading: '概要',
+            headline: 'ソフトウェア、AIエージェント、セルフホストインフラを構築する。',
             body:
                 'アンダラス大学情報システム卒業生です。2026年6月に卒業し、GPA は 3.71/4.00 です。ソフトウェアエンジニアリング、AI agent ワークフロー、IT インフラ管理に注力しています。TypeScript、React、Node.js、Kotlin、Python に精通しています。Docker、CI/CD パイプライン、自主管理の Proxmox 仮想化環境を使った本番システムの構築とデプロイ経験があります。堅実なソフトウェアエンジニアリングの基礎、実践的な DevOps スキル、AI 支援開発ワークフロー、そしてスケーラブルなシステム設計への関心を組み合わせています。',
             strongTerms: ['情報システム卒業生', 'GPA は 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],

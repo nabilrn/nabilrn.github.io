@@ -29,9 +29,9 @@ const content = getSiteContent('en').blog;
 		position: sticky;
 		top: 0;
 		z-index: 20;
-		background: color-mix(in srgb, var(--gh-base) 88%, transparent);
+		background: color-mix(in srgb, var(--bg) 88%, transparent);
 		backdrop-filter: blur(8px);
-		border-bottom: 1px solid var(--gh-border);
+		border-bottom: 1px solid var(--border);
 	}
 
 	.blog-header-inner {
@@ -45,9 +45,10 @@ const content = getSiteContent('en').blog;
 	}
 
 	.blog-brand {
+		font-family: var(--font-mono);
 		font-size: 13px;
-		font-weight: 600;
-		color: var(--gh-text);
+		font-weight: 700;
+		color: var(--text);
 	}
 
 	.blog-nav {
@@ -58,7 +59,7 @@ const content = getSiteContent('en').blog;
 
 	.blog-nav-link {
 		font-size: 12px;
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 		padding: 4px 10px;
 		border: 1px solid transparent;
 		border-radius: 999px;
@@ -66,9 +67,9 @@ const content = getSiteContent('en').blog;
 	}
 
 	.blog-nav-link:hover {
-		border-color: var(--gh-border-muted);
-		background: var(--gh-surface);
-		color: var(--gh-text);
+		border-color: var(--border-strong);
+		background: var(--surface);
+		color: var(--text);
 	}
 
 	.blog-main {

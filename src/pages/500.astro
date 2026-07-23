@@ -32,10 +32,7 @@ const page = content.server;
 		max-width: 760px;
 		margin: 12vh auto 0;
 		text-align: center;
-		border: 1px solid var(--gh-border);
-		border-radius: 6px;
 		padding: 30px 20px 26px;
-		background: var(--gh-base);
 	}
 
 	.code {
@@ -43,7 +40,7 @@ const page = content.server;
 		font-weight: 700;
 		line-height: 0.95;
 		letter-spacing: -0.04em;
-		color: var(--gh-text);
+		color: var(--text);
 		margin-bottom: 8px;
 	}
 
@@ -58,7 +55,7 @@ const page = content.server;
 		margin: 0 auto;
 		font-size: 14px;
 		line-height: 1.65;
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 	}
 
 	.actions {
@@ -73,21 +70,21 @@ const page = content.server;
 		display: inline-flex;
 		align-items: center;
 		padding: 6px 12px;
-		border: 1px solid var(--gh-border-muted);
+		border: 1px solid var(--border-strong);
 		border-radius: 6px;
-		color: var(--gh-text);
-		background: var(--gh-surface);
+		color: var(--text);
+		background: var(--surface);
 		font-size: 13px;
 	}
 
 	.btn.primary {
-		border-color: var(--gh-accent);
-		background: color-mix(in srgb, var(--gh-accent) 22%, var(--gh-base));
-		color: var(--gh-accent-hover);
+		border-color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 22%, var(--bg));
+		color: var(--accent-hover);
 	}
 
 	.btn:hover {
-		border-color: var(--gh-accent);
+		border-color: var(--accent);
 	}
 
 	@media (max-width: 768px) {

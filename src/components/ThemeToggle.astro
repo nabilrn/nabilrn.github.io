@@ -21,12 +21,12 @@ const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 
 <style is:global>
 	.theme-toggle {
-		background: var(--gh-base);
-		border: 1px solid var(--gh-border-muted);
+		background: var(--bg);
+		border: 1px solid var(--border-strong);
 		cursor: pointer;
 		padding: 0;
 		border-radius: 6px;
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 		display: flex;
         align-items: center;
         justify-content: center;
@@ -36,9 +36,9 @@ const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 	}
     
     .theme-toggle:hover {
-        background: var(--gh-surface);
-        color: var(--gh-text);
-        border-color: var(--gh-accent);
+        background: var(--surface);
+        color: var(--text);
+        border-color: var(--accent);
     }
 
     .theme-toggle .icon {

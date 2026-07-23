@@ -159,23 +159,27 @@ const blogCollectionJson = JSON.stringify({
 	}
 
 	.eyebrow {
+		font-family: var(--font-mono);
 		font-size: 12px;
-		letter-spacing: 0;
+		font-weight: 500;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: var(--gh-text-secondary);
-		margin-bottom: 8px;
+		color: var(--muted);
+		margin-bottom: 10px;
 	}
 
 	h1 {
-		font-size: 34px;
-		line-height: 1.2;
+		font-size: clamp(28px, 4vw, 36px);
+		letter-spacing: -0.03em;
+		line-height: 1.15;
 		margin-bottom: 12px;
+		max-width: 24ch;
 	}
 
 	.intro {
 		font-size: 16px;
 		line-height: 1.7;
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 		max-width: 760px;
 		margin-bottom: 14px;
 	}
@@ -193,18 +197,16 @@ const blogCollectionJson = JSON.stringify({
 		align-items: center;
 		gap: 8px;
 		min-width: min(420px, 100%);
-		min-height: 38px;
-		padding: 0 12px;
-		border: 1px solid var(--gh-border);
-		border-radius: 6px;
-		background: var(--gh-base);
-		color: var(--gh-text-secondary);
+		min-height: 40px;
+		padding: 0 14px;
+		border: 1px solid var(--border);
+		border-radius: 10px;
+		background: var(--surface);
+		color: var(--muted);
 	}
 
 	.search-field:focus-within {
-		border-color: var(--gh-accent);
-		outline: 2px solid color-mix(in srgb, var(--gh-accent) 35%, transparent);
-		outline-offset: 1px;
+		border-color: var(--border-strong);
 	}
 
 	.search-field input {
@@ -213,17 +215,16 @@ const blogCollectionJson = JSON.stringify({
 		border: 0;
 		outline: 0;
 		background: transparent;
-		color: var(--gh-text);
-		font: inherit;
+		color: var(--text);
 		font-size: 14px;
 	}
 
 	.search-field input::placeholder {
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 	}
 
 	.post-link:focus-visible {
-		outline: 2px solid var(--gh-accent);
+		outline: 2px solid var(--accent);
 		outline-offset: 2px;
 	}
 
@@ -235,75 +236,75 @@ const blogCollectionJson = JSON.stringify({
 	}
 
 	.post-card {
-		background: var(--gh-base);
-		border: 1px solid var(--gh-border);
-		border-radius: 6px;
-		transition: border-color 0.15s ease;
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		transition: border-color 0.15s ease, background-color 0.15s ease;
 	}
 
 	.post-card:hover {
-		border-color: var(--gh-accent);
+		border-color: var(--border-strong);
+		background: var(--surface);
 	}
 
 	.post-link {
 		display: block;
-		padding: 18px 20px;
+		padding: 20px 22px;
 	}
 
 	.post-meta {
 		display: flex;
 		gap: 10px;
 		flex-wrap: wrap;
-		font-size: 12px;
-		color: var(--gh-text-secondary);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		color: var(--muted);
 		margin-bottom: 8px;
 		align-items: center;
 	}
 
 	.locale-pill {
-		font-size: 12px;
-		background: var(--gh-surface);
-		border: 1px solid var(--gh-border-muted);
-		color: var(--gh-text-secondary);
-		padding: 1px 8px;
-		border-radius: 20px;
+		font-size: 11px;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		color: var(--muted);
+		padding: 2px 9px;
 	}
 
 	.post-title {
-		font-size: 17px;
-		line-height: 1.45;
-		color: var(--gh-accent);
+		font-size: 18px;
+		letter-spacing: -0.02em;
+		line-height: 1.4;
+		color: var(--text);
 		margin-bottom: 8px;
 	}
 
 	.post-desc {
 		font-size: 14px;
 		line-height: 1.6;
-		color: var(--gh-text-secondary);
+		color: var(--muted);
 		margin-bottom: 14px;
 	}
 
 	.tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 8px;
+		gap: 6px;
 	}
 
 	.tag {
-		font-size: 12px;
-		background: var(--gh-surface);
-		border: 1px solid var(--gh-border-muted);
-		color: var(--gh-text-secondary);
-		padding: 1px 8px;
-		border-radius: 20px;
+		font-size: 11px;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		color: var(--muted);
+		padding: 2px 9px;
 	}
 
 	.empty-locale {
 		font-size: 14px;
-		color: var(--gh-text-secondary);
-		border: 1px dashed var(--gh-border-muted);
-		border-radius: 6px;
-		padding: 14px;
+		color: var(--muted);
+		border: 1px solid var(--border);
+		border-radius: 12px;
+		padding: 16px;
 	}
 
 	@media (max-width: 768px) {

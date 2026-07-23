@@ -39,7 +39,7 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
 <div class="full-shell">
     <header class="full-header">
         <div class="full-header-inner">
-            <a href={homePath} class="brand">{content.nav.brand}</a>
+            <a href={homePath} class="brand"><span class="brand-user">nabil@nabilrn</span><span class="brand-path">:~</span></a>
             <nav class="page-nav" aria-label={content.nav.ariaPageNavigation}>
                 <a href={homePath} class={isHomePage || isLocalizedHomePage ? "page-nav-item active" : "page-nav-item"}>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
@@ -84,9 +84,9 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
         position: sticky;
         top: 0;
         z-index: 20;
-        background: color-mix(in srgb, var(--gh-base) 90%, transparent);
+        background: color-mix(in srgb, var(--bg) 90%, transparent);
         backdrop-filter: blur(8px);
-        border-bottom: 1px solid var(--gh-border);
+        border-bottom: 1px solid var(--border);
     }
 
     .full-header-inner {
@@ -100,11 +100,20 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
     }
 
     .brand {
+        font-family: var(--font-mono);
         font-size: 13px;
-        font-weight: 600;
-        color: var(--gh-text);
+        font-weight: 700;
+        color: var(--text);
         white-space: nowrap;
         border-radius: 6px;
+    }
+
+    .brand-user {
+        color: var(--accent);
+    }
+
+    .brand-path {
+        color: var(--muted);
     }
 
     .page-nav {
@@ -130,19 +139,22 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
 
     .language-link {
         border: 1px solid transparent;
-        border-radius: 6px;
-        color: var(--gh-text-secondary);
+        border-radius: 999px;
+        color: var(--muted);
         font-size: 11px;
         line-height: 1;
-        padding: 5px 7px;
+        padding: 5px 8px;
         white-space: nowrap;
+        transition: color 0.15s ease, border-color 0.15s ease;
     }
 
-    .language-link:hover,
+    .language-link:hover {
+        color: var(--text);
+    }
+
     .language-link.active {
-        background: var(--gh-surface);
-        border-color: var(--gh-border-muted);
-        color: var(--gh-text);
+        border-color: var(--border-strong);
+        color: var(--text);
     }
 
     .page-nav-item {
@@ -150,8 +162,9 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
         align-items: center;
         gap: 6px;
         padding: 14px 14px 12px;
+        font-family: var(--font-mono);
         font-size: 12px;
-        color: var(--gh-text-secondary);
+        color: var(--muted);
         text-decoration: none;
         border-bottom: 2px solid transparent;
         white-space: nowrap;
@@ -159,19 +172,19 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
     }
 
     .page-nav-item:hover {
-        color: var(--gh-text);
+        color: var(--text);
     }
 
     .brand:focus-visible,
     .page-nav-item:focus-visible,
     .language-link:focus-visible {
-        outline: 2px solid var(--gh-accent);
+        outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
 
     .page-nav-item.active {
-        color: var(--gh-text);
-        border-bottom-color: var(--gh-red);
+        color: var(--accent);
+        border-bottom-color: var(--accent);
     }
 
     .page-nav-item svg {
@@ -181,10 +194,10 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
 
     .page-nav-badge {
         font-size: 11px;
-        background: var(--gh-surface-2);
-        border-radius: 20px;
+        background: var(--surface-2);
+        border-radius: 999px;
         padding: 1px 7px;
-        color: var(--gh-text-secondary);
+        color: var(--muted);
     }
 
     .full-main {
