@@ -36,7 +36,9 @@ const { termData } = Astro.props;
         --ph: var(--text);
         border: 1px solid var(--border-strong);
         border-radius: 8px;
-        background: var(--surface);
+        background: color-mix(in srgb, var(--surface) 86%, transparent);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
         box-shadow: var(--shadow);
         overflow: hidden;
         font-family: var(--font-mono);
@@ -52,7 +54,7 @@ const { termData } = Astro.props;
         justify-content: space-between;
         gap: 12px;
         padding: 8px 14px;
-        background: var(--surface-2);
+        background: color-mix(in srgb, var(--surface-2) 88%, transparent);
         border-bottom: 1px solid var(--border);
         user-select: none;
     }
@@ -230,6 +232,85 @@ const { termData } = Astro.props;
         const print = (text, cls) => printHtml(esc(text), cls);
         const printLines = (lines, cls) => { for (const l of lines) print(l, cls); };
 
+        /* ---------- fast-typing output (skip with any key) ---------- */
+        let typingActive = false;
+        const TOKEN_RE = /<[^>]*>|&[a-zA-Z#0-9]+;|[\s\S]/g;
+        const typeLines = (lines) => new Promise((resolve) => {
+            if (!lines.length) return resolve();
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                for (const l of lines) printHtml(l);
+                return resolve();
+            }
+            const tmp = document.createElement('div');
+            let total = 0;
+            const parsed = lines.map((html) => {
+                tmp.innerHTML = html === '' ? '&nbsp;' : html;
+                total += tmp.textContent.length;
+                return { html, tokens: html.match(TOKEN_RE) || [] };
+            });
+            const cps = Math.max(1800, total / 2.4); /* chars per second, ~2.4s overall */
+            let li = 0;
+            let ti = 0;
+            let el = null;
+            let finished = false;
+            const openLine = () => {
+                el = document.createElement('div');
+                el.className = 'tl';
+                out.appendChild(el);
+            };
+            const finish = () => {
+                if (finished) return;
+                finished = true;
+                typingActive = false;
+                resolve();
+            };
+            const flushRest = () => {
+                for (; li < parsed.length; li++) {
+                    if (!el) openLine();
+                    el.innerHTML = parsed[li].html === '' ? '&nbsp;' : parsed[li].html;
+                    el = null;
+                }
+                scroll();
+            };
+            typingActive = true;
+            openLine();
+            let last = performance.now();
+            let budget = 0;
+            const tick = (now) => {
+                if (finished) return;
+                if (!typingActive) { flushRest(); return finish(); }
+                budget += ((now - last) / 1000) * cps;
+                last = now;
+                let n = Math.floor(budget);
+                if (n < 1) return requestAnimationFrame(tick);
+                budget -= n;
+                while (li < parsed.length) {
+                    const cur = parsed[li];
+                    while (ti < cur.tokens.length) {
+                        const t = cur.tokens[ti];
+                        const free = t.length > 1 && (t[0] === '<' || t[0] === '&');
+                        if (!free && n <= 0) break;
+                        ti++;
+                        if (!free) n--;
+                    }
+                    if (ti < cur.tokens.length) {
+                        el.innerHTML = cur.tokens.slice(0, ti).join('');
+                        break;
+                    }
+                    el.innerHTML = cur.html === '' ? '&nbsp;' : cur.html;
+                    el = null;
+                    li++;
+                    ti = 0;
+                    if (li < parsed.length) openLine();
+                    if (n <= 0) break;
+                }
+                scroll();
+                if (li >= parsed.length) return finish();
+                requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        });
+
         /* ---------- virtual filesystem ---------- */
         const F = (content) => ({ t: 'f', c: content });
         const DIR = (children) => ({ t: 'd', ch: children });
@@ -278,7 +359,7 @@ const { termData } = Astro.props;
 
         const commands = {
             help: () => printLines(D.help),
-            overview: () => { for (const line of D.overview) printHtml(line); },
+            overview: () => { void typeLines(D.overview); },
             info: () => commands.overview(),
             all: () => commands.overview(),
             neofetch: () => {
@@ -450,17 +531,27 @@ const { termData } = Astro.props;
         };
 
         input.addEventListener('keydown', (e) => {
+            if (typingActive) {
+                /* any key fast-forwards the typing animation */
+                if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'].includes(e.key)) return;
+                typingActive = false;
+                if (e.key === 'Enter' || e.key === 'Escape' || e.ctrlKey || e.metaKey || e.altKey) {
+                    e.preventDefault();
+                }
+                return;
+            }
             if (e.key === 'Enter') {
                 e.preventDefault();
                 const v = input.value;
                 if (awaitingOverview && v.trim() === '') {
                     awaitingOverview = false;
                     printHtml(`<span class="prompt">${esc(D.promptUser)}:${esc(cwdStr())}$</span> ${esc('overview')}`, 'tl-cmd');
-                    commands.overview();
-                    print("[nsh] end of overview — type 'help' for commands, 'clear' to clean up.", 'tl-dim');
                     input.value = '';
                     render();
-                    body.scrollTop = 0;
+                    print('[nsh] printing overview — press any key to skip', 'tl-dim');
+                    void typeLines(D.overview).then(() => {
+                        print("[nsh] end of overview — type 'help' for commands, 'clear' to clean up.", 'tl-dim');
+                    });
                     return;
                 }
                 awaitingOverview = false;

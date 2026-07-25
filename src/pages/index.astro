@@ -1,6 +1,7 @@
 ---
 import Page from '../components/Page.astro';
 import Terminal from '../components/Terminal.astro';
+import TerminalRain from '../components/TerminalRain.astro';
 import { getLocalizedMobileProjects, getLocalizedWebProjects, getRepositoryProjects } from '../data/projects';
 import { getSiteContent, localizePath, normalizeLocale, supportedLocales, type SiteLocale } from '../data/siteContent';
 import { getCollection } from 'astro:content';
@@ -242,6 +243,8 @@ const termData = {
 
 <Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale} layoutVariant="portfolio-full">
     <h1 style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;">{home.seoTitle}</h1>
+
+    <TerminalRain />
 
     <Terminal termData={termData} />
 
