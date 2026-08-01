@@ -1,9 +1,9 @@
 import type { CollectionEntry } from 'astro:content';
 
-export type BlogLocale = 'en' | 'id' | 'cn' | 'jp';
+export type BlogLocale = 'en' | 'id' | 'cn' | 'jp' | 'ar';
 type BlogEntry = CollectionEntry<'blog'>;
 
-const slugSuffixPattern = /([-_])(id|cn|jp|en|eng)$/i;
+const slugSuffixPattern = /([-_])(id|cn|jp|en|eng|ar)$/i;
 
 const normalizeLocale = (value?: string): BlogLocale | undefined => {
 	if (!value) return undefined;
@@ -11,6 +11,7 @@ const normalizeLocale = (value?: string): BlogLocale | undefined => {
 	if (normalized === 'id') return 'id';
 	if (normalized === 'cn') return 'cn';
 	if (normalized === 'jp') return 'jp';
+	if (normalized === 'ar') return 'ar';
 	if (normalized === 'en' || normalized === 'eng') return 'en';
 	return undefined;
 };
