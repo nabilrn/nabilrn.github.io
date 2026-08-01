@@ -152,11 +152,11 @@ const monthLabels = Array.from({ length: weekCount }, (_, week) => {
 		</div>
 		<div class="weekday-row" aria-hidden="true">
 			<span></span>
-			<span>Mon</span>
+			<span>{new Intl.DateTimeFormat(localeMeta[uiLocale]?.dateLocale || 'en-US', { weekday: 'short' }).format(new Date('2023-01-02T12:00:00Z'))}</span>
 			<span></span>
-			<span>Wed</span>
+			<span>{new Intl.DateTimeFormat(localeMeta[uiLocale]?.dateLocale || 'en-US', { weekday: 'short' }).format(new Date('2023-01-04T12:00:00Z'))}</span>
 			<span></span>
-			<span>Fri</span>
+			<span>{new Intl.DateTimeFormat(localeMeta[uiLocale]?.dateLocale || 'en-US', { weekday: 'short' }).format(new Date('2023-01-06T12:00:00Z'))}</span>
 			<span></span>
 		</div>
 		<div class="contribution-grid">

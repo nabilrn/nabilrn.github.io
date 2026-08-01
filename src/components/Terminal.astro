@@ -205,6 +205,22 @@ const { termData } = Astro.props;
             padding: 12px 12px 16px;
         }
     }
+
+    @media (max-width: 480px) {
+        .term-chrome {
+            padding: 6px 10px;
+        }
+        .term-chrome-title {
+            font-size: 11px;
+        }
+        .term-chrome-hint {
+            display: none;
+        }
+        .term-body {
+            height: calc(100vh - 170px);
+            padding: 10px 10px 14px;
+        }
+    }
 </style>
 
 <script is:inline define:vars={{ termData }}>
@@ -444,7 +460,7 @@ const { termData } = Astro.props;
             lang: (args) => {
                 const l = (args[0] || '').toLowerCase();
                 if (!D.langs[l]) {
-                    print('usage: lang [en|id|cn|jp]', 'tl-dim');
+                    print('usage: lang [en|id|cn|jp|ar]', 'tl-dim');
                     return;
                 }
                 print(`[nsh] switching language to ${l} ...`);

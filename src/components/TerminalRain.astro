@@ -72,16 +72,6 @@
         resize();
         window.addEventListener('resize', resize);
 
-        /* occasional subtle lightning flash */
-        let flash = 0;
-        const scheduleFlash = () => {
-            window.setTimeout(() => {
-                flash = 0.04 + Math.random() * 0.05;
-                scheduleFlash();
-            }, 9000 + Math.random() * 14000);
-        };
-        scheduleFlash();
-
         let last = 0;
         let acc = 0;
         const frame = (now) => {
@@ -97,15 +87,6 @@
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, w, h);
             ctx.globalAlpha = 1;
-
-            /* lightning decay */
-            if (flash > 0.002) {
-                ctx.fillStyle = isLight
-                    ? 'rgba(10,10,10,' + flash.toFixed(3) + ')'
-                    : 'rgba(255,255,255,' + flash.toFixed(3) + ')';
-                ctx.fillRect(0, 0, w, h);
-                flash *= 0.7;
-            }
 
             ctx.fillStyle = head;
             for (let i = 0; i < cols; i++) {

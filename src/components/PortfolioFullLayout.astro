@@ -24,12 +24,21 @@ const content = getSiteContent(locale);
 const homePath = localizePath('/', locale);
 const projectsPath = localizePath('/projects/', locale);
 const blogPath = localizePath('/blog/', locale);
+const localeFlags: Record<string, string> = {
+    en: '🇬🇧',
+    id: '🇮🇩',
+    cn: '🇨🇳',
+    jp: '🇯🇵',
+    ar: '🇸🇦',
+};
 const languageLinks = supportedLocales.map((item) => ({
     locale: item,
     label: localeMeta[item].label,
+    flag: localeFlags[item] ?? '🌐',
     href: alternatePaths?.[item] ?? localizePath(stripLocaleFromPath(currentPath), item),
     active: item === locale,
 }));
+const activeLink = languageLinks.find((l) => l.active) ?? languageLinks[0];
 const localizedNormalizedPath = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
 const isLocalizedHomePage = localizedNormalizedPath === homePath;
 const isLocalizedProjectsPage = localizedNormalizedPath.startsWith(projectsPath);
@@ -56,13 +65,23 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
                 </a>
             </nav>
             <div class="header-actions">
-                <nav class="language-nav" aria-label={content.nav.ariaLanguageNavigation}>
-                    {languageLinks.map((item) => (
-                        <a href={item.href} class={item.active ? "language-link active" : "language-link"} aria-current={item.active ? "true" : undefined}>
-                            {item.label}
-                        </a>
-                    ))}
-                </nav>
+                <div class="language-dropdown" id="lang-dropdown">
+                    <button type="button" class="lang-trigger" id="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label={content.nav.ariaLanguageNavigation}>
+                        <span class="lang-flag">{activeLink.flag}</span>
+                        <span class="lang-label">{activeLink.label}</span>
+                        <svg class="lang-chevron" width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <ul class="lang-menu" id="lang-menu" role="listbox" aria-label={content.nav.ariaLanguageNavigation}>
+                        {languageLinks.map((item) => (
+                            <li role="option" aria-selected={item.active ? "true" : "false"}>
+                                <a href={item.href} class={item.active ? "lang-option active" : "lang-option"}>
+                                    <span class="lang-flag">{item.flag}</span>
+                                    <span>{item.label}</span>
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
                 <SiteSearch locale={locale} />
                 <ThemeToggle locale={locale} />
             </div>
@@ -121,12 +140,107 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
         overflow-x: auto;
     }
 
-    .language-nav {
+    .language-dropdown {
+        position: relative;
+    }
+
+    .lang-trigger {
         display: flex;
         align-items: center;
-        gap: 4px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        gap: 6px;
+        padding: 5px 10px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .lang-trigger:hover {
+        border-color: var(--border-strong);
+        background: var(--surface-2);
+    }
+
+    .lang-flag {
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    .lang-label {
+        color: var(--muted);
+    }
+
+    .lang-chevron {
+        color: var(--muted);
+        transition: transform 0.2s ease;
+    }
+
+    .language-dropdown.open .lang-chevron {
+        transform: rotate(180deg);
+    }
+
+    .lang-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        min-width: 160px;
+        padding: 4px;
+        margin: 0;
+        list-style: none;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        z-index: 50;
+    }
+
+    .language-dropdown.open .lang-menu {
+        display: block;
+        animation: lang-menu-in 0.15s ease;
+    }
+
+    @keyframes lang-menu-in {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .lang-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 5px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--muted);
+        text-decoration: none;
+        transition: background 0.12s ease, color 0.12s ease;
+    }
+
+    .lang-option:hover {
+        background: var(--surface-2);
+        color: var(--text);
+    }
+
+    .lang-option.active {
+        color: var(--text);
+        background: var(--surface-2);
+    }
+
+    .lang-trigger:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
     }
 
     .header-actions {
@@ -135,26 +249,6 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
         gap: 12px;
         justify-content: flex-end;
         padding-left: 16px;
-    }
-
-    .language-link {
-        border: 1px solid transparent;
-        border-radius: 999px;
-        color: var(--muted);
-        font-size: 11px;
-        line-height: 1;
-        padding: 5px 8px;
-        white-space: nowrap;
-        transition: color 0.15s ease, border-color 0.15s ease;
-    }
-
-    .language-link:hover {
-        color: var(--text);
-    }
-
-    .language-link.active {
-        border-color: var(--border-strong);
-        color: var(--text);
     }
 
     .page-nav-item {
@@ -176,8 +270,7 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
     }
 
     .brand:focus-visible,
-    .page-nav-item:focus-visible,
-    .language-link:focus-visible {
+    .page-nav-item:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
@@ -208,23 +301,45 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
 
     @media (max-width: 768px) {
         .full-header-inner {
-            flex-direction: column;
-            align-items: stretch;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto auto;
+            align-items: center;
             gap: 0;
         }
 
         .brand {
-            padding-top: 12px;
-        }
-
-        .language-nav {
-            justify-content: flex-start;
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            padding: 12px 0;
         }
 
         .header-actions {
-            gap: 10px;
-            justify-content: space-between;
-            padding: 0 0 10px;
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            padding: 12px 0;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .page-nav {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+            margin: 0 calc(var(--content-gutter) * -1);
+            padding: 0 var(--content-gutter);
+            border-top: 1px solid var(--border);
+            /* Hide scrollbar for a cleaner look on mobile */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .page-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-nav-item {
+            padding-top: 12px;
+            padding-bottom: 10px;
         }
 
         .full-main {
@@ -232,4 +347,43 @@ const isLocalizedBlogPage = localizedNormalizedPath.startsWith(blogPath);
             padding-bottom: 72px;
         }
     }
+
+    @media (max-width: 480px) {
+        .lang-label {
+            display: none;
+        }
+        
+        .lang-trigger {
+            padding: 5px 8px;
+        }
+    }
 </style>
+
+<script is:inline>
+    (() => {
+        const dropdown = document.getElementById('lang-dropdown');
+        const trigger = document.getElementById('lang-trigger');
+        if (!dropdown || !trigger) return;
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.toggle('open');
+            trigger.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dropdown.classList.contains('open')) {
+                dropdown.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.focus();
+            }
+        });
+    })();
+</script>

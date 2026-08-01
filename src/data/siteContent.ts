@@ -1,8 +1,8 @@
-export type SiteLocale = 'en' | 'id' | 'cn' | 'jp';
+export type SiteLocale = 'en' | 'id' | 'cn' | 'jp' | 'ar';
 
 export const defaultLocale: SiteLocale = 'en';
-export const supportedLocales = ['en', 'id', 'cn', 'jp'] as const satisfies readonly SiteLocale[];
-export const localizedLocales = ['id', 'cn', 'jp'] as const satisfies readonly SiteLocale[];
+export const supportedLocales = ['en', 'id', 'cn', 'jp', 'ar'] as const satisfies readonly SiteLocale[];
+export const localizedLocales = ['id', 'cn', 'jp', 'ar'] as const satisfies readonly SiteLocale[];
 export const siteUrl = 'https://portfolio.nabilrn.space';
 export const authorName = 'Nabil Rizki Navisa';
 export const localeMeta: Record<SiteLocale, { label: string; htmlLang: string; ogLocale: string; pathPrefix: string; dateLocale: string }> = {
@@ -10,6 +10,7 @@ export const localeMeta: Record<SiteLocale, { label: string; htmlLang: string; o
     id: { label: 'Indonesia', htmlLang: 'id', ogLocale: 'id_ID', pathPrefix: '/id', dateLocale: 'id-ID' },
     cn: { label: '中文', htmlLang: 'zh-CN', ogLocale: 'zh_CN', pathPrefix: '/cn', dateLocale: 'zh-CN' },
     jp: { label: '日本語', htmlLang: 'ja', ogLocale: 'ja_JP', pathPrefix: '/jp', dateLocale: 'ja-JP' },
+    ar: { label: 'العربية', htmlLang: 'ar', ogLocale: 'ar_SA', pathPrefix: '/ar', dateLocale: 'ar-SA' },
 };
 
 export const normalizeLocale = (locale?: string): SiteLocale =>
@@ -17,7 +18,7 @@ export const normalizeLocale = (locale?: string): SiteLocale =>
 
 export const stripLocaleFromPath = (path = '/') => {
     const normalized = path.startsWith('/') ? path : `/${path}`;
-    const stripped = normalized.replace(/^\/(id|cn|jp)(?=\/|$)/, '');
+    const stripped = normalized.replace(/^\/(id|cn|jp|ar)(?=\/|$)/, '');
     return stripped === '' ? '/' : stripped;
 };
 
@@ -298,6 +299,7 @@ export const siteContent = {
                 id: 'Indonesia',
                 cn: 'Chinese',
                 jp: 'Japanese',
+                ar: 'Arabic',
             },
             minRead: (minutes: number) => `${minutes} min read`,
             minReadByLocale: {
@@ -305,6 +307,7 @@ export const siteContent = {
                 id: (minutes: number) => `${minutes} menit baca`,
                 cn: (minutes: number) => `${minutes} min read`,
                 jp: (minutes: number) => `${minutes} min read`,
+                ar: (minutes: number) => `${minutes} min read`,
             },
             article: {
                 by: 'By',
@@ -624,6 +627,7 @@ const idContent: DeepPartial<SiteContent> = {
             id: 'Indonesia',
             cn: 'Mandarin',
             jp: 'Jepang',
+            ar: 'Arab',
         },
         minRead: (minutes: number) => `${minutes} menit baca`,
         minReadByLocale: {
@@ -631,6 +635,7 @@ const idContent: DeepPartial<SiteContent> = {
             id: (minutes: number) => `${minutes} menit baca`,
             cn: (minutes: number) => `${minutes} menit baca`,
             jp: (minutes: number) => `${minutes} menit baca`,
+            ar: (minutes: number) => `${minutes} min read`,
         },
         article: {
             by: 'Oleh',
@@ -905,6 +910,7 @@ const cnContent: DeepPartial<SiteContent> = {
             id: '印尼语',
             cn: '中文',
             jp: '日语',
+            ar: '阿拉伯语',
         },
         minRead: (minutes: number) => `${minutes} 分钟阅读`,
         minReadByLocale: {
@@ -912,6 +918,7 @@ const cnContent: DeepPartial<SiteContent> = {
             id: (minutes: number) => `${minutes} 分钟阅读`,
             cn: (minutes: number) => `${minutes} 分钟阅读`,
             jp: (minutes: number) => `${minutes} 分钟阅读`,
+            ar: (minutes: number) => `${minutes} min read`,
         },
         article: {
             by: '作者',
@@ -1186,6 +1193,7 @@ const jpContent: DeepPartial<SiteContent> = {
             id: 'インドネシア語',
             cn: '中国語',
             jp: '日本語',
+            ar: 'アラビア語',
         },
         minRead: (minutes: number) => `${minutes} 分で読めます`,
         minReadByLocale: {
@@ -1193,6 +1201,7 @@ const jpContent: DeepPartial<SiteContent> = {
             id: (minutes: number) => `${minutes} 分で読めます`,
             cn: (minutes: number) => `${minutes} 分で読めます`,
             jp: (minutes: number) => `${minutes} 分で読めます`,
+            ar: (minutes: number) => `${minutes} min read`,
         },
         article: {
             by: '著者',
@@ -1257,11 +1266,293 @@ const jpContent: DeepPartial<SiteContent> = {
     },
 };
 
+const arContent: DeepPartial<SiteContent> = {
+    profile: {
+        role: 'مهندس برمجيات / متعلم مدى الحياة',
+        status: 'متاح للفرص',
+        bio: 'مهندس برمجيات | متحمس لعوامل الذكاء الاصطناعي | متحمس للبنية التحتية لتكنولوجيا المعلومات. خريج نظم المعلومات من جامعة أندالاس، معدل تراكمي 3.71.',
+    },
+    seo: {
+        defaultTitle: 'نبيل رزقي نافيسا | مهندس برمجيات وخريج نظم المعلومات',
+        defaultDescription:
+            'ملف نبيل رزقي نافيسا - مهندس برمجيات وخريج نظم المعلومات من جامعة أندالاس بمعدل تراكمي 3.71. متخصص في عوامل الذكاء الاصطناعي، الويب، تطبيقات الجوال، والبنية التحتية لتكنولوجيا المعلومات.',
+    },
+    schema: {
+        personDescription:
+            'مهندس برمجيات وخريج نظم المعلومات من جامعة أندالاس بمعدل تراكمي 3.71. مقيم في إندونيسيا ومتخصص في تطوير الويب، تطوير تطبيقات الجوال، سير عمل عوامل الذكاء الاصطناعي، DevOps، والبنية التحتية لتكنولوجيا المعلومات.',
+        degreeName: 'بكالوريوس نظم المعلومات',
+        credentialCategory: 'درجة البكالوريوس',
+        educationalLevel: 'درجة جامعية',
+        graduationDate: 'يونيو 2026',
+        gpa: '3.71/4.00',
+        worksFor: 'عمل حر / متاح للفرص',
+        nationality: 'إندونيسيا',
+    },
+    nav: {
+        ariaMainSections: 'أقسام الصفحة الرئيسية',
+        ariaPageNavigation: 'التنقل بين الصفحات',
+        ariaLanguageNavigation: 'اختيار اللغة',
+        home: 'الرئيسية',
+        overview: 'نظرة عامة',
+        education: 'التعليم',
+        showcase: 'معرض الأعمال',
+        repositories: 'المستودعات',
+        experience: 'الخبرات',
+        latestPosts: 'أحدث المقالات',
+        skills: 'المهارات',
+        projects: 'المشاريع',
+        blog: 'المدونة',
+    },
+    home: {
+        seoTitle: 'نبيل رزقي نافيسا | مهندس برمجيات وخريج نظم المعلومات',
+        seoDescription:
+            'ملف نبيل رزقي نافيسا - مهندس برمجيات وخريج نظم المعلومات من جامعة أندالاس بمعدل تراكمي 3.71. متخصص في عوامل الذكاء الاصطناعي، الويب، تطبيقات الجوال، والبنية التحتية لتكنولوجيا المعلومات.',
+        about: {
+            heading: 'نبذة',
+            headline: 'بناء البرمجيات وعوامل الذكاء الاصطناعي والبنية التحتية المستضافة ذاتياً.',
+            body:
+                'خريج نظم المعلومات من جامعة أندالاس، تخرج في يونيو 2026 بمعدل تراكمي 3.71/4.00. متخصص في هندسة البرمجيات وسير عمل عوامل الذكاء الاصطناعي وإدارة البنية التحتية لتكنولوجيا المعلومات. خبير في TypeScript و React و Node.js و Kotlin و Python. ذو خبرة في بناء ونشر أنظمة الإنتاج باستخدام Docker وخطوط CI/CD وبيئات المحاكاة الافتراضية Proxmox المُدارة ذاتياً. يجمع بين أساسيات هندسة البرمجيات القوية ومهارات DevOps العملية وسير عمل التطوير بمساعدة الذكاء الاصطناعي وشغف بهندسة الأنظمة القابلة للتوسع.',
+            strongTerms: ['خريج نظم المعلومات', 'معدل تراكمي 3.71/4.00', 'TypeScript', 'React', 'Node.js', 'Kotlin', 'Python'],
+        },
+        education: {
+            heading: 'التعليم',
+            subheading: 'الخلفية الأكاديمية',
+            degree: 'بكالوريوس نظم المعلومات',
+            institution: 'جامعة أندالاس',
+            period: 'تخرج يونيو 2026',
+            gpa: 'معدل تراكمي 3.71/4.00',
+            summary:
+                'أكمل دراسة نظم المعلومات مع التركيز على هندسة البرمجيات وسير العمل بمساعدة الذكاء الاصطناعي والبنية التحتية لتكنولوجيا المعلومات وتسليم أنظمة الإنتاج.',
+            tags: ['نظم المعلومات', 'جامعة أندالاس', 'معدل 3.71', 'تخرج يونيو 2026'],
+        },
+        repositories: {
+            heading: 'المشاريع',
+            subheading: 'أحدث المستودعات',
+            visibility: 'عام',
+            viewAll: 'عرض جميع المشاريع',
+        },
+        experiences: {
+            heading: 'الخبرات',
+            subheading: 'الأدوار المهنية والأكاديمية',
+            items: [
+                {
+                    title: 'مساعد مختبر - TKITI',
+                    period: 'منسق / 2025',
+                    bullets: [
+                        'قاد مناقشات تصميم وحدات المختبر ومواءمة المناهج',
+                        'وضع خطط تحسين استراتيجية لتطوير مختبر TKITI',
+                        'قدم مواد تدريبية وتطويرية للمساعدين الجدد',
+                    ],
+                    tags: ['القيادة', 'تصميم المناهج', 'إدارة المختبر'],
+                    current: false,
+                },
+                {
+                    title: 'بنك ناغاري (المكتب الرئيسي)',
+                    period: 'متدرب مبرمج / 2025',
+                    bullets: [
+                        'بنى وحدات الإدارة والتدريب بالتعاون مع زميل واحد',
+                        'علّم أساسيات Git للمبرمجين الداخليين',
+                        'تعلم ممارسات تكنولوجيا المعلومات المصرفية والأنظمة الداخلية',
+                    ],
+                    tags: ['Express.js', 'React', 'PostgreSQL', 'Git'],
+                    current: false,
+                },
+                {
+                    title: 'مساعد مختبر - الحوسبة الأساسية',
+                    period: 'منسق / 2024 - 2025',
+                    bullets: [
+                        'تعلم مفاهيم البنية التحتية لتكنولوجيا المعلومات بما في ذلك إعداد الخوادم',
+                        'أعد بيئات المختبر والمواد والإعدادات التقنية',
+                    ],
+                    tags: ['البنية التحتية', 'إدارة الخوادم'],
+                    current: false,
+                },
+                {
+                    title: 'أكاديمية بانغكيت 2024',
+                    period: 'مسار تعلم أندرويد / 2024',
+                    bullets: [
+                        'تعلم تطوير أندرويد الحديث باستخدام Kotlin و XML',
+                        'بنى مشروع التخرج Outfyt - تطبيق توصيات الأزياء الذكي',
+                        'تعاون مع فريق متعدد التخصصات من 8 أشخاص (تعلم آلي، سحابة، جوال)',
+                    ],
+                    tags: ['أندرويد', 'Kotlin', 'XML'],
+                    current: false,
+                },
+            ],
+        },
+        contributions: {
+            heading: 'المساهمات',
+            subheading: 'النشاط على GitHub',
+            chartAlt: 'مخطط مساهمات GitHub',
+            label: 'nabilrn على GitHub',
+            totalLabel: (total: number) => `${total} مساهمة في العام الماضي`,
+            contributionLabel: (count: number, date: string) => `${count} مساهمة في ${date}`,
+            less: 'أقل',
+            more: 'أكثر',
+        },
+        blog: {
+            heading: 'أحدث المقالات',
+            subheading: 'ملاحظات حول هندسة البرمجيات',
+            viewAll: 'عرض جميع المقالات',
+        },
+        skills: {
+            heading: 'المهارات',
+            subheading: 'اللغات والأدوات والبنية التحتية',
+            groups: [
+                { label: 'البرمجة', primary: ['JavaScript', 'TypeScript', 'Kotlin'], items: ['Dart', 'Python'] },
+                { label: 'DEVOPS / البنية التحتية', primary: ['Docker'], items: ['Proxmox', 'Ubuntu', 'GCP', 'Cloudflare'] },
+                { label: 'قواعد البيانات', primary: [], items: ['MySQL', 'PostgreSQL', 'SQLite', 'Redis'] },
+                { label: 'الأدوات', primary: [], items: ['Git', 'VS Code', 'Android Studio', 'Figma', 'JetBrains', 'AI Coding CLI'] },
+            ],
+        },
+        certifications: {
+            heading: 'الشهادات',
+        },
+    },
+    projectShowcase: {
+        heading: 'معرض الأعمال',
+        subheading: 'أعمال مختارة',
+        web: 'ويب',
+        mobile: 'جوال',
+        visitSite: 'زيارة الموقع',
+        github: 'GitHub',
+        viewAll: 'عرض الكل',
+        viewAllProjectShowcase: 'عرض جميع معرض المشاريع',
+        screenshotAlt: 'لقطة شاشة',
+        websitePreviewAlt: 'معاينة الموقع',
+        screenshotDialogClose: 'إغلاق',
+        previousScreenshot: 'لقطة الشاشة السابقة',
+        nextScreenshot: 'لقطة الشاشة التالية',
+    },
+    projectsPage: {
+        seoTitle: 'المشاريع | نبيل رزقي نافيسا',
+        seoDescription:
+            'معرض المشاريع وفهرس المستودعات لنبيل رزقي نافيسا، يشمل تطبيقات الويب وتطبيقات الجوال ومشاريع البنية التحتية والبناء البرمجي بمساعدة الذكاء الاصطناعي.',
+        ogImageAlt: 'معرض المشاريع وفهرس المستودعات لنبيل رزقي نافيسا بتصميم داكن.',
+        eyebrow: 'المشاريع',
+        heading: 'معرض المشاريع وفهرس المستودعات.',
+        intro: 'كتالوج أشمل يضم مشاريع الويب وتجارب أندرويد وأعمال البنية التحتية والمستودعات المختارة.',
+        summary: {
+            webBuilds: 'مشاريع ويب',
+            mobileApps: 'تطبيقات جوال',
+            repositories: 'مستودعات',
+            ariaLabel: 'ملخص المشاريع',
+        },
+        sectionNavAria: 'أقسام صفحة المشاريع',
+        nav: {
+            featuredBuilds: 'المشاريع المميزة',
+            repositories: 'المستودعات',
+            stack: 'التقنيات',
+        },
+        featuredSubheading: 'مشاريع الويب والجوال',
+        repositoriesSubheading: 'فهرس الأكواد المختارة',
+        stackSubheading: 'الأدوات المستخدمة عبر المشاريع',
+        visibility: 'عام',
+        pageStatus: (current: number, total: number) => `صفحة ${current} من ${total}`,
+        pageStatusTemplate: 'صفحة {current} من {total}',
+        paginationAria: 'تنقل صفحات المستودعات',
+        previous: 'السابق',
+        next: 'التالي',
+        openGithubRepositories: 'فتح مستودعات GitHub',
+        itemListName: 'مشاريع برمجية ومستودعات مختارة',
+    },
+    blog: {
+        articles: 'المقالات',
+        portfolio: 'الملف الشخصي',
+        navigationAria: 'تنقل المدونة',
+        seoTitle: 'المدونة | نبيل رزقي نافيسا',
+        seoDescription: 'ملاحظات حول هندسة البرمجيات ودروس المشاريع وسير العمل العملية بقلم نبيل رزقي نافيسا.',
+        ogImageAlt: 'قائمة مقالات مدونة نبيل رزقي نافيسا بتصميم داكن.',
+        eyebrow: 'المدونة',
+        heading: 'ملاحظات تقنية ودروس مستفادة وأدلة عملية.',
+        intro: 'مساحة قراءة مركزة تضم دروساً تعليمية وملاحظات هندسية من مشاريع حقيقية وتجارب المختبر المنزلي.',
+        languageAria: 'لغة المدونة',
+        searchLabel: 'البحث في المقالات',
+        searchPlaceholder: 'البحث في المقالات',
+        postsAria: 'مقالات المدونة',
+        noMatches: 'لم يتم العثور على مقالات مطابقة.',
+        localeLabel: {
+            en: 'الإنجليزية',
+            id: 'الإندونيسية',
+            cn: 'الصينية',
+            jp: 'اليابانية',
+        },
+        minRead: (minutes: number) => `${minutes} دقائق قراءة`,
+        minReadByLocale: {
+            en: (minutes: number) => `${minutes} دقائق قراءة`,
+            id: (minutes: number) => `${minutes} دقائق قراءة`,
+            cn: (minutes: number) => `${minutes} دقائق قراءة`,
+            jp: (minutes: number) => `${minutes} دقائق قراءة`,
+        },
+        article: {
+            by: 'بقلم',
+            back: 'العودة إلى جميع المقالات',
+            languageAria: 'لغة المقال',
+            minRead: (minutes: number) => `${minutes} دقائق قراءة`,
+            updated: 'تم التحديث',
+            engagementAria: 'إجراءات التفاعل',
+            ogImageAlt: (title: string) => `بطاقة المعاينة الاجتماعية للمقال: ${title}`,
+        },
+    },
+    engagement: {
+        views: 'المشاهدات',
+        likes: 'الإعجابات',
+        shares: 'المشاركات',
+        localMetricsNote: 'مقاييس MVP محلية',
+        likePost: 'إعجاب بالمقال',
+        like: 'إعجاب',
+        liked: 'تم الإعجاب',
+        copyLink: 'نسخ الرابط',
+        copyLinkTitle: 'نسخ الرابط',
+        copy: 'نسخ',
+        linkCopied: 'تم نسخ الرابط',
+        copied: 'تم النسخ',
+        fallbackPostTitle: 'مقال المدونة',
+    },
+    theme: {
+        toggle: 'تبديل المظهر',
+    },
+    search: {
+        open: 'بحث',
+        ariaOpen: 'فتح بحث الموقع',
+        placeholder: 'البحث في الملف الشخصي والمشاريع والمقالات...',
+        close: 'إغلاق البحث',
+        noResults: 'لم يتم العثور على نتائج.',
+        hint: 'البحث في كل محتوى الملف الشخصي',
+        shortcut: 'Ctrl K',
+        results: 'النتائج',
+        resultTypes: {
+            page: 'صفحة',
+            project: 'مشروع',
+            post: 'مقال',
+        },
+    },
+    errors: {
+        notFound: {
+            title: '404 | الصفحة غير موجودة',
+            description: 'الصفحة التي تبحث عنها غير موجودة.',
+            heading: 'الصفحة غير موجودة.',
+            body: 'قد يكون الرابط معطلاً أو تم نقله أو حذفه. استخدم أحد الخيارات أدناه لمتابعة التصفح.',
+        },
+        server: {
+            title: '500 | خطأ في الخادم',
+            description: 'واجه الخادم خطأ غير متوقع.',
+            heading: 'خطأ غير متوقع في الخادم.',
+            body: 'حدث خطأ أثناء تحميل هذه الصفحة. يرجى المحاولة مرة أخرى بعد قليل، أو العودة إلى الصفحة الرئيسية.',
+        },
+        actions: {
+            portfolio: 'الذهاب إلى الملف الشخصي',
+            blog: 'قراءة المدونة',
+        },
+    },
+};
+
 export const localizedSiteContent: Record<SiteLocale, SiteContent> = {
     en: siteContent.en,
     id: mergeContent(siteContent.en, idContent),
     cn: mergeContent(siteContent.en, cnContent),
     jp: mergeContent(siteContent.en, jpContent),
+    ar: mergeContent(siteContent.en, arContent),
 };
 
 export const getSiteContent = (locale: SiteLocale = defaultLocale) => localizedSiteContent[normalizeLocale(locale)];

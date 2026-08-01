@@ -75,6 +75,7 @@ export const webProjects: WebProject[] = [
     name: "myPaaS",
     desc: "Self-hosted platform as a service for single virtual machine.",
     liveUrl: "https://mypaas.my.id",
+    repoUrl: "https://github.com/nabilrn/MyPaas",
     stack: ["Go", "Svelte", "Caddy", "PostgreSQL"],
     screenshot: mypaasImg,
   },
@@ -200,51 +201,61 @@ const webProjectDescriptions: LocalizedDescriptions = {
     id: "Platform as a service (PaaS) self-hosted untuk single virtual machine.",
     cn: "面向单虚拟机的自托管平台即服务 (PaaS)。",
     jp: "シングル仮想マシン向けのセルフホスト型 Platform as a Service (PaaS)。",
+    ar: "منصة كخدمة (PaaS) مستضافة ذاتياً لآلة افتراضية واحدة.",
   },
   "FTI Universitas Andalas": {
     id: "Rebranding dan pembangunan ulang website profil Fakultas Teknologi Informasi Universitas Andalas dengan arsitektur informasi institusional yang lebih bersih.",
     cn: "Universitas Andalas 信息技术学院官网的品牌重塑与重建，采用更清晰的机构信息架构。",
     jp: "Universitas Andalas 情報技術学部プロフィールサイトのリブランディングと再構築。より整理された機関向け情報設計を採用しています。",
+    ar: "إعادة تصميم وبناء موقع كلية تكنولوجيا المعلومات بجامعة أندالاس بهيكل معلومات مؤسسي أوضح.",
   },
   "UNAND Library Public Dashboard": {
     id: "Dashboard informasi fullscreen untuk Perpustakaan Universitas Andalas, dibuat sebagai aplikasi frontend-only untuk layar landscape. Dashboard menampilkan layanan perpustakaan, jumlah pengunjung, fasilitas, agenda, statistik kunjungan, peminjaman, leaderboard, dan ikhtisar koleksi memakai data lokal tanpa API/backend.",
     cn: "Universitas Andalas 图书馆的全屏信息仪表板，作为面向横向屏幕的纯前端应用构建。使用本地数据展示图书馆服务、访客数量、设施、日程、访问统计、借阅情况、排行榜和馆藏概览，无需 API 或后端。",
     jp: "Universitas Andalas 図書館向けのフルスクリーン情報ダッシュボード。横向きディスプレイ用のフロントエンドのみのアプリとして構築し、API やバックエンドなしでローカルデータから図書館サービス、来館者数、施設、予定、来館統計、貸出状況、ランキング、蔵書概要を表示します。",
+    ar: "لوحة معلومات بملء الشاشة لمكتبة جامعة أندالاس، مبنية كتطبيق واجهة أمامية فقط للشاشات الأفقية. تعرض خدمات المكتبة وأعداد الزوار والمرافق والأجندة وإحصائيات الزيارات والاستعارة ولوحة المتصدرين وملخص المجموعات من بيانات محلية دون API أو خادم خلفي.",
   },
   "Network Rookie": {
     id: "Visualisasi interaktif berbasis AI untuk memahami infrastruktur internet global secara lebih intuitif.",
     cn: "由 AI 驱动的全球互联网基础设施交互式可视化项目。",
     jp: "AI を活用した、世界のインターネットインフラを直感的に理解するためのインタラクティブ可視化。",
+    ar: "تصور تفاعلي مدعوم بالذكاء الاصطناعي للبنية التحتية العالمية للإنترنت.",
   },
   "Ez-Agent Landing Page": {
     id: "Landing page untuk EZ Agents, sistem orkestrasi multi-agent AI untuk membangun software bersama agen cerdas yang terkoordinasi.",
     cn: "EZ Agents 的落地页，一个用于通过协同智能代理构建软件的多代理 AI 编排系统。",
     jp: "EZ Agents のランディングページ。協調する知的エージェントでソフトウェアを構築するマルチエージェント AI オーケストレーションシステムです。",
+    ar: "صفحة هبوط لـ EZ Agents، نظام تنسيق متعدد العملاء بالذكاء الاصطناعي لبناء البرمجيات مع عملاء ذكيين منسقين.",
   },
   Neocentral: {
     id: "Platform full-stack dengan pipeline deployment mandiri, layanan backend berbasis container, dan frontend React.",
     cn: "全栈平台，包含自托管部署流水线、容器化后端服务和 React 前端。",
     jp: "セルフホスト型のデプロイパイプライン、コンテナ化されたバックエンドサービス、React フロントエンドを備えたフルスタックプラットフォーム。",
+    ar: "منصة متكاملة مع خط نشر مستضاف ذاتياً وخدمات خلفية في حاويات وواجهة أمامية بـ React.",
   },
   "Lab TKITI": {
     id: "Landing page dan sistem konten untuk Lab TKITI, termasuk sistem artikel bilingual.",
     cn: "Lab TKITI 的落地页与内容系统，包含双语文章功能。",
     jp: "Lab TKITI 向けのランディングページとコンテンツシステム。バイリンガル記事機能を備えています。",
+    ar: "صفحة هبوط ونظام محتوى لمختبر TKITI مع نظام مقالات ثنائي اللغة.",
   },
   "Bank Sampah Pondok Permai": {
     id: "Landing page untuk NGO bank sampah komunitas di Padang dengan estetika alami yang membumi.",
     cn: "为 Padang 社区垃圾银行 NGO 制作的落地页，采用自然且贴近本地的视觉风格。",
     jp: "Padang のコミュニティ廃棄物銀行 NGO 向けランディングページ。自然で地域に根ざしたビジュアルです。",
+    ar: "صفحة هبوط لمنظمة بنك النفايات المجتمعية في بادانغ بتصميم طبيعي متجذر.",
   },
   "Porsche Gallery": {
     id: "Showcase single-page yang elegan dan interaktif untuk sejarah serta model Porsche 911.",
     cn: "优雅的交互式单页展示，呈现 Porsche 911 的传承与车型。",
     jp: "Porsche 911 の歴史とモデルを紹介する、エレガントでインタラクティブなシングルページショーケース。",
+    ar: "عرض تفاعلي أنيق من صفحة واحدة لإرث وطرازات بورشه 911.",
   },
   "Sumbar Smart Portal": {
     id: "Prototipe portal pemerintahan berbasis AI yang dibangun dalam 24 jam pada Firetech Event 2025 oleh Neotelemetri.",
     cn: "在 Neotelemetri 2025 Firetech Event 中 24 小时内构建的 AI 政府门户原型。",
     jp: "Neotelemetri の 2025 Firetech Event で 24 時間以内に構築した AI 搭載の行政ポータルプロトタイプ。",
+    ar: "نموذج أولي لبوابة حكومية مدعومة بالذكاء الاصطناعي تم بناؤه في 24 ساعة خلال فعالية Firetech 2025 من Neotelemetri.",
   },
 };
 
@@ -253,16 +264,19 @@ const mobileProjectDescriptions: LocalizedDescriptions = {
     id: "Aplikasi bimbingan tugas akhir untuk mahasiswa dan dosen di DSI Unand.",
     cn: "面向 DSI Unand 学生与教师的跨平台毕业论文指导应用。",
     jp: "DSI Unand の学生と教員向けクロスプラットフォーム卒業研究指導アプリ。",
+    ar: "تطبيق إرشاد أطروحات عبر المنصات للطلاب والمحاضرين في DSI Unand.",
   },
   "Food Explorer": {
     id: "Menjelajahi dan menemukan menu makanan berdasarkan kategori menggunakan TheMealDB public API.",
     cn: "使用 TheMealDB 公共 API 按分类浏览和发现餐食。",
     jp: "TheMealDB 公開 API を使って、カテゴリ別に料理を閲覧・発見できるアプリ。",
+    ar: "تصفح واكتشاف الوجبات حسب الفئة باستخدام واجهة TheMealDB العامة.",
   },
   "Ghibli Gallery": {
     id: "Aplikasi galeri film Studio Ghibli yang dibangun dari data objek statis.",
     cn: "基于静态对象数据构建的 Studio Ghibli 电影图库应用。",
     jp: "静的オブジェクトデータから構築した Studio Ghibli 映画ギャラリーアプリ。",
+    ar: "تطبيق معرض أفلام Studio Ghibli مبني من بيانات كائنات ثابتة.",
   },
 };
 
@@ -271,56 +285,67 @@ const repositoryDescriptions: LocalizedDescriptions = {
     id: "Aplikasi pelacak kebiasaan lintas platform dengan sinkronisasi real-time dan notifikasi.",
     cn: "跨平台习惯追踪应用，支持实时同步和通知。",
     jp: "リアルタイム同期と通知に対応したクロスプラットフォーム習慣トラッキングアプリ。",
+    ar: "تطبيق تتبع عادات عبر المنصات مع مزامنة فورية وإشعارات.",
   },
   "express-api-starter": {
     id: "Boilerplate untuk membangun REST API dengan Express.js dan TypeScript.",
     cn: "用于使用 Express.js 和 TypeScript 构建 REST API 的样板项目。",
     jp: "Express.js と TypeScript で REST API を構築するためのボイラープレート。",
+    ar: "قالب جاهز لبناء REST API باستخدام Express.js و TypeScript.",
   },
   "moviecatalog-kmp": {
     id: "Aplikasi katalog film lintas platform yang dibangun dengan Kotlin Multiplatform.",
     cn: "使用 Kotlin Multiplatform 构建的跨平台电影目录应用。",
     jp: "Kotlin Multiplatform で構築したクロスプラットフォーム映画カタログアプリ。",
+    ar: "تطبيق كتالوج أفلام عبر المنصات مبني بـ Kotlin Multiplatform.",
   },
   "Airbnb-BI": {
     id: "Dashboard BI untuk insight harga menggunakan dataset Kaggle dan rekomendasi ML.",
     cn: "使用 Kaggle 数据集和机器学习推荐生成价格洞察的 BI 仪表板。",
     jp: "Kaggle データセットと ML レコメンドを使った価格分析用 BI ダッシュボード。",
+    ar: "لوحة تحليلات أعمال لرؤى الأسعار باستخدام بيانات Kaggle وتوصيات تعلم الآلة.",
   },
   "android-firebase-starter": {
     id: "Template awal Android dengan integrasi Firebase.",
     cn: "集成 Firebase 的 Android starter 模板。",
     jp: "Firebase 連携を備えた Android スターターテンプレート。",
+    ar: "قالب بدء Android مع تكامل Firebase.",
   },
   Outfyt: {
     id: "Bangkit Capstone - aplikasi rekomendasi OOTD pintar berbasis analisis warna kulit.",
     cn: "Bangkit Capstone 项目，基于肤色分析的智能 OOTD 推荐应用。",
     jp: "Bangkit Capstone。肌色分析に基づくスマート OOTD レコメンドアプリ。",
+    ar: "مشروع تخرج Bangkit - تطبيق توصيات أزياء ذكي مبني على تحليل لون البشرة.",
   },
   "tkiti.github.io": {
     id: "Website Lab TKITI dengan landing page, dokumentasi, dan sistem artikel bilingual.",
     cn: "Lab TKITI 网站，包含落地页、文档和双语文章系统。",
     jp: "ランディングページ、ドキュメント、バイリンガル記事システムを備えた Lab TKITI の Web サイト。",
+    ar: "موقع مختبر TKITI مع صفحة هبوط وتوثيق ونظام مقالات ثنائي اللغة.",
   },
   "lib-unand-dashboard": {
     id: "Dashboard informasi fullscreen untuk Perpustakaan Universitas Andalas dengan data lokal tanpa API/backend.",
     cn: "Universitas Andalas 图书馆的全屏信息仪表板，使用本地数据且无需 API 或后端。",
     jp: "Universitas Andalas 図書館向けのフルスクリーン情報ダッシュボード。API やバックエンドなしでローカルデータを使用します。",
+    ar: "لوحة معلومات بملء الشاشة لمكتبة جامعة أندالاس ببيانات محلية دون API أو خادم خلفي.",
   },
   "Neo-Central-Mobile": {
     id: "Aplikasi mobile Neo Central untuk pengalaman pengguna lintas fitur pada ekosistem Neocentral.",
     cn: "Neo Central 移动应用，用于 Neocentral 生态系统中的多功能用户体验。",
     jp: "Neocentral エコシステム向けに複数機能の利用体験を提供する Neo Central モバイルアプリ。",
+    ar: "تطبيق Neo Central للجوال لتجربة مستخدم متعددة الميزات في نظام Neocentral.",
   },
   website: {
     id: "Frontend website Neo Central untuk menghadirkan pengalaman produk dan alur pengguna utama.",
     cn: "Neo Central 网站前端，用于呈现产品体验和核心用户流程。",
     jp: "プロダクト体験と主要ユーザーフローを提供する Neo Central の Web フロントエンド。",
+    ar: "واجهة موقع Neo Central الأمامية لتقديم تجربة المنتج وتدفقات المستخدم الرئيسية.",
   },
   services: {
     id: "Layanan backend Neo Central untuk API, proses bisnis, dan integrasi sistem.",
     cn: "Neo Central 后端服务，负责 API、业务流程和系统集成。",
     jp: "API、業務ロジック、システム連携を担う Neo Central のバックエンドサービス。",
+    ar: "خدمات Neo Central الخلفية لواجهات API والعمليات التجارية وتكامل الأنظمة.",
   },
 };
 
