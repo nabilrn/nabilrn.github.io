@@ -5,6 +5,8 @@ pubDate: 2026-04-01
 tags: ["proxmox", "homelab", "virtualization", "linux"]
 featured: true
 draft: false
+locale: "ar"
+translationKey: "how-to-install-proxmox-on-your-own-server"
 ---
 
 إذا كنت ترغب دائمًا في تشغيل عدة أجهزة افتراضية وحاويات على خادم فعلي واحد، فإن Proxmox VE هو أحد أفضل الخيارات المجانية المتاحة. إنه مراقب أجهزة افتراضية (hypervisor) مبني على دبيان يمنحك واجهة ويب كاملة لإدارة الأجهزة الافتراضية، وحاويات LXC، والتخزين، والشبكات، والنسخ الاحتياطي — كل ذلك دون الحاجة لدفع رسوم ترخيص VMware أو Hyper-V.

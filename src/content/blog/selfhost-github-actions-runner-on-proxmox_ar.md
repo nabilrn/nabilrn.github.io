@@ -5,6 +5,8 @@ pubDate: 2026-04-04
 tags: ["github-actions", "ci-cd", "proxmox", "devops"]
 featured: true
 draft: false
+locale: "ar"
+translationKey: "selfhost-github-actions-runner-on-proxmox"
 ---
 
 تمنحك GitHub Actions 2,000 دقيقة مجانية شهريًا على مشغلاتهم المستضافة، ولكن هذه الدقائق تنفد سريعًا إذا كان لديك مستودعات متعددة أو أوقات بناء طويلة. الحل بسيط: قم بتشغيل مشغل GitHub Actions الخاص بك على أجهزة تمتلكها بالفعل.
