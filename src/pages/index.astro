@@ -147,7 +147,7 @@ const files = {
 /* overview — everything at once, for visitors who just want to scroll */
 const escOv = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const ovHeader = (title: string) =>
-    `<span class="c-ph">+-- ${escOv(title.toUpperCase())} ${'-'.repeat(Math.max(2, 36 - title.length))}</span>`;
+    `<span class="c-text">+-- ${escOv(title.toUpperCase())} ${'-'.repeat(Math.max(2, 36 - title.length))}</span>`;
 const ovBlock = (title: string, lines: string[]) => [
     '',
     ovHeader(title),
@@ -215,19 +215,19 @@ const termData = {
         'tips: tab = autocomplete, up/down = history, ctrl+c = interrupt',
     ],
     neofetch: [
-        `<span class="c-ph"> ███╗   ██╗</span>  <span class="c-key">visitor</span>@<span class="c-key">nabilrn</span>`,
-        `<span class="c-ph"> ████╗  ██║</span>  -----------------`,
-        `<span class="c-ph"> ██╔██╗ ██║</span>  <span class="c-key">OS</span>: nabilOS web x86_64`,
-        `<span class="c-ph"> ██║╚██╗██║</span>  <span class="c-key">Host</span>: portfolio.nabilrn.space`,
-        `<span class="c-ph"> ██║ ╚████║</span>  <span class="c-key">Shell</span>: nsh 1.0.0`,
-        `<span class="c-ph"> ╚═╝  ╚═══╝</span>  <span class="c-key">Uptime</span>: 21 years`,
+        `<span class="c-text"> ███╗   ██╗</span>  <span class="c-key">visitor</span>@<span class="c-key">nabilrn</span>`,
+        `<span class="c-text"> ████╗  ██║</span>  -----------------`,
+        `<span class="c-text"> ██╔██╗ ██║</span>  <span class="c-key">OS</span>: nabilOS web x86_64`,
+        `<span class="c-text"> ██║╚██╗██║</span>  <span class="c-key">Host</span>: portfolio.nabilrn.space`,
+        `<span class="c-text"> ██║ ╚████║</span>  <span class="c-key">Shell</span>: nsh 1.0.0`,
+        `<span class="c-text"> ╚═╝  ╚═══╝</span>  <span class="c-key">Uptime</span>: 21 years`,
         `            <span class="c-key">Locales</span>: en, id, cn, jp`,
         `            <span class="c-key">Stack</span>: TypeScript, React, Node.js, Kotlin, Python`,
         `            <span class="c-key">Infra</span>: Proxmox, Docker, Cloudflare`,
         `            <span class="c-key">CPU</span>: human (1) @ 3.71GHz`,
         `            <span class="c-key">Memory</span>: ${latestPosts.length} posts / ${projects.length} projects indexed`,
         '',
-        `<span style="color:#3f3f46">███</span><span style="color:#f87171">███</span><span style="color:#4ade80">███</span><span style="color:#fbbf24">███</span><span style="color:#6ea8fe">███</span><span style="color:#c084fc">███</span><span style="color:#22d3ee">███</span><span style="color:#e4e4e7">███</span>`,
+        `<span style="color:#1a1a1a">███</span><span style="color:#333333">███</span><span style="color:#4d4d4d">███</span><span style="color:#666666">███</span><span style="color:#808080">███</span><span style="color:#999999">███</span><span style="color:#b3b3b3">███</span><span style="color:#e4e4e7">███</span>`,
     ],
     boot: [
         'nabilOS web tty1',

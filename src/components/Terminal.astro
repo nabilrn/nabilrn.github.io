@@ -6,7 +6,7 @@ interface Props {
 const { termData } = Astro.props;
 ---
 
-<div class="term-shell" id="term-shell" data-phosphor="green">
+<div class="term-shell" id="term-shell" data-phosphor="white">
     <div class="term-chrome" aria-hidden="true">
         <span class="term-chrome-title">nsh — visitor@nabilrn: ~</span>
         <span class="term-chrome-hint">scroll to read &middot; type 'help' to play</span>
@@ -94,7 +94,7 @@ const { termData } = Astro.props;
 
     .term-body :global(.tl-dim) { color: var(--muted); }
     .term-body :global(.tl-err) { color: var(--danger); }
-    .term-body :global(.tl-ok) { color: var(--ph); }
+    .term-body :global(.tl-ok) { color: var(--text); }
 
     .term-body :global(.boot-head) {
         display: flex;
@@ -136,7 +136,7 @@ const { termData } = Astro.props;
     .term-body :global(.c-key) { color: var(--text); font-weight: 600; }
 
     .term-body :global(a) {
-        color: var(--ph);
+        color: var(--text);
         text-decoration: underline;
         text-underline-offset: 2px;
     }
