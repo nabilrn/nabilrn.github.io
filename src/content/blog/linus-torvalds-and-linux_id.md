@@ -17,7 +17,6 @@ Semakin saya membaca kisahnya, semakin saya menyadari bahwa dunia teknologi tida
 
 Bukan karena Linux adalah sistem operasi paling populer, bukan juga karena Git menjadi standar industri, melainkan karena cara berpikirnya. Dia tidak pernah terlihat seperti seseorang yang berusaha mengubah dunia; dia hanya terus menyelesaikan satu masalah demi satu masalah. Ironisnya, justru orang seperti itulah yang akhirnya benar-benar mengubah dunia.
 
----
 
 ## Sebuah Proyek Hobi yang Mengubah Dunia
 
@@ -32,7 +31,6 @@ Kalimat itu mungkin adalah salah satu prediksi paling meleset dalam sejarah tekn
 
 Linux perlahan berubah dari proyek pribadi menjadi salah satu proyek kolaborasi terbesar yang pernah ada dalam sejarah perangkat lunak. Yang menarik, Linus tidak mencoba mengerjakan semuanya sendiri. Dia memahami bahwa proyek sebesar ini hanya bisa berkembang jika banyak orang ikut memiliki dan berkontribusi. Mungkin inilah salah satu alasan mengapa Linux bisa bertahan lebih dari tiga dekade dan terus berkembang hingga hari ini.
 
----
 
 ## Linux Ada di Mana-Mana, Meskipun Kita Jarang Menyadarinya
 
@@ -42,7 +40,6 @@ Tidak berhenti di situ, Linux juga digunakan di supercomputer tercepat di dunia.
 
 Menurut saya, inilah definisi teknologi yang benar-benar berhasil. Bukan teknologi yang paling sering dipromosikan, tetapi teknologi yang menjadi begitu penting hingga keberadaannya terasa "tidak terlihat". Ketika sebuah fondasi bekerja dengan sangat baik, orang tidak lagi memikirkan fondasi itu; mereka hanya menikmati bangunan yang berdiri di atasnya. Dan Linux adalah salah satu fondasi terbesar dunia digital modern.
 
----
 
 ## Belum Cukup dengan Linux, Linus Menciptakan Git
 
@@ -52,7 +49,6 @@ Sebagian orang mungkin akan mencari alternatif, dan sebagian lagi mungkin akan m
 
 Sulit membayangkan seperti apa perkembangan open source tanpa adanya Git. Ribuan proyek dengan jutaan kontributor di seluruh dunia dapat berkembang dengan lebih teratur karena adanya tools ini. Menariknya, Git juga lahir bukan karena Linus ingin membuat produk baru; Git lahir karena ada masalah nyata yang perlu diselesaikan. Semakin saya membaca perjalanan hidupnya, semakin saya melihat pola yang sama: ada masalah, dia memahami masalahnya, lalu dia membuat solusi—bukan karena ingin terkenal, tetapi karena masalah itu memang layak untuk diselesaikan.
 
----
 
 ## Pelajaran yang Saya Dapatkan
 

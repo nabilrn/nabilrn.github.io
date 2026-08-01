@@ -17,7 +17,6 @@ The more I read his story, the more I realize that the tech world isn't solely b
 
 Not because Linux is the most popular operating system, not because Git became the industry standard either, but because of his way of thinking. He never seemed like someone trying to change the world; he just kept solving one problem after another. Ironically, it's exactly that kind of person who eventually truly changed the world.
 
----
 
 ## A Hobby Project That Changed the World
 
@@ -32,7 +31,6 @@ That sentence might be one of the most inaccurate predictions in the history of 
 
 Linux slowly transformed from a personal project into one of the largest collaborative projects in software history. Interestingly, Linus didn't try to do everything himself. He understood that a project this huge could only grow if many people took ownership and contributed to it. Perhaps this is one of the reasons why Linux has survived for over three decades and continues to grow today.
 
----
 
 ## Linux is Everywhere, Even if We Rarely Notice It
 
@@ -42,7 +40,6 @@ It doesn't stop there; Linux is also used in the world's fastest supercomputers.
 
 In my opinion, this is the definition of a truly successful technology. Not the most frequently promoted technology, but technology that becomes so essential that its presence feels "invisible." When a foundation works incredibly well, people no longer think about the foundation; they simply enjoy the building that stands on it. And Linux is one of the greatest foundations of the modern digital world.
 
----
 
 ## Not Satisfied With Just Linux, Linus Created Git
 
@@ -52,7 +49,6 @@ Some people might look for alternatives, and some might wait for a solution from
 
 It is hard to imagine what the development of open source would be like without Git. Thousands of projects with millions of contributors around the world can develop more methodically because of this tool. Interestingly, Git was also not born because Linus wanted to create a new product; Git was born because there was a real problem that needed solving. The more I read about his life journey, the more I see the same pattern: there's a problem, he understands the problem, then he builds a solution—not to be famous, but because the problem is genuinely worth solving.
 
----
 
 ## The Lessons I Learned
 
