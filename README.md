@@ -71,6 +71,8 @@ pnpm dlx wrangler deploy --config worker/wrangler.toml
 
 Put this in `.env` for local/dev build.
 
+Production builds now default to `https://portfolio-metrics-api.nabilrizkinavisa.workers.dev` when `PUBLIC_ENGAGEMENT_API_BASE` is missing.
+
 ## Notes
 
 - If `PUBLIC_ENGAGEMENT_API_BASE` is empty/unreachable, the UI falls back to local device metrics so the feature still works.

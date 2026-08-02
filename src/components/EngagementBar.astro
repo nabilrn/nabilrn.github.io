@@ -7,7 +7,10 @@ interface Props {
 }
 
 const { postId, title } = Astro.props;
-const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
+const fallbackApiBase = import.meta.env.PROD
+	? 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
+	: '';
+const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE?.trim() || fallbackApiBase;
 const content = getSiteContent('en').engagement;
 ---
 

@@ -10,7 +10,10 @@ interface Props {
 }
 
 const { postId, title, variant = 'inline', locale: rawLocale } = Astro.props;
-const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE ?? '';
+const fallbackApiBase = import.meta.env.PROD
+	? 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
+	: '';
+const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE?.trim() || fallbackApiBase;
 const rootId = `engage-${postId}`;
 const content = getSiteContent(normalizeLocale(rawLocale)).engagement;
 ---
