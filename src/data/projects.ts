@@ -129,7 +129,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Bank Sampah Pondok Permai",
     desc: "Landing page for a community waste bank NGO in Padang, with a grounded nature-driven aesthetic.",
-    liveUrl: "https://permai-eco-landing.nabilrn.space",
+    liveUrl: "https://pondokpermai.vercel.app/",
     repoUrl: "https://github.com/nabilrn/permai-eco-landing",
     stack: ["React", "Vite"],
     screenshot: pondokpermaiImg,
@@ -145,7 +145,7 @@ export const webProjects: WebProject[] = [
   {
     name: "Sumbar Smart Portal",
     desc: "AI-powered government portal prototype built in 24 hours during the 2025 Firetech Event by Neotelemetri.",
-    liveUrl: "https://sumbar-smart-portal.vercel.app/",
+    liveUrl: "https://sumbar-smart-portal.nabilrn.space",
     repoUrl:
       "https://github.com/kk-infrastruktur-dan-tata-kelola-dsi/sumbar-smart-portal.git",
     stack: ["Next.js", "Google AI Studio", "Vercel"],
