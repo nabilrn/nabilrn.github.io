@@ -56,7 +56,7 @@ Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`,
 ### Engagement metrics flow
 
 - `EngagementBarNew.astro` is the active engagement component (used on blog posts). `EngagementBar.astro` is the older version.
-- Client-side JS reads `PUBLIC_ENGAGEMENT_API_BASE` env var to call the worker API at `/metrics/:postId`.
+- Client-side JS uses the production engagement worker by default and reads `PUBLIC_ENGAGEMENT_API_BASE` only as an optional override.
 - If the API is unreachable or unset, metrics fall back to localStorage-only tracking.
 - The worker API uses visitor IDs (client-generated UUIDs stored in localStorage) for view/like deduplication.
 - Like is a toggle action (like/unlike). Views and shares only increment.
@@ -68,7 +68,7 @@ Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`,
 
 ### Environment
 
-- `PUBLIC_ENGAGEMENT_API_BASE` — set in `.env` for local dev, hardcoded in the GitHub Actions workflow for production builds.
+- `PUBLIC_ENGAGEMENT_API_BASE` — optional local/dev override. Production builds default to `https://portfolio-metrics-api.nabilrizkinavisa.workers.dev`.
 
 ### Theming
 

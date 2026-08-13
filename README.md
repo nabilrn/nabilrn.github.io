@@ -65,15 +65,14 @@ pnpm dlx wrangler d1 execute portfolio-metrics --file worker/migrations/0001_ini
 pnpm dlx wrangler deploy --config worker/wrangler.toml
 ```
 
-6. Set site env var:
+6. The site defaults to the production engagement worker:
 
-`PUBLIC_ENGAGEMENT_API_BASE=https://<your-worker-domain>`
+`https://portfolio-metrics-api.nabilrizkinavisa.workers.dev`
 
-Put this in `.env` for local/dev build.
-
-Production builds now default to `https://portfolio-metrics-api.nabilrizkinavisa.workers.dev` when `PUBLIC_ENGAGEMENT_API_BASE` is missing.
+Set `PUBLIC_ENGAGEMENT_API_BASE=https://<your-worker-domain>` only when testing another worker endpoint.
 
 ## Notes
 
 - If `PUBLIC_ENGAGEMENT_API_BASE` is empty/unreachable, the UI falls back to local device metrics so the feature still works.
+- The portfolio is an Astro static build. MyPaas should deploy it as a static site from `dist`, not as a Dockerfile/Nginx container.
 - Current docs collection from Starlight is still present in the repo and can be removed later if unused.
