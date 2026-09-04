@@ -61,20 +61,20 @@ const blogPath = localizePath('/blog/', locale);
         position: sticky;
         top: 0;
         z-index: 30;
+        width: 100%;
         background: color-mix(in srgb, var(--bg) 92%, transparent);
         backdrop-filter: blur(12px);
         border-bottom: 1px solid var(--border);
     }
 
     .home-header-inner {
-        width: min(100%, 1440px);
+        width: 100%;
         min-height: 64px;
-        margin: 0 auto;
-        padding: 0 28px;
+        margin: 0;
+        padding: 0 clamp(20px, 2.4vw, 42px);
         display: grid;
         grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
         align-items: center;
-        border-inline: 1px solid var(--border);
     }
 
     .home-brand {
