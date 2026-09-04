@@ -1,61 +1,83 @@
 ---
-const patterns = [
-    [
-        '10001',
-        '11001',
-        '10101',
-        '10101',
-        '10011',
-        '10011',
-        '10001',
-    ],
-    [
-        '11110',
-        '10001',
-        '10001',
-        '11110',
-        '10100',
-        '10010',
-        '10001',
-    ],
-    [
-        '10001',
-        '11001',
-        '10101',
-        '10101',
-        '10011',
-        '10011',
-        '10001',
-    ],
-] as const;
+type PlanePoint = { x: number; y: number };
+type ScreenPoint = { x: number; y: number };
+type BarDefinition = {
+    id: string;
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+    width: number;
+};
 
-const halfW = 16;
-const halfH = 8;
-const stepX = 18;
-const stepY = 9;
-const depth = 13;
-const baseX = 48;
-const baseY = 174;
-const letterStride = 7;
+const viewWidth = 556;
+const viewHeight = 354;
+const originX = 139;
+const originY = 24;
+const isoX = 23;
+const isoY = 11.5;
+const depth = 30;
 
-const blocks = patterns.flatMap((pattern, letterIndex) =>
-    pattern.flatMap((row, rowIndex) =>
-        [...row].flatMap((filled, colIndex) => {
-            if (filled !== '1') return [];
-            const col = colIndex + letterIndex * letterStride;
-            const x = baseX + (col + rowIndex) * stepX;
-            const y = baseY + (rowIndex - col) * stepY;
-            return [{ x, y }];
-        }),
-    ),
-);
+const project = ({ x, y }: PlanePoint): ScreenPoint => ({
+    x: originX + (x - y) * isoX,
+    y: originY + (x + y) * isoY,
+});
 
-const topPoints = (x: number, y: number) =>
-    `${x},${y} ${x + halfW},${y - halfH} ${x + halfW * 2},${y} ${x + halfW},${y + halfH}`;
-const leftPoints = (x: number, y: number) =>
-    `${x},${y} ${x + halfW},${y + halfH} ${x + halfW},${y + halfH + depth} ${x},${y + depth}`;
-const rightPoints = (x: number, y: number) =>
-    `${x + halfW},${y + halfH} ${x + halfW * 2},${y} ${x + halfW * 2},${y + depth} ${x + halfW},${y + halfH + depth}`;
+const rectangleAroundLine = (bar: BarDefinition): PlanePoint[] => {
+    const dx = bar.x2 - bar.x1;
+    const dy = bar.y2 - bar.y1;
+    const length = Math.hypot(dx, dy) || 1;
+    const nx = (-dy / length) * (bar.width / 2);
+    const ny = (dx / length) * (bar.width / 2);
+
+    return [
+        { x: bar.x1 + nx, y: bar.y1 + ny },
+        { x: bar.x2 + nx, y: bar.y2 + ny },
+        { x: bar.x2 - nx, y: bar.y2 - ny },
+        { x: bar.x1 - nx, y: bar.y1 - ny },
+    ];
+};
+
+const toPoints = (points: ScreenPoint[]) =>
+    points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+
+const barDefinitions: BarDefinition[] = [
+    // N
+    { id: 'n1-left', x1: 0.55, y1: 0.45, x2: 0.55, y2: 5.55, width: 0.82 },
+    { id: 'n1-diagonal', x1: 0.75, y1: 0.55, x2: 3.35, y2: 5.45, width: 0.76 },
+    { id: 'n1-right', x1: 3.55, y1: 0.45, x2: 3.55, y2: 5.55, width: 0.82 },
+
+    // R
+    { id: 'r-left', x1: 5.55, y1: 0.45, x2: 5.55, y2: 5.55, width: 0.82 },
+    { id: 'r-top', x1: 5.55, y1: 0.55, x2: 8.35, y2: 0.55, width: 0.82 },
+    { id: 'r-mid', x1: 5.55, y1: 2.95, x2: 8.15, y2: 2.95, width: 0.82 },
+    { id: 'r-bowl', x1: 8.35, y1: 0.70, x2: 8.35, y2: 2.78, width: 0.82 },
+    { id: 'r-leg', x1: 7.25, y1: 3.12, x2: 8.80, y2: 5.55, width: 0.82 },
+
+    // N
+    { id: 'n2-left', x1: 10.55, y1: 0.45, x2: 10.55, y2: 5.55, width: 0.82 },
+    { id: 'n2-diagonal', x1: 10.75, y1: 0.55, x2: 13.35, y2: 5.45, width: 0.76 },
+    { id: 'n2-right', x1: 13.55, y1: 0.45, x2: 13.55, y2: 5.55, width: 0.82 },
+];
+
+const bars = barDefinitions.map((definition) => {
+    const top = rectangleAroundLine(definition).map(project);
+    const bottom = top.map((point) => ({ x: point.x, y: point.y + depth }));
+    const sides = top.map((point, index) => {
+        const next = (index + 1) % top.length;
+        return [point, top[next], bottom[next], bottom[index]];
+    });
+
+    return {
+        id: definition.id,
+        topPoints: toPoints(top),
+        sides: sides.map((points, index) => ({
+            id: `${definition.id}-side-${index}`,
+            points,
+            pointsString: toPoints(points),
+        })),
+    };
+});
 ---
 
 <div class="nrn-stage" data-nrn-stage>
@@ -66,46 +88,85 @@ const rightPoints = (x: number, y: number) =>
         aria-label="Press the interactive NRN mark"
         aria-pressed="false"
     >
-        <svg class="nrn-svg" data-nrn-svg viewBox="0 0 560 320" role="img" aria-label="Isometric NRN monogram">
+        <svg
+            class="nrn-svg"
+            data-nrn-svg
+            viewBox={`0 0 ${viewWidth} ${viewHeight}`}
+            role="img"
+            aria-label="Isometric NRN monogram"
+        >
             <defs>
-                <radialGradient id="nrn-pointer-glow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="currentColor" stop-opacity="0.22" />
-                    <stop offset="42%" stop-color="currentColor" stop-opacity="0.08" />
-                    <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+                <pattern id="nrn-face-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M-1 1l2-2M0 10L10 0M9 11l2-2" class="nrn-hatch-line" />
+                </pattern>
+
+                <radialGradient
+                    id="nrn-spotlight"
+                    data-nrn-spotlight
+                    cx="278"
+                    cy="177"
+                    r="190"
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop offset="0" class="nrn-spotlight-start" />
+                    <stop offset="1" class="nrn-spotlight-end" />
                 </radialGradient>
             </defs>
 
             <g class="nrn-guides" aria-hidden="true">
-                <line x1="-20" y1="258" x2="480" y2="8" />
-                <line x1="58" y1="320" x2="558" y2="70" />
-                <line x1="94" y1="-14" x2="558" y2="218" />
-                <line x1="0" y1="58" x2="500" y2="308" />
-                {Array.from({ length: 8 }, (_, index) => (
-                    <line x1={80 + index * 58} y1="34" x2={80 + index * 58} y2="286" />
-                ))}
-                {Array.from({ length: 5 }, (_, index) => (
-                    <line x1="30" y1={72 + index * 48} x2="530" y2={72 + index * 48} />
-                ))}
+                <path d="M-478 757L1255 -243" />
+                <path d="M977 789L-755 -211" />
+                <path d="M1144 693L-588 -307" />
             </g>
 
-            <circle class="nrn-glow" data-nrn-glow cx="390" cy="128" r="98" fill="url(#nrn-pointer-glow)" />
+            <g class="nrn-prisms" aria-hidden="true">
+                {bars.map((bar) => (
+                    <g class="nrn-prism" data-prism={bar.id}>
+                        <g class="nrn-side-group">
+                            {bar.sides.map((side) => (
+                                <polygon
+                                    class="nrn-side"
+                                    data-nrn-side
+                                    data-top-a={`${side.points[0].x},${side.points[0].y}`}
+                                    data-top-b={`${side.points[1].x},${side.points[1].y}`}
+                                    data-bottom-b={`${side.points[2].x},${side.points[2].y}`}
+                                    data-bottom-a={`${side.points[3].x},${side.points[3].y}`}
+                                    points={side.pointsString}
+                                />
+                            ))}
+                        </g>
 
-            <g class="nrn-extrusion" aria-hidden="true">
-                {blocks.map(({ x, y }) => (
-                    <g>
-                        <polygon class="nrn-face nrn-face-left" points={leftPoints(x, y)} />
-                        <polygon class="nrn-face nrn-face-right" points={rightPoints(x, y)} />
+                        <g class="nrn-top-layer" data-nrn-top-layer>
+                            <polygon class="nrn-top-base" points={bar.topPoints} />
+                            <polygon class="nrn-top-hatch" points={bar.topPoints} />
+                            <polygon class="nrn-top-outline" points={bar.topPoints} />
+                        </g>
                     </g>
                 ))}
             </g>
 
-            <g class="nrn-top" data-nrn-top>
-                {blocks.map(({ x, y }) => (
-                    <polygon class="nrn-face nrn-face-top" points={topPoints(x, y)} />
+            <g class="nrn-spotlight-geometry" aria-hidden="true">
+                {bars.map((bar) => (
+                    <g>
+                        <g class="nrn-top-layer" data-nrn-top-layer>
+                            <polygon class="nrn-spotlight-top" points={bar.topPoints} />
+                        </g>
+                        {bar.sides.map((side) => (
+                            <polygon
+                                class="nrn-spotlight-side"
+                                data-nrn-side
+                                data-top-a={`${side.points[0].x},${side.points[0].y}`}
+                                data-top-b={`${side.points[1].x},${side.points[1].y}`}
+                                data-bottom-b={`${side.points[2].x},${side.points[2].y}`}
+                                data-bottom-a={`${side.points[3].x},${side.points[3].y}`}
+                                points={side.pointsString}
+                            />
+                        ))}
+                    </g>
                 ))}
             </g>
 
-            <text class="nrn-fig-label" x="34" y="292">FIG. 01 / NRN SYSTEM</text>
+            <text class="nrn-fig-label" x="34" y="326">FIG. 01 / NRN SYSTEM</text>
         </svg>
     </button>
 
@@ -125,11 +186,7 @@ const rightPoints = (x: number, y: number) =>
         height: 100%;
         overflow: hidden;
         color: var(--text);
-        background:
-            linear-gradient(color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px),
-            linear-gradient(90deg, color-mix(in srgb, var(--border) 45%, transparent) 1px, transparent 1px);
-        background-size: 78px 66px;
-        background-position: 42px 70px;
+        background: var(--bg);
     }
 
     .nrn-mark {
@@ -147,7 +204,7 @@ const rightPoints = (x: number, y: number) =>
     }
 
     .nrn-mark:focus-visible {
-        outline: 1px solid var(--text);
+        outline: 1px solid color-mix(in srgb, var(--text) 70%, transparent);
         outline-offset: -5px;
     }
 
@@ -160,90 +217,92 @@ const rightPoints = (x: number, y: number) =>
 
     .nrn-guides {
         fill: none;
-        stroke: color-mix(in srgb, var(--border) 72%, transparent);
+        stroke: color-mix(in srgb, var(--muted) 18%, var(--bg));
         stroke-width: 1;
-        opacity: 0.7;
-    }
-
-    .nrn-glow {
-        opacity: 0;
-        transition: opacity 180ms ease;
+        stroke-dasharray: 4 2;
+        vector-effect: non-scaling-stroke;
         pointer-events: none;
     }
 
-    .nrn-mark.is-hovering .nrn-glow,
-    .nrn-mark:focus-visible .nrn-glow {
-        opacity: 1;
-    }
-
-    .nrn-face {
-        vector-effect: non-scaling-stroke;
+    .nrn-side {
+        fill: var(--bg);
+        stroke: color-mix(in srgb, var(--text) 18%, var(--bg));
+        stroke-width: 1;
         stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
     }
 
-    .nrn-face-left {
-        fill: color-mix(in srgb, var(--surface-2) 88%, transparent);
-        stroke: color-mix(in srgb, var(--muted) 58%, var(--border));
-        stroke-width: 0.8;
+    .nrn-top-base {
+        fill: var(--bg);
     }
 
-    .nrn-face-right {
-        fill: color-mix(in srgb, var(--surface) 94%, transparent);
-        stroke: color-mix(in srgb, var(--muted) 66%, var(--border));
-        stroke-width: 0.9;
+    .nrn-top-hatch {
+        fill: url(#nrn-face-pattern);
+        opacity: 0.92;
     }
 
-    .nrn-top {
-        transform-box: fill-box;
-        transform-origin: center;
-        transition:
-            transform 330ms cubic-bezier(0.18, 1.42, 0.38, 1),
-            filter 180ms ease;
+    .nrn-top-outline {
+        fill: none;
+        stroke: color-mix(in srgb, var(--text) 28%, var(--bg));
+        stroke-width: 1;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .nrn-hatch-line {
+        fill: none;
+        stroke: color-mix(in srgb, var(--text) 14%, var(--bg));
+        stroke-width: 1;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .nrn-spotlight-geometry {
+        pointer-events: none;
+    }
+
+    .nrn-spotlight-top,
+    .nrn-spotlight-side {
+        fill: none;
+        stroke: url(#nrn-spotlight);
+        stroke-width: 1.15;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .nrn-spotlight-start {
+        stop-color: var(--text);
+        stop-opacity: 0.88;
+    }
+
+    .nrn-spotlight-end {
+        stop-color: var(--muted);
+        stop-opacity: 0;
+    }
+
+    .nrn-top-layer {
         will-change: transform;
     }
 
-    .nrn-face-top {
-        fill: color-mix(in srgb, var(--surface) 72%, transparent);
-        stroke: color-mix(in srgb, var(--text) 54%, var(--border));
-        stroke-width: 0.95;
-        transition: fill 180ms ease, stroke 180ms ease;
-    }
-
-    .nrn-mark.is-hovering .nrn-face-top,
-    .nrn-mark:focus-visible .nrn-face-top {
-        fill: color-mix(in srgb, var(--surface-2) 76%, transparent);
-        stroke: color-mix(in srgb, var(--text) 72%, var(--border));
-    }
-
-    .nrn-mark.is-pressed .nrn-top {
-        transform: translateY(11px);
-        transition-duration: 90ms;
-        transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
-    }
-
-    .nrn-mark.is-rebounding .nrn-top {
-        animation: nrn-rebound 410ms cubic-bezier(0.16, 1.34, 0.3, 1);
-    }
-
     .nrn-fig-label {
-        fill: var(--muted);
+        fill: color-mix(in srgb, var(--muted) 74%, var(--bg));
         font-family: var(--font-mono);
         font-size: 9px;
         letter-spacing: 0.02em;
+        pointer-events: none;
     }
 
     .nrn-note {
         position: absolute;
-        right: 8.5%;
-        bottom: 18%;
+        right: 7.5%;
+        bottom: 13%;
         display: flex;
         align-items: flex-end;
-        gap: 2px;
+        gap: 3px;
         color: color-mix(in srgb, var(--text) 72%, var(--muted));
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
         font-size: clamp(12px, 1vw, 17px);
         font-style: italic;
-        transform: rotate(3deg);
+        transform: rotate(2deg);
         pointer-events: none;
         user-select: none;
     }
@@ -254,45 +313,30 @@ const rightPoints = (x: number, y: number) =>
         overflow: visible;
         fill: none;
         stroke: currentColor;
-        stroke-width: 1.15;
+        stroke-width: 1.1;
         stroke-linecap: round;
         stroke-linejoin: round;
-        opacity: 0.8;
+        opacity: 0.82;
         transform: rotate(-12deg) translateY(4px);
-    }
-
-    @keyframes nrn-rebound {
-        0% { transform: translateY(11px); }
-        48% { transform: translateY(-2.5px); }
-        72% { transform: translateY(1.25px); }
-        100% { transform: translateY(0); }
     }
 
     @media (max-width: 720px) {
         .nrn-note {
-            right: 6%;
-            bottom: 10%;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .nrn-top,
-        .nrn-face-top,
-        .nrn-glow {
-            transition: none !important;
-            animation: none !important;
-        }
-
-        .nrn-mark.is-pressed .nrn-top {
-            transform: translateY(5px);
+            right: 5%;
+            bottom: 9%;
         }
     }
 </style>
 
 <script>
     type NrnState = 'idle' | 'hover' | 'pressed';
+    type Point = { x: number; y: number };
 
+    const VIEW_WIDTH = 556;
+    const VIEW_HEIGHT = 354;
+    const PRESS_DEPTH = 16;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
 
     const playClick = () => {
         try {
@@ -306,27 +350,32 @@ const rightPoints = (x: number, y: number) =>
             const low = context.createOscillator();
 
             high.type = 'triangle';
-            high.frequency.setValueAtTime(920, now);
-            high.frequency.exponentialRampToValueAtTime(540, now + 0.045);
+            high.frequency.setValueAtTime(860, now);
+            high.frequency.exponentialRampToValueAtTime(510, now + 0.042);
             low.type = 'sine';
-            low.frequency.setValueAtTime(210, now);
-            low.frequency.exponentialRampToValueAtTime(135, now + 0.065);
+            low.frequency.setValueAtTime(190, now);
+            low.frequency.exponentialRampToValueAtTime(128, now + 0.064);
 
             gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.055, now + 0.006);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
+            gain.gain.exponentialRampToValueAtTime(0.045, now + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.072);
 
             high.connect(gain);
             low.connect(gain);
             gain.connect(context.destination);
             high.start(now);
             low.start(now);
-            high.stop(now + 0.08);
-            low.stop(now + 0.08);
-            window.setTimeout(() => void context.close(), 130);
+            high.stop(now + 0.078);
+            low.stop(now + 0.078);
+            window.setTimeout(() => void context.close(), 120);
         } catch {
-            // Sound is purely decorative; interaction still works without Web Audio.
+            // Sound is decorative only.
         }
+    };
+
+    const parsePoint = (value: string | undefined): Point => {
+        const [x = 0, y = 0] = (value ?? '0,0').split(',').map(Number);
+        return { x, y };
     };
 
     document.querySelectorAll<HTMLButtonElement>('[data-nrn-mark]').forEach((mark) => {
@@ -334,54 +383,132 @@ const rightPoints = (x: number, y: number) =>
         mark.dataset.initialized = 'true';
 
         const svg = mark.querySelector<SVGSVGElement>('[data-nrn-svg]');
-        const glow = mark.querySelector<SVGCircleElement>('[data-nrn-glow]');
-        if (!svg || !glow) return;
+        const gradient = mark.querySelector<SVGRadialGradientElement>('[data-nrn-spotlight]');
+        const topLayers = Array.from(mark.querySelectorAll<SVGGElement>('[data-nrn-top-layer]'));
+        const sides = Array.from(mark.querySelectorAll<SVGPolygonElement>('[data-nrn-side]')).map((side) => ({
+            node: side,
+            topA: parsePoint(side.dataset.topA),
+            topB: parsePoint(side.dataset.topB),
+            bottomB: parsePoint(side.dataset.bottomB),
+            bottomA: parsePoint(side.dataset.bottomA),
+        }));
+
+        if (!svg || !gradient) return;
 
         let state: NrnState = 'idle';
-        let reboundTimer = 0;
+        let pressValue = 0;
+        let pressVelocity = 0;
+        let pressTarget = 0;
+        let lastFrame = performance.now();
+
+        let glowX = VIEW_WIDTH / 2;
+        let glowY = VIEW_HEIGHT / 2;
+        let glowVelocityX = 0;
+        let glowVelocityY = 0;
+        let glowTargetX = glowX;
+        let glowTargetY = glowY;
+
+        let frame = 0;
+        let inView = true;
+
+        const applyGeometry = () => {
+            const offset = pressValue * PRESS_DEPTH;
+            topLayers.forEach((layer) => {
+                layer.setAttribute('transform', `translate(0 ${offset.toFixed(3)})`);
+            });
+
+            sides.forEach(({ node, topA, topB, bottomB, bottomA }) => {
+                node.setAttribute(
+                    'points',
+                    [
+                        `${topA.x.toFixed(2)},${(topA.y + offset).toFixed(2)}`,
+                        `${topB.x.toFixed(2)},${(topB.y + offset).toFixed(2)}`,
+                        `${bottomB.x.toFixed(2)},${bottomB.y.toFixed(2)}`,
+                        `${bottomA.x.toFixed(2)},${bottomA.y.toFixed(2)}`,
+                    ].join(' '),
+                );
+            });
+        };
+
+        const applyGlow = () => {
+            gradient.setAttribute('cx', glowX.toFixed(2));
+            gradient.setAttribute('cy', glowY.toFixed(2));
+        };
+
+        const tick = (now: number) => {
+            const dt = Math.min((now - lastFrame) / 1000, 0.032);
+            lastFrame = now;
+
+            if (reducedMotion.matches) {
+                pressValue = pressTarget;
+                pressVelocity = 0;
+            } else {
+                const mass = 0.5;
+                const stiffness = 200;
+                const damping = 18;
+                const acceleration = (stiffness * (pressTarget - pressValue) - damping * pressVelocity) / mass;
+                pressVelocity += acceleration * dt;
+                pressValue += pressVelocity * dt;
+            }
+
+            if (finePointer.matches && !reducedMotion.matches && inView) {
+                const glowMass = 0.1;
+                const glowStiffness = 300;
+                const glowDamping = 30;
+
+                const ax = (glowStiffness * (glowTargetX - glowX) - glowDamping * glowVelocityX) / glowMass;
+                const ay = (glowStiffness * (glowTargetY - glowY) - glowDamping * glowVelocityY) / glowMass;
+                glowVelocityX += ax * dt;
+                glowVelocityY += ay * dt;
+                glowX += glowVelocityX * dt;
+                glowY += glowVelocityY * dt;
+            } else {
+                glowX = glowTargetX;
+                glowY = glowTargetY;
+            }
+
+            applyGeometry();
+            applyGlow();
+            frame = requestAnimationFrame(tick);
+        };
 
         const syncState = (next: NrnState) => {
             state = next;
-            mark.classList.toggle('is-hovering', next === 'hover' || next === 'pressed');
-            mark.classList.toggle('is-pressed', next === 'pressed');
+            mark.dataset.state = next;
             mark.setAttribute('aria-pressed', String(next === 'pressed'));
         };
 
-        const updateGlow = (event: PointerEvent) => {
-            const bounds = svg.getBoundingClientRect();
-            if (bounds.width === 0 || bounds.height === 0) return;
-            const x = ((event.clientX - bounds.left) / bounds.width) * 560;
-            const y = ((event.clientY - bounds.top) / bounds.height) * 320;
-            glow.setAttribute('cx', x.toFixed(2));
-            glow.setAttribute('cy', y.toFixed(2));
-        };
-
         const press = () => {
-            window.clearTimeout(reboundTimer);
-            mark.classList.remove('is-rebounding');
+            pressTarget = 1;
             syncState('pressed');
         };
 
         const release = (withSound = false) => {
             if (state !== 'pressed') return;
+            pressTarget = 0;
             if (withSound) playClick();
-
-            mark.classList.remove('is-pressed');
-            mark.classList.add('is-rebounding');
-            mark.setAttribute('aria-pressed', 'false');
-            state = 'hover';
-
-            reboundTimer = window.setTimeout(() => {
-                mark.classList.remove('is-rebounding');
-                syncState(mark.matches(':hover') || mark.matches(':focus-visible') ? 'hover' : 'idle');
-            }, reducedMotion.matches ? 40 : 430);
+            syncState(mark.matches(':hover') || mark.matches(':focus-visible') ? 'hover' : 'idle');
         };
 
-        mark.addEventListener('pointerenter', (event) => {
-            syncState('hover');
-            updateGlow(event);
+        const updateGlobalGlowTarget = (event: MouseEvent) => {
+            if (!finePointer.matches || reducedMotion.matches || !inView) return;
+            glowTargetX = (event.clientX / Math.max(window.innerWidth, 1)) * VIEW_WIDTH;
+            glowTargetY = (event.clientY / Math.max(window.innerHeight, 1)) * VIEW_HEIGHT;
+        };
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                inView = entry?.isIntersecting ?? true;
+            },
+            { rootMargin: '80px' },
+        );
+        observer.observe(svg);
+
+        window.addEventListener('mousemove', updateGlobalGlowTarget, { passive: true });
+
+        mark.addEventListener('pointerenter', () => {
+            if (state !== 'pressed') syncState('hover');
         });
-        mark.addEventListener('pointermove', updateGlow);
         mark.addEventListener('pointerleave', () => {
             if (state === 'pressed') release(false);
             syncState('idle');
@@ -389,7 +516,6 @@ const rightPoints = (x: number, y: number) =>
         mark.addEventListener('pointerdown', (event) => {
             if (event.button !== 0) return;
             mark.setPointerCapture?.(event.pointerId);
-            updateGlow(event);
             press();
         });
         mark.addEventListener('pointerup', (event) => {
@@ -408,7 +534,24 @@ const rightPoints = (x: number, y: number) =>
             event.preventDefault();
             release(true);
         });
-        mark.addEventListener('focus', () => syncState('hover'));
-        mark.addEventListener('blur', () => syncState('idle'));
+        mark.addEventListener('focus', () => {
+            if (state !== 'pressed') syncState('hover');
+        });
+        mark.addEventListener('blur', () => {
+            release(false);
+            syncState('idle');
+        });
+
+        frame = requestAnimationFrame(tick);
+
+        document.addEventListener(
+            'astro:before-swap',
+            () => {
+                cancelAnimationFrame(frame);
+                observer.disconnect();
+                window.removeEventListener('mousemove', updateGlobalGlowTarget);
+            },
+            { once: true },
+        );
     });
 </script>
