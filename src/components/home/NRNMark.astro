@@ -1,118 +1,182 @@
 ---
-type PlanePoint = { x: number; y: number };
-type ScreenPoint = { x: number; y: number };
-
-type Beam = {
+type Point = { x: number; y: number };
+type Tile = { x: number; y: number };
+type Edge = { a: Point; b: Point };
+type Letter = {
     id: string;
-    plane: PlanePoint[];
-    screen: ScreenPoint[];
-    averageY: number;
+    tiles: Tile[];
+    topEdges: Edge[];
+    sideEdges: Edge[];
+    sideCorners: Point[];
 };
 
-const VIEWBOX_WIDTH = 640;
-const VIEWBOX_HEIGHT = 360;
-const DEPTH = 30;
+const VIEWBOX_WIDTH = 1236;
+const VIEWBOX_HEIGHT = 761;
+const DEPTH = 28;
 
-const rectangle = (x: number, y: number, width: number, height: number): PlanePoint[] => [
-    { x, y },
-    { x: x + width, y },
-    { x: x + width, y: y + height },
-    { x, y: y + height },
+// Approved Figma geometry uses a 56x28 isometric tile (28px half-step).
+const N_TILES: Tile[] = [
+    { x: 168, y: 0 },
+    { x: 336, y: 84 },
+    { x: 140, y: 14 },
+    { x: 308, y: 98 },
+    { x: 112, y: 28 },
+    { x: 280, y: 112 },
+    { x: 84, y: 42 },
+    { x: 252, y: 126 },
+    { x: 56, y: 56 },
+    { x: 224, y: 140 },
+    { x: 28, y: 70 },
+    { x: 196, y: 154 },
+    { x: 0, y: 84 },
+    { x: 168, y: 168 },
+    { x: 168, y: 28 },
+    { x: 168, y: 56 },
+    { x: 168, y: 84 },
+    { x: 168, y: 112 },
+    { x: 168, y: 140 },
 ];
 
-const thickSegment = (
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    width: number,
-): PlanePoint[] => {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const length = Math.hypot(dx, dy) || 1;
-    const normalX = (-dy / length) * (width / 2);
-    const normalY = (dx / length) * (width / 2);
+const R_TILES: Tile[] = [
+    { x: 188, y: 20 },
+    { x: 216, y: 34 },
+    { x: 244, y: 48 },
+    { x: 272, y: 62 },
+    { x: 160, y: 34 },
+    { x: 272, y: 90 },
+    { x: 132, y: 48 },
+    { x: 244, y: 104 },
+    { x: 104, y: 62 },
+    { x: 132, y: 76 },
+    { x: 160, y: 90 },
+    { x: 188, y: 104 },
+    { x: 76, y: 76 },
+    { x: 132, y: 104 },
+    { x: 48, y: 90 },
+    { x: 132, y: 132 },
+    { x: 20, y: 104 },
+    { x: 132, y: 160 },
+];
 
-    return [
-        { x: x1 + normalX, y: y1 + normalY },
-        { x: x2 + normalX, y: y2 + normalY },
-        { x: x2 - normalX, y: y2 - normalY },
-        { x: x1 - normalX, y: y1 - normalY },
-    ];
+const diamondPoints = ({ x, y }: Tile): Point[] => [
+    { x: x + 28, y },
+    { x: x + 56, y: y + 14 },
+    { x: x + 28, y: y + 28 },
+    { x, y: y + 14 },
+];
+
+const pointKey = ({ x, y }: Point) => `${x.toFixed(3)},${y.toFixed(3)}`;
+const edgeKey = (a: Point, b: Point) => {
+    const ak = pointKey(a);
+    const bk = pointKey(b);
+    return ak < bk ? `${ak}|${bk}` : `${bk}|${ak}`;
 };
 
-const project = ({ x, y }: PlanePoint): ScreenPoint => ({
-    x: 220 + (x - y) * 0.82,
-    y: 25 + (x + y) * 0.62,
-});
+const buildBoundary = (tiles: Tile[]) => {
+    const edges = new Map<string, { edge: Edge; count: number; edgeIndex: number }>();
 
-const beamSpecs: Array<{ id: string; polygon: PlanePoint[] }> = [
-    // N — three continuous strokes.
-    { id: 'n1-left', polygon: rectangle(0, 120, 20, 120) },
-    { id: 'n1-diagonal', polygon: thickSegment(18, 124, 82, 236, 20) },
-    { id: 'n1-right', polygon: rectangle(80, 120, 20, 120) },
+    tiles.forEach((tile) => {
+        const points = diamondPoints(tile);
+        points.forEach((a, edgeIndex) => {
+            const b = points[(edgeIndex + 1) % points.length];
+            const key = edgeKey(a, b);
+            const existing = edges.get(key);
+            if (existing) existing.count += 1;
+            else edges.set(key, { edge: { a, b }, count: 1, edgeIndex });
+        });
+    });
 
-    // R — one stem, bowl strokes, and one diagonal leg.
-    { id: 'r-stem', polygon: rectangle(130, 0, 20, 120) },
-    { id: 'r-top', polygon: rectangle(130, 0, 80, 20) },
-    { id: 'r-bowl-right', polygon: rectangle(190, 0, 20, 62) },
-    { id: 'r-middle', polygon: rectangle(130, 50, 70, 20) },
-    { id: 'r-leg', polygon: thickSegment(178, 64, 224, 116, 20) },
+    const topEdges = Array.from(edges.values())
+        .filter(({ count }) => count === 1)
+        .map(({ edge }) => edge);
 
-    // N — three continuous strokes.
-    { id: 'n2-left', polygon: rectangle(260, -120, 20, 120) },
-    { id: 'n2-diagonal', polygon: thickSegment(278, -116, 342, -4, 20) },
-    { id: 'n2-right', polygon: rectangle(340, -120, 20, 120) },
+    // On this isometric projection only the two downward-facing diamond edges
+    // form visible extrusion walls. Internal tile edges are cancelled above.
+    const sideEdges = Array.from(edges.values())
+        .filter(({ count, edgeIndex }) => count === 1 && (edgeIndex === 1 || edgeIndex === 2))
+        .map(({ edge }) => edge);
+
+    const cornerMap = new Map<string, { point: Point; vectors: Point[] }>();
+    sideEdges.forEach(({ a, b }) => {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const length = Math.hypot(dx, dy) || 1;
+        const vector = { x: dx / length, y: dy / length };
+        const reverse = { x: -vector.x, y: -vector.y };
+
+        const aKey = pointKey(a);
+        const bKey = pointKey(b);
+        const atA = cornerMap.get(aKey) ?? { point: a, vectors: [] };
+        const atB = cornerMap.get(bKey) ?? { point: b, vectors: [] };
+        atA.vectors.push(vector);
+        atB.vectors.push(reverse);
+        cornerMap.set(aKey, atA);
+        cornerMap.set(bKey, atB);
+    });
+
+    const sideCorners = Array.from(cornerMap.values())
+        .filter(({ vectors }) => {
+            if (vectors.length !== 2) return true;
+            const [first, second] = vectors;
+            return Math.abs(first.x * second.y - first.y * second.x) > 0.001;
+        })
+        .map(({ point }) => point);
+
+    return { topEdges, sideEdges, sideCorners };
+};
+
+const offsetPoint = (point: Point, x: number, y: number): Point => ({ x: point.x + x, y: point.y + y });
+const offsetTiles = (tiles: Tile[], x: number, y: number): Tile[] =>
+    tiles.map((tile) => ({ x: tile.x + x, y: tile.y + y }));
+const offsetEdges = (edges: Edge[], x: number, y: number): Edge[] =>
+    edges.map(({ a, b }) => ({ a: offsetPoint(a, x, y), b: offsetPoint(b, x, y) }));
+
+const createLetter = (id: string, tiles: Tile[], offsetX: number, offsetY: number): Letter => {
+    const boundary = buildBoundary(tiles);
+    return {
+        id,
+        tiles: offsetTiles(tiles, offsetX, offsetY),
+        topEdges: offsetEdges(boundary.topEdges, offsetX, offsetY),
+        sideEdges: offsetEdges(boundary.sideEdges, offsetX, offsetY),
+        sideCorners: boundary.sideCorners.map((point) => offsetPoint(point, offsetX, offsetY)),
+    };
+};
+
+// Positions are taken from approved Figma frame 89:411.
+const letters: Letter[] = [
+    createLetter('n-left', N_TILES, 204, 127),
+    createLetter('r', R_TILES, 450, 248),
+    createLetter('n-right', N_TILES, 673, 364),
 ];
 
-const beams: Beam[] = beamSpecs
-    .map(({ id, polygon }) => {
-        const screen = polygon.map(project);
-        return {
-            id,
-            plane: polygon,
-            screen,
-            averageY: screen.reduce((sum, point) => sum + point.y, 0) / screen.length,
-        };
-    })
-    .sort((a, b) => a.averageY - b.averageY);
-
-const pointsString = (points: ScreenPoint[], press = 0) =>
+const pointsString = (points: Point[], press = 0) =>
     points.map(({ x, y }) => `${x.toFixed(2)},${(y + press).toFixed(2)}`).join(' ');
 
-const sidePointsString = (points: ScreenPoint[], edgeIndex: number, press = 0) => {
-    const start = points[edgeIndex];
-    const end = points[(edgeIndex + 1) % points.length];
-    return [
-        { x: start.x, y: start.y + press },
-        { x: end.x, y: end.y + press },
-        { x: end.x, y: end.y + DEPTH },
-        { x: start.x, y: start.y + DEPTH },
+const sidePointsString = ({ a, b }: Edge, press = 0) =>
+    [
+        { x: a.x, y: a.y + press },
+        { x: b.x, y: b.y + press },
+        { x: b.x, y: b.y + DEPTH },
+        { x: a.x, y: a.y + DEPTH },
     ]
         .map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`)
         .join(' ');
-};
 
-const strokePath = (points: ScreenPoint[], press = 0) => {
-    const top = points.map(({ x, y }) => ({ x, y: y + press }));
-    const bottom = points.map(({ x, y }) => ({ x, y: y + DEPTH }));
+const topStrokePath = (edges: Edge[], press = 0) =>
+    edges
+        .map(({ a, b }) => `M${a.x.toFixed(2)} ${(a.y + press).toFixed(2)}L${b.x.toFixed(2)} ${(b.y + press).toFixed(2)}`)
+        .join('');
+
+const sideStrokePath = (edges: Edge[], corners: Point[], press = 0) => {
     const path: string[] = [];
-
-    path.push(`M${top[0].x.toFixed(2)} ${top[0].y.toFixed(2)}`);
-    top.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
-    path.push('Z');
-
-    path.push(`M${bottom[0].x.toFixed(2)} ${bottom[0].y.toFixed(2)}`);
-    bottom.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
-    path.push('Z');
-
-    top.forEach((point, index) => {
-        const bottomPoint = bottom[index];
+    edges.forEach(({ a, b }) => {
         path.push(
-            `M${point.x.toFixed(2)} ${point.y.toFixed(2)}L${bottomPoint.x.toFixed(2)} ${bottomPoint.y.toFixed(2)}`,
+            `M${a.x.toFixed(2)} ${(a.y + DEPTH).toFixed(2)}L${b.x.toFixed(2)} ${(b.y + DEPTH).toFixed(2)}`,
         );
     });
-
+    corners.forEach(({ x, y }) => {
+        path.push(`M${x.toFixed(2)} ${(y + press).toFixed(2)}L${x.toFixed(2)} ${(y + DEPTH).toFixed(2)}`);
+    });
     return path.join('');
 };
 ---
@@ -132,11 +196,11 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             role="img"
-            aria-label="Isometric NRN monogram"
+            aria-label="Raised isometric NRN monogram"
         >
             <defs>
-                <pattern id="nrn-face-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nrn-pattern-line" />
+                <pattern id="nrn-face-pattern" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse">
+                    <path d="M-4 12L12 -4M2 16L16 2" class="nrn-pattern-line" />
                 </pattern>
 
                 <radialGradient
@@ -144,7 +208,7 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
                     data-nrn-gradient
                     cx={VIEWBOX_WIDTH / 2}
                     cy={VIEWBOX_HEIGHT / 2}
-                    r="200"
+                    r="310"
                     gradientUnits="userSpaceOnUse"
                 >
                     <stop offset="0" class="nrn-glow-start" />
@@ -153,48 +217,66 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
             </defs>
 
             <g class="nrn-guides" aria-hidden="true">
-                <path d="M-250 550L890 -108" />
-                <path d="M855 540L-285 -118" />
-                <path d="M965 475L-175 -183" />
+                <path d="M24 704L1188 32" />
+                <path d="M-96 182L916 766" />
+                <path d="M198 -46L1210 538" />
             </g>
 
-            <g class="nrn-side-layer" aria-hidden="true">
-                {beams.map((beam, beamIndex) => (
-                    <g
-                        data-beam-sides
-                        data-index={beamIndex}
-                        data-points={JSON.stringify(beam.screen)}
-                    >
-                        {beam.screen.map((_, edgeIndex) => (
+            {letters.map((letter) => (
+                <g
+                    data-letter
+                    data-top-edges={JSON.stringify(letter.topEdges)}
+                    data-side-edges={JSON.stringify(letter.sideEdges)}
+                    data-side-corners={JSON.stringify(letter.sideCorners)}
+                >
+                    <g class="nrn-side-layer" aria-hidden="true">
+                        {letter.sideEdges.map((edge) => (
                             <polygon
-                                class={`nrn-side nrn-side-${edgeIndex}`}
-                                data-side={edgeIndex}
-                                points={sidePointsString(beam.screen, edgeIndex)}
+                                class="nrn-side"
+                                data-side-edge={JSON.stringify(edge)}
+                                points={sidePointsString(edge)}
                             />
                         ))}
                     </g>
-                ))}
-            </g>
 
-            <g class="nrn-top-layer" aria-hidden="true">
-                {beams.map((beam, beamIndex) => (
-                    <g data-beam-top data-index={beamIndex} data-points={JSON.stringify(beam.screen)}>
-                        <polygon class="nrn-top-bg" data-top-bg points={pointsString(beam.screen)} />
-                        <polygon class="nrn-top-pattern" data-top-pattern points={pointsString(beam.screen)} />
+                    <g class="nrn-top-layer" data-nrn-top aria-hidden="true">
+                        {letter.tiles.map((tile) => {
+                            const points = diamondPoints(tile);
+                            return (
+                                <g data-top-tile data-points={JSON.stringify(points)}>
+                                    <polygon class="nrn-top-bg" data-top-bg points={pointsString(points)} />
+                                    <polygon class="nrn-top-pattern" data-top-pattern points={pointsString(points)} />
+                                </g>
+                            );
+                        })}
                     </g>
-                ))}
-            </g>
 
-            <g class="nrn-stroke-layer" aria-hidden="true">
-                {beams.map((beam, beamIndex) => (
-                    <g data-beam-stroke data-index={beamIndex} data-points={JSON.stringify(beam.screen)}>
-                        <path class="nrn-stroke-base" data-stroke-base d={strokePath(beam.screen)} />
-                        <path class="nrn-stroke-glow" data-stroke-glow d={strokePath(beam.screen)} />
+                    <g class="nrn-stroke-layer" aria-hidden="true">
+                        <path
+                            class="nrn-stroke-base nrn-top-stroke"
+                            data-top-stroke-base
+                            d={topStrokePath(letter.topEdges)}
+                        />
+                        <path
+                            class="nrn-stroke-glow nrn-top-stroke"
+                            data-top-stroke-glow
+                            d={topStrokePath(letter.topEdges)}
+                        />
+                        <path
+                            class="nrn-stroke-base nrn-side-stroke"
+                            data-side-stroke-base
+                            d={sideStrokePath(letter.sideEdges, letter.sideCorners)}
+                        />
+                        <path
+                            class="nrn-stroke-glow nrn-side-stroke"
+                            data-side-stroke-glow
+                            d={sideStrokePath(letter.sideEdges, letter.sideCorners)}
+                        />
                     </g>
-                ))}
-            </g>
+                </g>
+            ))}
 
-            <text class="nrn-fig-label" x="34" y="326">Fig. 1.</text>
+            <text class="nrn-fig-label" x="64" y="688">FIG. 01 / NRN SYSTEM</text>
         </svg>
     </button>
 
@@ -218,8 +300,10 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
         overflow: hidden;
         color: var(--text);
         background: var(--bg);
-        --nrn-pattern: color-mix(in srgb, var(--text) 12%, var(--bg));
-        --nrn-stroke: color-mix(in srgb, var(--text) 17%, var(--bg));
+        --nrn-top: color-mix(in srgb, var(--surface) 55%, var(--bg));
+        --nrn-side: color-mix(in srgb, var(--surface) 22%, var(--bg));
+        --nrn-outline: color-mix(in srgb, var(--text) 55%, var(--bg));
+        --nrn-hatch: color-mix(in srgb, var(--text) 29%, var(--bg));
     }
 
     .nrn-mark {
@@ -250,48 +334,54 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
 
     .nrn-guides {
         fill: none;
-        stroke: color-mix(in srgb, var(--text) 9%, var(--bg));
+        stroke: color-mix(in srgb, var(--text) 8%, var(--bg));
         stroke-width: 1;
-        stroke-dasharray: 4 3;
+        stroke-dasharray: 5 5;
         vector-effect: non-scaling-stroke;
         pointer-events: none;
     }
 
     .nrn-pattern-line {
         fill: none;
-        stroke: var(--nrn-pattern);
-        stroke-width: 1;
+        stroke: var(--nrn-hatch);
+        stroke-width: 0.9;
+        opacity: 0.48;
+        vector-effect: non-scaling-stroke;
     }
 
     .nrn-side {
-        fill: var(--bg);
+        fill: var(--nrn-side);
         stroke: none;
     }
 
-    .nrn-side-1,
-    .nrn-side-2 {
-        fill: color-mix(in srgb, var(--surface) 58%, var(--bg));
-    }
-
     .nrn-top-bg {
-        fill: var(--bg);
+        fill: var(--nrn-top);
+        stroke: none;
     }
 
     .nrn-top-pattern {
         fill: url(#nrn-face-pattern);
+        stroke: none;
     }
 
     .nrn-stroke-base,
     .nrn-stroke-glow {
         fill: none;
-        stroke-width: 1;
         stroke-linejoin: round;
         stroke-linecap: round;
         vector-effect: non-scaling-stroke;
     }
 
+    .nrn-top-stroke {
+        stroke-width: 1.35;
+    }
+
+    .nrn-side-stroke {
+        stroke-width: 1.2;
+    }
+
     .nrn-stroke-base {
-        stroke: var(--nrn-stroke);
+        stroke: var(--nrn-outline);
     }
 
     .nrn-stroke-glow {
@@ -300,30 +390,31 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
     }
 
     .nrn-glow-start {
-        stop-color: color-mix(in srgb, var(--text) 96%, var(--bg));
+        stop-color: color-mix(in srgb, var(--text) 98%, var(--bg));
         stop-opacity: 1;
     }
 
     .nrn-glow-end {
-        stop-color: color-mix(in srgb, var(--text) 52%, var(--bg));
+        stop-color: color-mix(in srgb, var(--text) 55%, var(--bg));
         stop-opacity: 0;
     }
 
     .nrn-fig-label {
-        fill: color-mix(in srgb, var(--muted) 58%, var(--bg));
+        fill: color-mix(in srgb, var(--muted) 62%, var(--bg));
         font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.035em;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
         user-select: none;
     }
 
     .nrn-note {
         position: absolute;
-        right: 4.5%;
-        bottom: 12%;
+        right: 5%;
+        bottom: 11%;
         display: flex;
         align-items: flex-end;
-        gap: 3px;
+        gap: 4px;
         color: color-mix(in srgb, var(--text) 72%, var(--muted));
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
         font-size: clamp(11px, 0.95vw, 15px);
@@ -374,11 +465,21 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
 
 <script>
     type Point = { x: number; y: number };
+    type Edge = { a: Point; b: Point };
     type SpringState = { value: number; velocity: number };
+    type LetterRuntime = {
+        topTiles: Array<{ element: SVGPolygonElement; points: Point[] }>;
+        sidePolygons: Array<{ element: SVGPolygonElement; edge: Edge }>;
+        topEdges: Edge[];
+        sideEdges: Edge[];
+        sideCorners: Point[];
+        topStrokes: SVGPathElement[];
+        sideStrokes: SVGPathElement[];
+    };
 
-    const VIEWBOX_W = 640;
-    const VIEWBOX_H = 360;
-    const EXTRUSION_DEPTH = 30;
+    const VIEWBOX_W = 1236;
+    const VIEWBOX_H = 761;
+    const EXTRUSION_DEPTH = 28;
     const PRESS_DEPTH = 16;
 
     const springAdvance = (
@@ -404,188 +505,160 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
     const pointsToString = (points: Point[], press: number) =>
         points.map((point) => `${point.x.toFixed(2)},${(point.y + press).toFixed(2)}`).join(' ');
 
-    const sideToString = (points: Point[], edgeIndex: number, press: number) => {
-        const start = points[edgeIndex];
-        const end = points[(edgeIndex + 1) % points.length];
-        return [
-            { x: start.x, y: start.y + press },
-            { x: end.x, y: end.y + press },
-            { x: end.x, y: end.y + EXTRUSION_DEPTH },
-            { x: start.x, y: start.y + EXTRUSION_DEPTH },
+    const sideToString = (edge: Edge, press: number) =>
+        [
+            { x: edge.a.x, y: edge.a.y + press },
+            { x: edge.b.x, y: edge.b.y + press },
+            { x: edge.b.x, y: edge.b.y + EXTRUSION_DEPTH },
+            { x: edge.a.x, y: edge.a.y + EXTRUSION_DEPTH },
         ]
             .map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`)
             .join(' ');
-    };
 
-    const strokeToPath = (points: Point[], press: number) => {
-        const top = points.map((point) => ({ x: point.x, y: point.y + press }));
-        const bottom = points.map((point) => ({ x: point.x, y: point.y + EXTRUSION_DEPTH }));
+    const topToPath = (edges: Edge[], press: number) =>
+        edges
+            .map(
+                ({ a, b }) =>
+                    `M${a.x.toFixed(2)} ${(a.y + press).toFixed(2)}L${b.x.toFixed(2)} ${(b.y + press).toFixed(2)}`,
+            )
+            .join('');
+
+    const sideToPath = (edges: Edge[], corners: Point[], press: number) => {
         const path: string[] = [];
-
-        path.push(`M${top[0].x.toFixed(2)} ${top[0].y.toFixed(2)}`);
-        top.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
-        path.push('Z');
-
-        path.push(`M${bottom[0].x.toFixed(2)} ${bottom[0].y.toFixed(2)}`);
-        bottom.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
-        path.push('Z');
-
-        top.forEach((point, index) => {
-            const bottomPoint = bottom[index];
+        edges.forEach(({ a, b }) => {
             path.push(
-                `M${point.x.toFixed(2)} ${point.y.toFixed(2)}L${bottomPoint.x.toFixed(2)} ${bottomPoint.y.toFixed(2)}`,
+                `M${a.x.toFixed(2)} ${(a.y + EXTRUSION_DEPTH).toFixed(2)}L${b.x.toFixed(2)} ${(b.y + EXTRUSION_DEPTH).toFixed(2)}`,
             );
         });
-
+        corners.forEach(({ x, y }) => {
+            path.push(
+                `M${x.toFixed(2)} ${(y + press).toFixed(2)}L${x.toFixed(2)} ${(y + EXTRUSION_DEPTH).toFixed(2)}`,
+            );
+        });
         return path.join('');
     };
 
-    const playClick = () => {
-        try {
-            const AudioContextCtor =
-                window.AudioContext ??
-                (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-            if (!AudioContextCtor) return;
+    const springLoop = (root: HTMLElement) => {
+        if (root.dataset.nrnReady === 'true') return;
+        root.dataset.nrnReady = 'true';
 
-            const context = new AudioContextCtor();
-            const now = context.currentTime;
-            const gain = context.createGain();
-            const high = context.createOscillator();
-            const low = context.createOscillator();
-
-            high.type = 'triangle';
-            high.frequency.setValueAtTime(930, now);
-            high.frequency.exponentialRampToValueAtTime(560, now + 0.04);
-            low.type = 'sine';
-            low.frequency.setValueAtTime(210, now);
-            low.frequency.exponentialRampToValueAtTime(140, now + 0.065);
-
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.048, now + 0.005);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
-
-            high.connect(gain);
-            low.connect(gain);
-            gain.connect(context.destination);
-            high.start(now);
-            low.start(now);
-            high.stop(now + 0.08);
-            low.stop(now + 0.08);
-            window.setTimeout(() => void context.close(), 130);
-        } catch {
-            // Sound is decorative only.
-        }
-    };
-
-    document.querySelectorAll<HTMLButtonElement>('[data-nrn-mark]').forEach((mark) => {
-        if (mark.dataset.initialized === 'true') return;
-        mark.dataset.initialized = 'true';
+        const mark = root.querySelector<HTMLButtonElement>('[data-nrn-mark]');
+        if (!mark) return;
 
         const svg = mark.querySelector<SVGSVGElement>('[data-nrn-svg]');
         const gradient = mark.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
         if (!svg || !gradient) return;
 
-        const topGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-top]'));
-        const sideGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-sides]'));
-        const strokeGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-stroke]'));
+        const letters: LetterRuntime[] = Array.from(mark.querySelectorAll<SVGGElement>('[data-letter]')).map(
+            (group) => ({
+                topTiles: Array.from(group.querySelectorAll<SVGPolygonElement>('[data-top-bg]')).map((element) => ({
+                    element,
+                    points: JSON.parse(element.closest<SVGGElement>('[data-top-tile]')?.dataset.points ?? '[]') as Point[],
+                })),
+                sidePolygons: Array.from(group.querySelectorAll<SVGPolygonElement>('[data-side-edge]')).map(
+                    (element) => ({
+                        element,
+                        edge: JSON.parse(element.dataset.sideEdge ?? '{}') as Edge,
+                    }),
+                ),
+                topEdges: JSON.parse(group.dataset.topEdges ?? '[]') as Edge[],
+                sideEdges: JSON.parse(group.dataset.sideEdges ?? '[]') as Edge[],
+                sideCorners: JSON.parse(group.dataset.sideCorners ?? '[]') as Point[],
+                topStrokes: Array.from(
+                    group.querySelectorAll<SVGPathElement>('[data-top-stroke-base], [data-top-stroke-glow]'),
+                ),
+                sideStrokes: Array.from(
+                    group.querySelectorAll<SVGPathElement>('[data-side-stroke-base], [data-side-stroke-glow]'),
+                ),
+            }),
+        );
 
-        const parsePoints = (group: SVGGElement) => JSON.parse(group.dataset.points ?? '[]') as Point[];
-        const pointsByIndex = new Map<number, Point[]>();
-        [...topGroups, ...sideGroups, ...strokeGroups].forEach((group) => {
-            const index = Number(group.dataset.index ?? '-1');
-            if (index >= 0 && !pointsByIndex.has(index)) pointsByIndex.set(index, parsePoints(group));
+        // Add the hatch polygons to each tile runtime while retaining one source set of points.
+        letters.forEach((letter, letterIndex) => {
+            const group = mark.querySelectorAll<SVGGElement>('[data-letter]')[letterIndex];
+            const bgTiles = letter.topTiles;
+            const patternTiles = Array.from(group.querySelectorAll<SVGPolygonElement>('[data-top-pattern]'));
+            patternTiles.forEach((pattern, tileIndex) => {
+                const source = bgTiles[tileIndex];
+                if (!source) return;
+                letter.topTiles.push({ element: pattern, points: source.points });
+            });
         });
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-
         const cursorX: SpringState = { value: VIEWBOX_W / 2, velocity: 0 };
         const cursorY: SpringState = { value: VIEWBOX_H / 2, velocity: 0 };
         const press: SpringState = { value: 0, velocity: 0 };
-
         let cursorTargetX = VIEWBOX_W / 2;
         let cursorTargetY = VIEWBOX_H / 2;
         let pressTarget = 0;
-        let isInView = true;
-        let frame = 0;
+        let pressed = false;
+        let inView = true;
+        let raf = 0;
         let lastTime = performance.now();
+        let audioContext: AudioContext | null = null;
 
         const renderPress = (value: number) => {
-            topGroups.forEach((group) => {
-                const index = Number(group.dataset.index ?? '-1');
-                const points = pointsByIndex.get(index);
-                if (!points) return;
-                group.querySelectorAll<SVGPolygonElement>('[data-top-bg], [data-top-pattern]').forEach((polygon) => {
-                    polygon.setAttribute('points', pointsToString(points, value));
+            letters.forEach((letter) => {
+                letter.topTiles.forEach(({ element, points }) => {
+                    element.setAttribute('points', pointsToString(points, value));
                 });
-            });
+                letter.sidePolygons.forEach(({ element, edge }) => {
+                    element.setAttribute('points', sideToString(edge, value));
+                });
 
-            sideGroups.forEach((group) => {
-                const index = Number(group.dataset.index ?? '-1');
-                const points = pointsByIndex.get(index);
-                if (!points) return;
-                group.querySelectorAll<SVGPolygonElement>('[data-side]').forEach((polygon) => {
-                    const edgeIndex = Number(polygon.dataset.side ?? '0');
-                    polygon.setAttribute('points', sideToString(points, edgeIndex, value));
-                });
-            });
+                const topPath = topToPath(letter.topEdges, value);
+                letter.topStrokes.forEach((element) => element.setAttribute('d', topPath));
 
-            strokeGroups.forEach((group) => {
-                const index = Number(group.dataset.index ?? '-1');
-                const points = pointsByIndex.get(index);
-                if (!points) return;
-                const path = strokeToPath(points, value);
-                group.querySelectorAll<SVGPathElement>('[data-stroke-base], [data-stroke-glow]').forEach((stroke) => {
-                    stroke.setAttribute('d', path);
-                });
+                const sidePath = sideToPath(letter.sideEdges, letter.sideCorners, value);
+                letter.sideStrokes.forEach((element) => element.setAttribute('d', sidePath));
             });
         };
 
-        const tick = (now: number) => {
-            const dt = Math.min(0.032, Math.max(0.001, (now - lastTime) / 1000));
-            lastTime = now;
-
-            if (isInView) {
-                if (!reducedMotion.matches && finePointer.matches) {
-                    springAdvance(cursorX, cursorTargetX, 300, 30, 0.1, dt);
-                    springAdvance(cursorY, cursorTargetY, 300, 30, 0.1, dt);
-                } else {
-                    cursorX.value = cursorTargetX;
-                    cursorY.value = cursorTargetY;
-                }
-
-                if (!reducedMotion.matches) {
-                    springAdvance(press, pressTarget, 200, 18, 0.5, dt);
-                } else {
-                    press.value = pressTarget ? 7 : 0;
-                    press.velocity = 0;
-                }
-
-                gradient.setAttribute('cx', cursorX.value.toFixed(2));
-                gradient.setAttribute('cy', cursorY.value.toFixed(2));
-                renderPress(press.value);
+        const playClick = () => {
+            try {
+                audioContext ??= new AudioContext();
+                const now = audioContext.currentTime;
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(155, now);
+                oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.055);
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.exponentialRampToValueAtTime(0.055, now + 0.006);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start(now);
+                oscillator.stop(now + 0.075);
+            } catch {
+                // Audio is optional; interaction remains fully functional without it.
             }
-
-            frame = window.requestAnimationFrame(tick);
-        };
-
-        const handleGlobalMouseMove = (event: MouseEvent) => {
-            if (!finePointer.matches || reducedMotion.matches) return;
-            cursorTargetX = (event.clientX / Math.max(1, window.innerWidth)) * VIEWBOX_W;
-            cursorTargetY = (event.clientY / Math.max(1, window.innerHeight)) * VIEWBOX_H;
         };
 
         const pressDown = () => {
+            if (pressed) return;
+            pressed = true;
             pressTarget = PRESS_DEPTH;
             mark.setAttribute('aria-pressed', 'true');
         };
 
-        const pressUp = (withSound: boolean) => {
-            if (pressTarget === 0) return;
+        const release = (withSound = true) => {
+            if (!pressed) return;
+            pressed = false;
             pressTarget = 0;
             mark.setAttribute('aria-pressed', 'false');
             if (withSound) playClick();
         };
+
+        const onPointerMove = (event: PointerEvent) => {
+            if (!finePointer.matches) return;
+            cursorTargetX = (event.clientX / Math.max(window.innerWidth, 1)) * VIEWBOX_W;
+            cursorTargetY = (event.clientY / Math.max(window.innerHeight, 1)) * VIEWBOX_H;
+        };
+
+        window.addEventListener('pointermove', onPointerMove, { passive: true });
 
         mark.addEventListener('pointerdown', (event) => {
             if (event.button !== 0) return;
@@ -593,12 +666,11 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
             pressDown();
         });
         mark.addEventListener('pointerup', (event) => {
-            if (event.button !== 0) return;
-            pressUp(true);
+            if (mark.hasPointerCapture?.(event.pointerId)) mark.releasePointerCapture?.(event.pointerId);
+            release(true);
         });
-        mark.addEventListener('pointercancel', () => pressUp(false));
-        mark.addEventListener('lostpointercapture', () => pressUp(false));
-
+        mark.addEventListener('pointercancel', () => release(false));
+        mark.addEventListener('lostpointercapture', () => release(false));
         mark.addEventListener('keydown', (event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
@@ -607,28 +679,57 @@ const strokePath = (points: ScreenPoint[], press = 0) => {
         mark.addEventListener('keyup', (event) => {
             if (event.key !== 'Enter' && event.key !== ' ') return;
             event.preventDefault();
-            pressUp(true);
+            release(true);
         });
+        mark.addEventListener('blur', () => release(false));
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                isInView = entry?.isIntersecting ?? true;
+                inView = entry?.isIntersecting ?? true;
             },
-            { rootMargin: '80px' },
+            { threshold: 0.01 },
         );
-        observer.observe(svg);
+        observer.observe(root);
 
-        window.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
-        frame = window.requestAnimationFrame(tick);
+        const tick = (now: number) => {
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            lastTime = now;
+
+            if (reducedMotion.matches) {
+                cursorX.value = cursorTargetX;
+                cursorY.value = cursorTargetY;
+                cursorX.velocity = 0;
+                cursorY.velocity = 0;
+                press.value = pressTarget;
+                press.velocity = 0;
+            } else {
+                springAdvance(cursorX, cursorTargetX, 300, 30, 0.1, dt);
+                springAdvance(cursorY, cursorTargetY, 300, 30, 0.1, dt);
+                springAdvance(press, pressTarget, 200, 18, 0.5, dt);
+            }
+
+            if (inView) {
+                gradient.setAttribute('cx', cursorX.value.toFixed(2));
+                gradient.setAttribute('cy', cursorY.value.toFixed(2));
+                renderPress(press.value);
+            }
+
+            raf = requestAnimationFrame(tick);
+        };
+
+        renderPress(0);
+        raf = requestAnimationFrame(tick);
 
         window.addEventListener(
             'pagehide',
             () => {
-                window.cancelAnimationFrame(frame);
-                window.removeEventListener('mousemove', handleGlobalMouseMove);
+                cancelAnimationFrame(raf);
                 observer.disconnect();
+                window.removeEventListener('pointermove', onPointerMove);
             },
             { once: true },
         );
-    });
+    };
+
+    document.querySelectorAll<HTMLElement>('[data-nrn-stage]').forEach(springLoop);
 </script>
