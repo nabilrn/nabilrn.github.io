@@ -1,0 +1,254 @@
+---
+import SiteSearch from '../SiteSearch.astro';
+import ThemeToggle from '../ThemeToggle.astro';
+import {
+    getSiteContent,
+    localeMeta,
+    localizePath,
+    normalizeLocale,
+    supportedLocales,
+    type SiteLocale,
+} from '../../data/siteContent';
+
+interface Props {
+    locale?: SiteLocale;
+}
+
+const locale = normalizeLocale(Astro.props.locale);
+const content = getSiteContent(locale);
+const homePath = localizePath('/', locale);
+const projectsPath = localizePath('/projects/', locale);
+const blogPath = localizePath('/blog/', locale);
+---
+
+<header class="home-header">
+    <div class="home-header-inner">
+        <a href={homePath} class="home-brand" aria-label={content.nav.home}>
+            <span class="home-brand-mark" aria-hidden="true"></span>
+            <span>nabilrn</span>
+        </a>
+
+        <nav class="home-nav" aria-label={content.nav.ariaPageNavigation}>
+            <a href={homePath} class="home-nav-link is-active">{content.nav.overview}</a>
+            <a href={projectsPath} class="home-nav-link">{content.nav.projects}</a>
+            <a href={blogPath} class="home-nav-link">{content.nav.blog}</a>
+        </nav>
+
+        <div class="home-actions">
+            <ThemeToggle locale={locale} />
+            <SiteSearch locale={locale} />
+
+            <details class="home-language">
+                <summary aria-label={content.nav.ariaLanguageNavigation}>{locale.toUpperCase()}</summary>
+                <div class="home-language-menu">
+                    {supportedLocales.map((item) => (
+                        <a
+                            class:list={['home-language-option', { 'is-active': item === locale }]}
+                            href={localizePath('/', item)}
+                        >
+                            <span>{item.toUpperCase()}</span>
+                            <span>{localeMeta[item].label}</span>
+                        </a>
+                    ))}
+                </div>
+            </details>
+        </div>
+    </div>
+</header>
+
+<style>
+    .home-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .home-header-inner {
+        width: min(100%, 1440px);
+        min-height: 64px;
+        margin: 0 auto;
+        padding: 0 28px;
+        display: grid;
+        grid-template-columns: minmax(180px, 1fr) auto minmax(180px, 1fr);
+        align-items: center;
+        border-inline: 1px solid var(--border);
+    }
+
+    .home-brand {
+        display: inline-flex;
+        width: max-content;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.035em;
+    }
+
+    .home-brand-mark {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        background: var(--text);
+    }
+
+    .home-nav {
+        display: flex;
+        align-items: stretch;
+        align-self: stretch;
+        gap: 30px;
+    }
+
+    .home-nav-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 12px;
+        line-height: 1;
+        transition: color 150ms ease;
+    }
+
+    .home-nav-link:hover,
+    .home-nav-link.is-active {
+        color: var(--text);
+    }
+
+    .home-nav-link.is-active::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--text);
+    }
+
+    .home-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .home-language {
+        position: relative;
+    }
+
+    .home-language summary {
+        width: 34px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        list-style: none;
+        border: 1px solid var(--border-strong);
+        border-radius: 4px;
+        color: var(--muted);
+        background: transparent;
+        cursor: pointer;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        line-height: 1;
+        transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+    }
+
+    .home-language summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .home-language summary:hover,
+    .home-language[open] summary {
+        color: var(--text);
+        border-color: var(--muted);
+        background: var(--surface);
+    }
+
+    .home-language-menu {
+        position: absolute;
+        top: calc(100% + 7px);
+        right: 0;
+        width: 170px;
+        padding: 5px;
+        display: grid;
+        gap: 2px;
+        background: var(--surface);
+        border: 1px solid var(--border-strong);
+        border-radius: 6px;
+        box-shadow: var(--shadow);
+    }
+
+    .home-language-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 7px 8px;
+        border-radius: 4px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 10px;
+    }
+
+    .home-language-option:hover,
+    .home-language-option.is-active {
+        color: var(--text);
+        background: var(--surface-2);
+    }
+
+    :global(.home-header .theme-toggle) {
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        background: transparent;
+        border-color: var(--border-strong);
+    }
+
+    :global(.home-header .theme-toggle svg) {
+        width: 13px;
+        height: 13px;
+        stroke-width: 1.6;
+    }
+
+    :global(.home-header .site-search-trigger) {
+        width: 28px;
+        min-height: 28px;
+        height: 28px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 4px;
+        background: transparent;
+        border-color: var(--border-strong);
+        font-family: var(--font-mono);
+    }
+
+    :global(.home-header .site-search-trigger > span),
+    :global(.home-header .site-search-trigger > kbd) {
+        display: none;
+    }
+
+    :global(.home-header .site-search-trigger svg) {
+        width: 12px;
+        height: 12px;
+    }
+
+    @media (max-width: 760px) {
+        .home-header-inner {
+            grid-template-columns: 1fr auto;
+            min-height: 58px;
+            padding: 0 16px;
+        }
+
+        .home-nav {
+            display: none;
+        }
+
+        .home-brand {
+            font-size: 16px;
+        }
+    }
+</style>
