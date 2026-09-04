@@ -1,73 +1,62 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working in this repository.
 
 ## Project Overview
 
-Personal portfolio site for Nabil Rizki Navisa at nabilrizkinavisa.me. Built with Astro as a static site, deployed to GitHub Pages. Includes a blog with engagement metrics (views, likes, shares) powered by a Cloudflare Worker + D1 database.
+Personal portfolio site for Nabil Rizki Navisa. Built with Astro as a static site and deployed to GitHub Pages. It includes localized portfolio pages, projects, a blog, search, light/dark themes, and engagement metrics powered by a Cloudflare Worker + D1.
 
 ## Commands
 
 ```bash
-pnpm dev          # Start dev server
-pnpm build        # Build static site to ./dist
-pnpm preview      # Preview production build locally
+pnpm dev
+pnpm build
+pnpm preview
 ```
-
-### Worker (Cloudflare)
-
-```bash
-pnpm dlx wrangler dev --config worker/wrangler.toml     # Run worker locally
-pnpm dlx wrangler deploy --config worker/wrangler.toml   # Deploy worker
-pnpm dlx wrangler d1 execute portfolio-metrics --file worker/migrations/0001_init.sql --remote  # Run D1 migration
-```
-
-### Local engagement API (MySQL alternative)
-
-```bash
-cd worker/local-server && npm install && npm start
-```
-
-Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
 
 ## Architecture
 
-### Two independent deployables
+- `src/components/Page.astro` — global HTML/SEO/theme/token shell.
+- `src/components/PortfolioFullLayout.astro` — shared full-width navigation/layout used by existing project/blog surfaces.
+- `src/pages/index.astro` — homepage entry point. On `redesign/chanhdai-bento-home`, the old interactive terminal homepage has been intentionally removed before rebuilding from Figma.
+- `src/pages/[locale]/index.astro` — locale wrappers that reuse the same homepage.
+- `src/data/siteContent.ts` — localized profile/content/SEO data.
+- `src/data/projects.ts` — project metadata and real screenshots.
+- `src/components/GitHubContributionGrid.astro` — live GitHub contribution fetch/parser; reuse its behavior.
+- `src/pages/blog/*` — blog listing and post pages.
+- `worker/` — independent Cloudflare Worker for engagement metrics.
 
-1. **Astro site** (root `/`) - Static site built and deployed to GitHub Pages via `.github/workflows/deploy.yml`. Uses pnpm.
-2. **Cloudflare Worker** (`worker/`) - REST API for engagement metrics. Uses D1 (SQLite) in production. Has its own `wrangler.toml`. Not part of the Astro build.
+## Homepage Redesign
 
-### Content system
+Visual source of truth:
+`https://www.figma.com/design/lnqCutwuWkX09ZBltufKwL/Untitled?node-id=2-2`
 
-- Blog posts live in `src/content/blog/*.md` using Astro Content Collections.
-- Schema defined in `src/content.config.ts` — required frontmatter: `title`, `description`, `pubDate`, `tags`. Optional: `featured`, `draft`, `updatedDate`.
-- A Starlight docs collection is still registered in `content.config.ts` but not actively used.
+The new homepage is a compact monochrome technical-bento/editorial layout with:
 
-### Page structure
+- original NRN isometric hero mark and restrained microinteraction;
+- short personal hero copy and rotating role line;
+- connected Stack / GitHub / Quick Info / Experience overview grid;
+- circular monochrome icon-only tech/social marks;
+- real project screenshots in Selected Work;
+- thin low-contrast strokes, technical figure captions, sparse hatch dividers;
+- rare handwritten annotations such as `click around`;
+- minimal decorative arrows.
 
-- `src/components/Page.astro` — root HTML shell with all global CSS, meta tags, JSON-LD, and theme setup. All pages use this.
-- `src/components/PortfolioLayout.astro` — layout wrapper (header, nav, footer) used inside Page.
-- `src/pages/index.astro` — landing page with about, experiences, projects, blog preview, skills, certifications.
-- `src/pages/blog/index.astro` — blog listing page.
-- `src/pages/blog/[slug].astro` — individual blog post page. Uses `EngagementBarNew.astro`.
+Keep the implementation native Astro + TypeScript + CSS. Figma-generated React/Tailwind snippets are reference code only; do not add React or Tailwind just to reproduce them.
 
-### Engagement metrics flow
+## Migration Rules
 
-- `EngagementBarNew.astro` is the active engagement component (used on blog posts). `EngagementBar.astro` is the older version.
-- Client-side JS reads `PUBLIC_ENGAGEMENT_API_BASE` env var to call the worker API at `/metrics/:postId`.
-- If the API is unreachable or unset, metrics fall back to localStorage-only tracking.
-- The worker API uses visitor IDs (client-generated UUIDs stored in localStorage) for view/like deduplication.
-- Like is a toggle action (like/unlike). Views and shares only increment.
+- Do not restore `Terminal.astro` or `TerminalRain.astro`; they were removed from the redesign branch deliberately.
+- Preserve `/projects`, `/blog`, localization, search, SEO/JSON-LD, theme behavior, and engagement metrics.
+- Reuse content and assets instead of hardcoding duplicates.
+- Verify responsive behavior separately from the 1440px Figma reference.
+- Keep keyboard/focus/reduced-motion accessibility intact.
 
-### Worker API endpoints
+## Engagement Metrics
 
-- `GET /metrics/:postId` — returns `{ views, likes, shares }`
-- `POST /metrics/:postId` — body: `{ action: "view"|"like"|"share", visitorId }`. Returns updated metrics.
+`EngagementBarNew.astro` is the active blog engagement component.
 
-### Environment
+- `GET /metrics/:postId`
+- `POST /metrics/:postId` with `{ action: "view"|"like"|"share", visitorId }`
 
-- `PUBLIC_ENGAGEMENT_API_BASE` — set in `.env` for local dev, hardcoded in the GitHub Actions workflow for production builds.
-
-### Theming
-
-CSS variables defined in `Page.astro` with `--sl-color-*` prefix. Supports `data-theme="dark"` (default) and `data-theme="light"`. Theme persisted in localStorage under `starlight-theme`.
+The Cloudflare Worker is the production backend; localStorage remains the fallback.
