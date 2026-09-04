@@ -1,85 +1,91 @@
 ---
 name: design-system-nabilrn-nabil-github
-description: Creates implementation-ready design-system guidance with tokens, component behavior, and accessibility standards. Use when creating or updating UI rules, component specifications, or design-system documentation.
+description: Creates implementation-ready design-system guidance for the nabilrn portfolio. Use when creating or updating UI rules, component specifications, or design-system documentation.
 ---
 
-<!-- TYPEUI_SH_MANAGED_START -->
-
-# nabilrn (Nabil) · Monochrome Terminal ("nsh")
+# nabilrn · Technical Bento Portfolio
 
 ## Mission
-Deliver implementation-ready design-system guidance for nabilrn (Nabil) · Monochrome Terminal that can be applied consistently across portfolio and blog interfaces.
+Create a precise, compact, monochrome portfolio system that feels personal and engineered rather than like a generic developer dashboard.
 
 ## Brand
-- Product/brand: nabilrn (Nabil) · Monochrome Terminal — the home page is a real interactive shell ("nsh"), not a terminal-styled page
+- Product/brand: nabilrn / Nabil Rizki Navisa
 - URL: https://portfolio.nabilrn.space
-- Audience: developers and technical teams
-- Product surface: portfolio site + blog
+- Audience: engineering teams, recruiters, technical collaborators, and developers
+- Product surface: portfolio + projects + blog
+
+## Canonical Design Reference
+Approved homepage Figma frame:
+`https://www.figma.com/design/lnqCutwuWkX09ZBltufKwL/Untitled?node-id=2-2`
+
+Use Figma as the visual source of truth for the homepage. Adapt its geometry responsively instead of copying generated React/Tailwind code verbatim.
 
 ## Style Foundations
-- Visual style: authentic monochrome Linux terminal. Dark-first, near-black, white/grey text, monospace UI, block cursor, ASCII-only UI copy (no emoji anywhere). Color is opt-in only — `theme green|amber` inside the terminal.
-- Interactive core: `src/components/Terminal.astro` — virtual FS (`ls`/`cd`/`cat`), ~25 commands, history, tab completion, Ctrl+C/L, phosphor themes (white default, green/amber opt-in). Boot shows a one-line ASCII name banner beside a grayscale pixel portrait, then an `overview` gate on ENTER. All content via the `termData` prop.
-- Main font style: `font.family.mono=var(--font-mono)` (JetBrains Mono Variable, self-hosted) for all UI; `font.family.sans=var(--font-sans)` (Inter Variable) only for long-form article prose; `font.size.base=14px`
-- Color tokens (dark, default): `--bg=#0a0a0a`, `--surface=#111111`, `--surface-2=#181818`, `--border=#1f1f1f`, `--border-strong=#2e2e2e`, `--text=#e8e8e8`, `--muted=#8a8a8a`, `--text-body=#b8b8b8`, `--accent=#f0f0f0`, `--accent-hover=#ffffff`, `--hint=#d4d4d4`, `--dir=#b8b8b8` (ls directories), `--warn=#fbbf24`, `--danger=#f87171`
-- Light theme: same token names with light values defined in `Page.astro`
-- Contribution heatmap ramp: greyscale `--contrib-0..4` (#161616 → #c0c0c0 dark)
-- Radius: 6-8px (terminal window chrome, cards); full radius 999px only for pills/chips
-- Motion: cursor blink (steps), `150ms ease` color transitions; respect `prefers-reduced-motion`
+- Dark-first editorial/technical bento composition.
+- Near-black background, restrained grayscale surfaces, subtle shared borders, no colorful floating-card dashboard aesthetic.
+- Structural lines and dividers create hierarchy: thin strokes, technical grids, sparse diagonal hatch separators.
+- Typography hierarchy: sans for names, section headings, body, and human-readable content; mono for metadata, dates, figure labels, technical captions, and tiny controls.
+- Handwritten copy is an accent for meaningful spatial annotation only. Keep it rare.
+- Circular icon-only technology/social marks are preferred where the category or context already explains the icon.
+- Tech/logo marks remain monochrome/grayscale by default.
+- Radius is restrained; connected bento cells should visually share edges.
+- Large empty areas must be intentional. Do not create whitespace simply because a card has a fixed height.
+
+## Homepage Composition
+1. Navigation — compact brand, Overview / Projects / Blog, restrained theme/search/language controls.
+2. Hero — profile identity anchored low-left; original NRN isometric mark on technical grid at right; short personal sentence; role flip.
+3. Overview bento — Stack / GitHub activity + Quick Info / Experience. The cells visually connect with shared borders.
+4. Selected Work — myPaaS as primary feature with supporting real projects using existing screenshots.
+5. Lower information — Notes / Background / Elsewhere.
+6. Minimal footer.
+
+## Interaction Language
+- NRN mark: pointer-aware highlight, pressed compression, rebound. Respect `prefers-reduced-motion`.
+- Role line: subtle vertical/opacity/blur cycling, never distracting.
+- Links: minimal state change. Avoid decorating every clickable item with an arrow.
+- Handwritten annotation can explain unusual interaction (`click around`) but must not become navigation chrome.
+- Hover must never be required to discover essential information.
 
 ## Token Usage Rules
-- Always use semantic tokens (`var(--text)`), never raw hex or the retired `--gh-*` names.
-- The palette is monochrome by default — do not introduce accent colors; phosphor green/amber exist only inside the terminal's opt-in `theme` command (hardcoded there, not in tokens).
-- Prompt format: `visitor@nabilrn:~$` — user/host in terminal `--ph` color (default `--text`), path in default text.
-- `ls` directories use `--dir` (grey, bold) with trailing `/`; errors use `--danger`; hints use `--muted`.
-- Terminal output lines use `white-space: pre-wrap`; block cursor is `--ph` background with blink animation.
-- Text selection is `--accent` background with `--bg` color.
+- Prefer semantic CSS custom properties and extend the token layer in `Page.astro` deliberately.
+- Avoid one-off raw colors when an existing semantic token expresses the intent.
+- Keep dark/light theme parity where practical.
+- Contribution heatmap remains grayscale.
+- Focus styles must be visible and accessible even when default borders are subtle.
+
+## Content Rules
+- Keep copy short, human, and specific.
+- Prefer `Just a dude who likes building useful software, systems, and infrastructure.` over corporate self-marketing prose on the hero.
+- Let project evidence and experience carry credibility rather than excessive explanatory text.
+- Avoid decorative section numbering when it adds no meaning.
+- Avoid repetitive `↗`/`→` glyphs across cards and headings.
+
+## Implementation Rules
+- Native stack remains Astro + TypeScript + CSS.
+- Do not introduce React or Tailwind solely to reproduce Figma.
+- Reuse `src/data/siteContent.ts` and `src/data/projects.ts` instead of duplicating content inside components.
+- Reuse real GitHub contribution behavior from `GitHubContributionGrid.astro`.
+- Use actual project assets already in the repository.
+- Do not restore the removed terminal homepage, fake shell commands, ASCII boot screen, or terminal-rain canvas.
 
 ## Accessibility
-- Target: WCAG 2.2 AA
-- Keyboard-first interactions required.
-- Focus-visible rules required.
-- Contrast constraints required.
+- Target WCAG 2.2 AA.
+- Keyboard access and visible focus are mandatory.
+- Icon-only controls require accessible names/tooltips where useful.
+- Motion must degrade cleanly under `prefers-reduced-motion`.
+- Text contrast must remain readable despite muted visual treatment.
 
-## Writing Tone
-concise, confident, implementation-focused
+## Responsive Rules
+- Desktop Figma is the reference for composition and proportion, not absolute breakpoint geometry.
+- Collapse the 580 / 520 / 340 overview row deliberately on smaller widths.
+- Preserve information hierarchy when stacking; do not simply shrink typography and cells proportionally.
+- Project previews and contribution grids must avoid horizontal page overflow.
 
-## Rules: Do
-- Use semantic tokens, not raw hex values in component guidance.
-- Every component must define required states: default, hover, focus-visible, active, disabled, loading, error.
-- Responsive behavior and edge-case handling should be specified for every component family.
-- Accessibility acceptance criteria must be testable in implementation.
-
-## Rules: Don't
-- Do not allow low-contrast text or hidden focus indicators.
-- Do not introduce one-off spacing or typography exceptions.
-- Do not use ambiguous labels or non-descriptive actions.
-
-## Guideline Authoring Workflow
-1. Restate design intent in one sentence.
-2. Define foundations and tokens.
-3. Define component anatomy, variants, and interactions.
-4. Add accessibility acceptance criteria.
-5. Add anti-patterns and migration notes.
-6. End with QA checklist.
-
-## Required Output Structure
-- Context and goals
-- Design tokens and foundations
-- Component-level rules (anatomy, variants, states, responsive behavior)
-- Accessibility requirements and testable acceptance criteria
-- Content and tone standards with examples
-- Anti-patterns and prohibited implementations
-- QA checklist
-
-## Component Rule Expectations
-- Include keyboard, pointer, and touch behavior.
-- Include spacing and typography token requirements.
-- Include long-content, overflow, and empty-state handling.
-
-## Quality Gates
-- Every non-negotiable rule must use "must".
-- Every recommendation should use "should".
-- Every accessibility rule must be testable in implementation.
-- Prefer system consistency over local visual exceptions.
-
-<!-- TYPEUI_SH_MANAGED_END -->
+## QA Checklist
+- Matches the Figma visual language at desktop size.
+- No legacy terminal UI remains on the homepage.
+- No repetitive decorative arrows.
+- Handwritten annotations are sparse and purposeful.
+- Tech/social icons are crisp, monochrome, and correctly labeled for accessibility.
+- Real portfolio data and screenshots are used.
+- Dark/light, keyboard, reduced-motion, tablet, and mobile states are checked.
