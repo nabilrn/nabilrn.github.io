@@ -1,5 +1,8 @@
 ---
 import Page from '../components/Page.astro';
+import HomeHeader from '../components/home/HomeHeader.astro';
+import NRNMark from '../components/home/NRNMark.astro';
+import RoleFlip from '../components/home/RoleFlip.astro';
 import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
 interface Props {
@@ -11,33 +14,233 @@ const locale = normalizeLocale(Astro.props.locale);
 const pagePath = Astro.props.path ?? localizePath('/', locale);
 const content = getSiteContent(locale);
 const home = content.home;
+
+const rolesByLocale: Record<SiteLocale, string[]> = {
+    en: ['Software Engineer', 'IT Infrastructure Builder', 'Lifetime Learner'],
+    id: ['Software Engineer', 'IT Infrastructure Builder', 'Pembelajar seumur hidup'],
+    cn: ['Software Engineer', 'IT Infrastructure Builder', '终身学习者'],
+    jp: ['Software Engineer', 'IT Infrastructure Builder', '生涯学習者'],
+    ar: ['Software Engineer', 'IT Infrastructure Builder', 'متعلم مدى الحياة'],
+};
+
+const introByLocale: Record<SiteLocale, string> = {
+    en: 'Just a dude who likes building useful software, systems, and infrastructure.',
+    id: 'Cuma orang yang suka membangun software, sistem, dan infrastruktur yang berguna.',
+    cn: '只是一个喜欢构建实用软件、系统和基础设施的人。',
+    jp: '役に立つソフトウェア、システム、インフラを作るのが好きな人です。',
+    ar: 'مجرد شخص يحب بناء برمجيات وأنظمة وبنية تحتية مفيدة.',
+};
 ---
 
 <Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale} layoutVariant="portfolio-full">
-    <section class="home-redesign-scaffold" data-home-redesign>
-        <h1 class="sr-only">{content.profile.name}</h1>
-        <!--
-            Intentionally empty foundation for the new Figma-driven homepage.
-            The legacy interactive terminal implementation was removed before
-            recreating the new technical bento design.
-        -->
-    </section>
+    <div class="home-redesign" data-home-redesign>
+        <HomeHeader locale={locale} />
+
+        <div class="technical-rail" aria-hidden="true"></div>
+
+        <main class="hero-shell">
+            <section class="hero" aria-labelledby="hero-name">
+                <div class="hero-intro">
+                    <div class="identity">
+                        <div class="identity-mark" aria-hidden="true">NRN</div>
+                        <div class="identity-copy">
+                            <h1 id="hero-name">{content.profile.name}</h1>
+                            <RoleFlip roles={rolesByLocale[locale]} />
+                        </div>
+                    </div>
+
+                    <p class="hero-description">{introByLocale[locale]}</p>
+                </div>
+
+                <div class="hero-visual">
+                    <NRNMark />
+                </div>
+            </section>
+
+            <div class="stripe-divider" aria-hidden="true"></div>
+        </main>
+    </div>
 </Page>
 
 <style>
-    .home-redesign-scaffold {
-        min-height: 100vh;
+    :global(.full-header) {
+        display: none;
     }
 
-    .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
+    :global(.full-main) {
+        max-width: none;
+        margin: 0;
         padding: 0;
-        margin: -1px;
+    }
+
+    :global(.full-shell) {
+        --content-gutter: 0px;
+    }
+
+    .home-redesign {
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+    }
+
+    .technical-rail {
+        width: min(100%, 1440px);
+        height: 30px;
+        margin: 0 auto;
+        border-inline: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        background:
+            linear-gradient(90deg, transparent 0, transparent calc(50% - 0.5px), color-mix(in srgb, var(--border) 65%, transparent) calc(50% - 0.5px), color-mix(in srgb, var(--border) 65%, transparent) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+    }
+
+    .hero-shell {
+        width: min(100%, 1440px);
+        margin: 0 auto;
+        border-inline: 1px solid var(--border);
+    }
+
+    .hero {
+        display: grid;
+        grid-template-columns: 56.25% 43.75%;
+        min-height: 472px;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .hero-intro {
+        min-width: 0;
+        min-height: 472px;
+        padding: 42px 44px 32px 48px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 18px;
+        border-right: 1px solid var(--border);
         overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
+    }
+
+    .identity {
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        min-width: 0;
+    }
+
+    .identity-mark {
+        flex: 0 0 96px;
+        width: 96px;
+        height: 96px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border-strong);
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--surface) 72%, transparent);
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+    }
+
+    .identity-copy {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .identity-copy h1 {
+        margin: 0;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: clamp(34px, 2.65vw, 38px);
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: -0.045em;
+        text-wrap: balance;
+    }
+
+    .hero-description {
+        width: min(640px, 100%);
+        margin: 0;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 17px;
+        line-height: 1.55;
+        letter-spacing: -0.012em;
+        text-wrap: pretty;
+    }
+
+    .hero-visual {
+        min-width: 0;
+        min-height: 472px;
+        overflow: hidden;
+        background: var(--bg);
+    }
+
+    .stripe-divider {
+        height: 12px;
+        border-bottom: 1px solid var(--border);
+        background-image: repeating-linear-gradient(
+            135deg,
+            transparent 0,
+            transparent 7px,
+            color-mix(in srgb, var(--border) 72%, transparent) 7px,
+            color-mix(in srgb, var(--border) 72%, transparent) 8px
+        );
+    }
+
+    @media (max-width: 900px) {
+        .hero {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-intro {
+            min-height: 390px;
+            padding: 44px 30px 32px;
+            border-right: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-visual {
+            min-height: 390px;
+        }
+
+        .technical-rail {
+            height: 18px;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .hero-intro {
+            min-height: 340px;
+            padding: 34px 18px 26px;
+            gap: 15px;
+        }
+
+        .identity {
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .identity-mark {
+            flex-basis: 72px;
+            width: 72px;
+            height: 72px;
+            font-size: 12px;
+        }
+
+        .identity-copy h1 {
+            font-size: clamp(28px, 8vw, 34px);
+        }
+
+        .hero-description {
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .hero-visual {
+            min-height: 330px;
+        }
     }
 </style>
