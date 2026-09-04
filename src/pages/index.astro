@@ -80,6 +80,17 @@ const introByLocale: Record<SiteLocale, string> = {
         --content-gutter: 0px;
     }
 
+    /* The sticky home header must be fully opaque. Otherwise borders and grid
+       lines from the section underneath remain visible through it while scrolling. */
+    :global(.home-header.home-header.home-header) {
+        background: var(--bg);
+        backdrop-filter: none;
+    }
+
+    :global(.home-header .home-header-inner) {
+        background: var(--bg);
+    }
+
     .home-redesign {
         width: min(1720px, calc(100vw - 48px));
         min-height: 100vh;
