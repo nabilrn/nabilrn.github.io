@@ -1,83 +1,120 @@
 ---
 type PlanePoint = { x: number; y: number };
 type ScreenPoint = { x: number; y: number };
-type BarDefinition = {
+
+type Beam = {
     id: string;
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
-    width: number;
+    plane: PlanePoint[];
+    screen: ScreenPoint[];
+    averageY: number;
 };
 
-const viewWidth = 556;
-const viewHeight = 354;
-const originX = 139;
-const originY = 24;
-const isoX = 23;
-const isoY = 11.5;
-const depth = 30;
+const VIEWBOX_WIDTH = 640;
+const VIEWBOX_HEIGHT = 360;
+const DEPTH = 30;
 
-const project = ({ x, y }: PlanePoint): ScreenPoint => ({
-    x: originX + (x - y) * isoX,
-    y: originY + (x + y) * isoY,
-});
+const rectangle = (x: number, y: number, width: number, height: number): PlanePoint[] => [
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
+];
 
-const rectangleAroundLine = (bar: BarDefinition): PlanePoint[] => {
-    const dx = bar.x2 - bar.x1;
-    const dy = bar.y2 - bar.y1;
+const thickSegment = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    width: number,
+): PlanePoint[] => {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
     const length = Math.hypot(dx, dy) || 1;
-    const nx = (-dy / length) * (bar.width / 2);
-    const ny = (dx / length) * (bar.width / 2);
+    const normalX = (-dy / length) * (width / 2);
+    const normalY = (dx / length) * (width / 2);
 
     return [
-        { x: bar.x1 + nx, y: bar.y1 + ny },
-        { x: bar.x2 + nx, y: bar.y2 + ny },
-        { x: bar.x2 - nx, y: bar.y2 - ny },
-        { x: bar.x1 - nx, y: bar.y1 - ny },
+        { x: x1 + normalX, y: y1 + normalY },
+        { x: x2 + normalX, y: y2 + normalY },
+        { x: x2 - normalX, y: y2 - normalY },
+        { x: x1 - normalX, y: y1 - normalY },
     ];
 };
 
-const toPoints = (points: ScreenPoint[]) =>
-    points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+const project = ({ x, y }: PlanePoint): ScreenPoint => ({
+    x: 220 + (x - y) * 0.82,
+    y: 25 + (x + y) * 0.62,
+});
 
-const barDefinitions: BarDefinition[] = [
-    // N
-    { id: 'n1-left', x1: 0.55, y1: 0.45, x2: 0.55, y2: 5.55, width: 0.82 },
-    { id: 'n1-diagonal', x1: 0.75, y1: 0.55, x2: 3.35, y2: 5.45, width: 0.76 },
-    { id: 'n1-right', x1: 3.55, y1: 0.45, x2: 3.55, y2: 5.55, width: 0.82 },
+const beamSpecs: Array<{ id: string; polygon: PlanePoint[] }> = [
+    // N — three continuous strokes.
+    { id: 'n1-left', polygon: rectangle(0, 120, 20, 120) },
+    { id: 'n1-diagonal', polygon: thickSegment(18, 124, 82, 236, 20) },
+    { id: 'n1-right', polygon: rectangle(80, 120, 20, 120) },
 
-    // R
-    { id: 'r-left', x1: 5.55, y1: 0.45, x2: 5.55, y2: 5.55, width: 0.82 },
-    { id: 'r-top', x1: 5.55, y1: 0.55, x2: 8.35, y2: 0.55, width: 0.82 },
-    { id: 'r-mid', x1: 5.55, y1: 2.95, x2: 8.15, y2: 2.95, width: 0.82 },
-    { id: 'r-bowl', x1: 8.35, y1: 0.70, x2: 8.35, y2: 2.78, width: 0.82 },
-    { id: 'r-leg', x1: 7.25, y1: 3.12, x2: 8.80, y2: 5.55, width: 0.82 },
+    // R — one stem, bowl strokes, and one diagonal leg.
+    { id: 'r-stem', polygon: rectangle(130, 0, 20, 120) },
+    { id: 'r-top', polygon: rectangle(130, 0, 80, 20) },
+    { id: 'r-bowl-right', polygon: rectangle(190, 0, 20, 62) },
+    { id: 'r-middle', polygon: rectangle(130, 50, 70, 20) },
+    { id: 'r-leg', polygon: thickSegment(178, 64, 224, 116, 20) },
 
-    // N
-    { id: 'n2-left', x1: 10.55, y1: 0.45, x2: 10.55, y2: 5.55, width: 0.82 },
-    { id: 'n2-diagonal', x1: 10.75, y1: 0.55, x2: 13.35, y2: 5.45, width: 0.76 },
-    { id: 'n2-right', x1: 13.55, y1: 0.45, x2: 13.55, y2: 5.55, width: 0.82 },
+    // N — three continuous strokes.
+    { id: 'n2-left', polygon: rectangle(260, -120, 20, 120) },
+    { id: 'n2-diagonal', polygon: thickSegment(278, -116, 342, -4, 20) },
+    { id: 'n2-right', polygon: rectangle(340, -120, 20, 120) },
 ];
 
-const bars = barDefinitions.map((definition) => {
-    const top = rectangleAroundLine(definition).map(project);
-    const bottom = top.map((point) => ({ x: point.x, y: point.y + depth }));
-    const sides = top.map((point, index) => {
-        const next = (index + 1) % top.length;
-        return [point, top[next], bottom[next], bottom[index]];
+const beams: Beam[] = beamSpecs
+    .map(({ id, polygon }) => {
+        const screen = polygon.map(project);
+        return {
+            id,
+            plane: polygon,
+            screen,
+            averageY: screen.reduce((sum, point) => sum + point.y, 0) / screen.length,
+        };
+    })
+    .sort((a, b) => a.averageY - b.averageY);
+
+const pointsString = (points: ScreenPoint[], press = 0) =>
+    points.map(({ x, y }) => `${x.toFixed(2)},${(y + press).toFixed(2)}`).join(' ');
+
+const sidePointsString = (points: ScreenPoint[], edgeIndex: number, press = 0) => {
+    const start = points[edgeIndex];
+    const end = points[(edgeIndex + 1) % points.length];
+    return [
+        { x: start.x, y: start.y + press },
+        { x: end.x, y: end.y + press },
+        { x: end.x, y: end.y + DEPTH },
+        { x: start.x, y: start.y + DEPTH },
+    ]
+        .map(({ x, y }) => `${x.toFixed(2)},${y.toFixed(2)}`)
+        .join(' ');
+};
+
+const strokePath = (points: ScreenPoint[], press = 0) => {
+    const top = points.map(({ x, y }) => ({ x, y: y + press }));
+    const bottom = points.map(({ x, y }) => ({ x, y: y + DEPTH }));
+    const path: string[] = [];
+
+    path.push(`M${top[0].x.toFixed(2)} ${top[0].y.toFixed(2)}`);
+    top.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
+    path.push('Z');
+
+    path.push(`M${bottom[0].x.toFixed(2)} ${bottom[0].y.toFixed(2)}`);
+    bottom.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
+    path.push('Z');
+
+    top.forEach((point, index) => {
+        const bottomPoint = bottom[index];
+        path.push(
+            `M${point.x.toFixed(2)} ${point.y.toFixed(2)}L${bottomPoint.x.toFixed(2)} ${bottomPoint.y.toFixed(2)}`,
+        );
     });
 
-    return {
-        id: definition.id,
-        topPoints: toPoints(top),
-        sides: sides.map((points, index) => ({
-            id: `${definition.id}-side-${index}`,
-            points,
-            pointsString: toPoints(points),
-        })),
-    };
-});
+    return path.join('');
+};
 ---
 
 <div class="nrn-stage" data-nrn-stage>
@@ -91,91 +128,85 @@ const bars = barDefinitions.map((definition) => {
         <svg
             class="nrn-svg"
             data-nrn-svg
-            viewBox={`0 0 ${viewWidth} ${viewHeight}`}
+            viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
             role="img"
             aria-label="Isometric NRN monogram"
         >
             <defs>
                 <pattern id="nrn-face-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                    <path d="M-1 1l2-2M0 10L10 0M9 11l2-2" class="nrn-hatch-line" />
+                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nrn-pattern-line" />
                 </pattern>
 
                 <radialGradient
-                    id="nrn-spotlight"
-                    data-nrn-spotlight
-                    cx="278"
-                    cy="177"
-                    r="190"
+                    id="nrn-radial-gradient"
+                    data-nrn-gradient
+                    cx={VIEWBOX_WIDTH / 2}
+                    cy={VIEWBOX_HEIGHT / 2}
+                    r="200"
                     gradientUnits="userSpaceOnUse"
                 >
-                    <stop offset="0" class="nrn-spotlight-start" />
-                    <stop offset="1" class="nrn-spotlight-end" />
+                    <stop offset="0" class="nrn-glow-start" />
+                    <stop offset="1" class="nrn-glow-end" />
                 </radialGradient>
             </defs>
 
             <g class="nrn-guides" aria-hidden="true">
-                <path d="M-478 757L1255 -243" />
-                <path d="M977 789L-755 -211" />
-                <path d="M1144 693L-588 -307" />
+                <path d="M-250 550L890 -108" />
+                <path d="M855 540L-285 -118" />
+                <path d="M965 475L-175 -183" />
             </g>
 
-            <g class="nrn-prisms" aria-hidden="true">
-                {bars.map((bar) => (
-                    <g class="nrn-prism" data-prism={bar.id}>
-                        <g class="nrn-side-group">
-                            {bar.sides.map((side) => (
-                                <polygon
-                                    class="nrn-side"
-                                    data-nrn-side
-                                    data-top-a={`${side.points[0].x},${side.points[0].y}`}
-                                    data-top-b={`${side.points[1].x},${side.points[1].y}`}
-                                    data-bottom-b={`${side.points[2].x},${side.points[2].y}`}
-                                    data-bottom-a={`${side.points[3].x},${side.points[3].y}`}
-                                    points={side.pointsString}
-                                />
-                            ))}
-                        </g>
-
-                        <g class="nrn-top-layer" data-nrn-top-layer>
-                            <polygon class="nrn-top-base" points={bar.topPoints} />
-                            <polygon class="nrn-top-hatch" points={bar.topPoints} />
-                            <polygon class="nrn-top-outline" points={bar.topPoints} />
-                        </g>
-                    </g>
-                ))}
-            </g>
-
-            <g class="nrn-spotlight-geometry" aria-hidden="true">
-                {bars.map((bar) => (
-                    <g>
-                        <g class="nrn-top-layer" data-nrn-top-layer>
-                            <polygon class="nrn-spotlight-top" points={bar.topPoints} />
-                        </g>
-                        {bar.sides.map((side) => (
+            <g class="nrn-side-layer" aria-hidden="true">
+                {beams.map((beam, beamIndex) => (
+                    <g
+                        data-beam-sides
+                        data-index={beamIndex}
+                        data-points={JSON.stringify(beam.screen)}
+                    >
+                        {beam.screen.map((_, edgeIndex) => (
                             <polygon
-                                class="nrn-spotlight-side"
-                                data-nrn-side
-                                data-top-a={`${side.points[0].x},${side.points[0].y}`}
-                                data-top-b={`${side.points[1].x},${side.points[1].y}`}
-                                data-bottom-b={`${side.points[2].x},${side.points[2].y}`}
-                                data-bottom-a={`${side.points[3].x},${side.points[3].y}`}
-                                points={side.pointsString}
+                                class={`nrn-side nrn-side-${edgeIndex}`}
+                                data-side={edgeIndex}
+                                points={sidePointsString(beam.screen, edgeIndex)}
                             />
                         ))}
                     </g>
                 ))}
             </g>
 
-            <text class="nrn-fig-label" x="34" y="326">FIG. 01 / NRN SYSTEM</text>
+            <g class="nrn-top-layer" aria-hidden="true">
+                {beams.map((beam, beamIndex) => (
+                    <g data-beam-top data-index={beamIndex} data-points={JSON.stringify(beam.screen)}>
+                        <polygon class="nrn-top-bg" data-top-bg points={pointsString(beam.screen)} />
+                        <polygon class="nrn-top-pattern" data-top-pattern points={pointsString(beam.screen)} />
+                    </g>
+                ))}
+            </g>
+
+            <g class="nrn-stroke-layer" aria-hidden="true">
+                {beams.map((beam, beamIndex) => (
+                    <g data-beam-stroke data-index={beamIndex} data-points={JSON.stringify(beam.screen)}>
+                        <path class="nrn-stroke-base" data-stroke-base d={strokePath(beam.screen)} />
+                        <path class="nrn-stroke-glow" data-stroke-glow d={strokePath(beam.screen)} />
+                    </g>
+                ))}
+            </g>
+
+            <text class="nrn-fig-label" x="34" y="326">Fig. 1.</text>
         </svg>
     </button>
 
     <div class="nrn-note" aria-hidden="true">
         <svg viewBox="0 0 54 54">
-            <path d="M50 6C37 7 26 14 21 24C17 31 18 39 23 45" />
-            <path d="M16 39L23 46L30 39" />
+            <path d="M49 6C37 8 28 14 23 23C18 31 19 39 24 45" />
+            <path d="M17 39L24 46L31 39" />
         </svg>
-        <span>click around</span>
+        <span>
+            follows your cursor
+            <small>click the mark</small>
+        </span>
     </div>
 </div>
 
@@ -187,6 +218,8 @@ const bars = barDefinitions.map((definition) => {
         overflow: hidden;
         color: var(--text);
         background: var(--bg);
+        --nrn-pattern: color-mix(in srgb, var(--text) 12%, var(--bg));
+        --nrn-stroke: color-mix(in srgb, var(--text) 17%, var(--bg));
     }
 
     .nrn-mark {
@@ -204,7 +237,7 @@ const bars = barDefinitions.map((definition) => {
     }
 
     .nrn-mark:focus-visible {
-        outline: 1px solid color-mix(in srgb, var(--text) 70%, transparent);
+        outline: 1px solid color-mix(in srgb, var(--text) 72%, transparent);
         outline-offset: -5px;
     }
 
@@ -217,94 +250,99 @@ const bars = barDefinitions.map((definition) => {
 
     .nrn-guides {
         fill: none;
-        stroke: color-mix(in srgb, var(--muted) 18%, var(--bg));
+        stroke: color-mix(in srgb, var(--text) 9%, var(--bg));
         stroke-width: 1;
-        stroke-dasharray: 4 2;
+        stroke-dasharray: 4 3;
         vector-effect: non-scaling-stroke;
         pointer-events: none;
+    }
+
+    .nrn-pattern-line {
+        fill: none;
+        stroke: var(--nrn-pattern);
+        stroke-width: 1;
     }
 
     .nrn-side {
         fill: var(--bg);
-        stroke: color-mix(in srgb, var(--text) 18%, var(--bg));
-        stroke-width: 1;
-        stroke-linejoin: round;
-        vector-effect: non-scaling-stroke;
+        stroke: none;
     }
 
-    .nrn-top-base {
+    .nrn-side-1,
+    .nrn-side-2 {
+        fill: color-mix(in srgb, var(--surface) 58%, var(--bg));
+    }
+
+    .nrn-top-bg {
         fill: var(--bg);
     }
 
-    .nrn-top-hatch {
+    .nrn-top-pattern {
         fill: url(#nrn-face-pattern);
-        opacity: 0.92;
     }
 
-    .nrn-top-outline {
+    .nrn-stroke-base,
+    .nrn-stroke-glow {
         fill: none;
-        stroke: color-mix(in srgb, var(--text) 28%, var(--bg));
         stroke-width: 1;
         stroke-linejoin: round;
+        stroke-linecap: round;
         vector-effect: non-scaling-stroke;
     }
 
-    .nrn-hatch-line {
-        fill: none;
-        stroke: color-mix(in srgb, var(--text) 14%, var(--bg));
-        stroke-width: 1;
-        vector-effect: non-scaling-stroke;
+    .nrn-stroke-base {
+        stroke: var(--nrn-stroke);
     }
 
-    .nrn-spotlight-geometry {
+    .nrn-stroke-glow {
+        stroke: url(#nrn-radial-gradient);
         pointer-events: none;
     }
 
-    .nrn-spotlight-top,
-    .nrn-spotlight-side {
-        fill: none;
-        stroke: url(#nrn-spotlight);
-        stroke-width: 1.15;
-        stroke-linejoin: round;
-        vector-effect: non-scaling-stroke;
+    .nrn-glow-start {
+        stop-color: color-mix(in srgb, var(--text) 96%, var(--bg));
+        stop-opacity: 1;
     }
 
-    .nrn-spotlight-start {
-        stop-color: var(--text);
-        stop-opacity: 0.88;
-    }
-
-    .nrn-spotlight-end {
-        stop-color: var(--muted);
+    .nrn-glow-end {
+        stop-color: color-mix(in srgb, var(--text) 52%, var(--bg));
         stop-opacity: 0;
     }
 
-    .nrn-top-layer {
-        will-change: transform;
-    }
-
     .nrn-fig-label {
-        fill: color-mix(in srgb, var(--muted) 74%, var(--bg));
+        fill: color-mix(in srgb, var(--muted) 58%, var(--bg));
         font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.02em;
-        pointer-events: none;
+        font-size: 10px;
+        letter-spacing: 0.035em;
+        user-select: none;
     }
 
     .nrn-note {
         position: absolute;
-        right: 7.5%;
-        bottom: 13%;
+        right: 4.5%;
+        bottom: 12%;
         display: flex;
         align-items: flex-end;
         gap: 3px;
         color: color-mix(in srgb, var(--text) 72%, var(--muted));
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-        font-size: clamp(12px, 1vw, 17px);
+        font-size: clamp(11px, 0.95vw, 15px);
         font-style: italic;
-        transform: rotate(2deg);
+        line-height: 1.2;
+        transform: rotate(-3deg);
         pointer-events: none;
         user-select: none;
+    }
+
+    .nrn-note span {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .nrn-note small {
+        margin-top: 2px;
+        font: inherit;
+        opacity: 0.76;
     }
 
     .nrn-note svg {
@@ -313,34 +351,100 @@ const bars = barDefinitions.map((definition) => {
         overflow: visible;
         fill: none;
         stroke: currentColor;
-        stroke-width: 1.1;
+        stroke-width: 1.05;
         stroke-linecap: round;
         stroke-linejoin: round;
-        opacity: 0.82;
+        opacity: 0.78;
         transform: rotate(-12deg) translateY(4px);
     }
 
     @media (max-width: 720px) {
         .nrn-note {
-            right: 5%;
-            bottom: 9%;
+            right: 4%;
+            bottom: 8%;
+        }
+    }
+
+    @media (hover: none) {
+        .nrn-note {
+            display: none;
         }
     }
 </style>
 
 <script>
-    type NrnState = 'idle' | 'hover' | 'pressed';
     type Point = { x: number; y: number };
+    type SpringState = { value: number; velocity: number };
 
-    const VIEW_WIDTH = 556;
-    const VIEW_HEIGHT = 354;
+    const VIEWBOX_W = 640;
+    const VIEWBOX_H = 360;
+    const EXTRUSION_DEPTH = 30;
     const PRESS_DEPTH = 16;
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+    const springAdvance = (
+        state: SpringState,
+        target: number,
+        stiffness: number,
+        damping: number,
+        mass: number,
+        dt: number,
+    ) => {
+        const substep = 1 / 240;
+        const steps = Math.max(1, Math.ceil(dt / substep));
+        const h = dt / steps;
+
+        for (let index = 0; index < steps; index += 1) {
+            const force = -stiffness * (state.value - target) - damping * state.velocity;
+            const acceleration = force / mass;
+            state.velocity += acceleration * h;
+            state.value += state.velocity * h;
+        }
+    };
+
+    const pointsToString = (points: Point[], press: number) =>
+        points.map((point) => `${point.x.toFixed(2)},${(point.y + press).toFixed(2)}`).join(' ');
+
+    const sideToString = (points: Point[], edgeIndex: number, press: number) => {
+        const start = points[edgeIndex];
+        const end = points[(edgeIndex + 1) % points.length];
+        return [
+            { x: start.x, y: start.y + press },
+            { x: end.x, y: end.y + press },
+            { x: end.x, y: end.y + EXTRUSION_DEPTH },
+            { x: start.x, y: start.y + EXTRUSION_DEPTH },
+        ]
+            .map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`)
+            .join(' ');
+    };
+
+    const strokeToPath = (points: Point[], press: number) => {
+        const top = points.map((point) => ({ x: point.x, y: point.y + press }));
+        const bottom = points.map((point) => ({ x: point.x, y: point.y + EXTRUSION_DEPTH }));
+        const path: string[] = [];
+
+        path.push(`M${top[0].x.toFixed(2)} ${top[0].y.toFixed(2)}`);
+        top.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
+        path.push('Z');
+
+        path.push(`M${bottom[0].x.toFixed(2)} ${bottom[0].y.toFixed(2)}`);
+        bottom.slice(1).forEach((point) => path.push(`L${point.x.toFixed(2)} ${point.y.toFixed(2)}`));
+        path.push('Z');
+
+        top.forEach((point, index) => {
+            const bottomPoint = bottom[index];
+            path.push(
+                `M${point.x.toFixed(2)} ${point.y.toFixed(2)}L${bottomPoint.x.toFixed(2)} ${bottomPoint.y.toFixed(2)}`,
+            );
+        });
+
+        return path.join('');
+    };
 
     const playClick = () => {
         try {
-            const AudioContextCtor = window.AudioContext ?? (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+            const AudioContextCtor =
+                window.AudioContext ??
+                (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
             if (!AudioContextCtor) return;
 
             const context = new AudioContextCtor();
@@ -350,32 +454,27 @@ const bars = barDefinitions.map((definition) => {
             const low = context.createOscillator();
 
             high.type = 'triangle';
-            high.frequency.setValueAtTime(860, now);
-            high.frequency.exponentialRampToValueAtTime(510, now + 0.042);
+            high.frequency.setValueAtTime(930, now);
+            high.frequency.exponentialRampToValueAtTime(560, now + 0.04);
             low.type = 'sine';
-            low.frequency.setValueAtTime(190, now);
-            low.frequency.exponentialRampToValueAtTime(128, now + 0.064);
+            low.frequency.setValueAtTime(210, now);
+            low.frequency.exponentialRampToValueAtTime(140, now + 0.065);
 
             gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.exponentialRampToValueAtTime(0.045, now + 0.005);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.072);
+            gain.gain.exponentialRampToValueAtTime(0.048, now + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
 
             high.connect(gain);
             low.connect(gain);
             gain.connect(context.destination);
             high.start(now);
             low.start(now);
-            high.stop(now + 0.078);
-            low.stop(now + 0.078);
-            window.setTimeout(() => void context.close(), 120);
+            high.stop(now + 0.08);
+            low.stop(now + 0.08);
+            window.setTimeout(() => void context.close(), 130);
         } catch {
             // Sound is decorative only.
         }
-    };
-
-    const parsePoint = (value: string | undefined): Point => {
-        const [x = 0, y = 0] = (value ?? '0,0').split(',').map(Number);
-        return { x, y };
     };
 
     document.querySelectorAll<HTMLButtonElement>('[data-nrn-mark]').forEach((mark) => {
@@ -383,173 +482,151 @@ const bars = barDefinitions.map((definition) => {
         mark.dataset.initialized = 'true';
 
         const svg = mark.querySelector<SVGSVGElement>('[data-nrn-svg]');
-        const gradient = mark.querySelector<SVGRadialGradientElement>('[data-nrn-spotlight]');
-        const topLayers = Array.from(mark.querySelectorAll<SVGGElement>('[data-nrn-top-layer]'));
-        const sides = Array.from(mark.querySelectorAll<SVGPolygonElement>('[data-nrn-side]')).map((side) => ({
-            node: side,
-            topA: parsePoint(side.dataset.topA),
-            topB: parsePoint(side.dataset.topB),
-            bottomB: parsePoint(side.dataset.bottomB),
-            bottomA: parsePoint(side.dataset.bottomA),
-        }));
-
+        const gradient = mark.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
         if (!svg || !gradient) return;
 
-        let state: NrnState = 'idle';
-        let pressValue = 0;
-        let pressVelocity = 0;
+        const topGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-top]'));
+        const sideGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-sides]'));
+        const strokeGroups = Array.from(mark.querySelectorAll<SVGGElement>('[data-beam-stroke]'));
+
+        const parsePoints = (group: SVGGElement) => JSON.parse(group.dataset.points ?? '[]') as Point[];
+        const pointsByIndex = new Map<number, Point[]>();
+        [...topGroups, ...sideGroups, ...strokeGroups].forEach((group) => {
+            const index = Number(group.dataset.index ?? '-1');
+            if (index >= 0 && !pointsByIndex.has(index)) pointsByIndex.set(index, parsePoints(group));
+        });
+
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+        const cursorX: SpringState = { value: VIEWBOX_W / 2, velocity: 0 };
+        const cursorY: SpringState = { value: VIEWBOX_H / 2, velocity: 0 };
+        const press: SpringState = { value: 0, velocity: 0 };
+
+        let cursorTargetX = VIEWBOX_W / 2;
+        let cursorTargetY = VIEWBOX_H / 2;
         let pressTarget = 0;
-        let lastFrame = performance.now();
-
-        let glowX = VIEW_WIDTH / 2;
-        let glowY = VIEW_HEIGHT / 2;
-        let glowVelocityX = 0;
-        let glowVelocityY = 0;
-        let glowTargetX = glowX;
-        let glowTargetY = glowY;
-
+        let isInView = true;
         let frame = 0;
-        let inView = true;
+        let lastTime = performance.now();
 
-        const applyGeometry = () => {
-            const offset = pressValue * PRESS_DEPTH;
-            topLayers.forEach((layer) => {
-                layer.setAttribute('transform', `translate(0 ${offset.toFixed(3)})`);
+        const renderPress = (value: number) => {
+            topGroups.forEach((group) => {
+                const index = Number(group.dataset.index ?? '-1');
+                const points = pointsByIndex.get(index);
+                if (!points) return;
+                group.querySelectorAll<SVGPolygonElement>('[data-top-bg], [data-top-pattern]').forEach((polygon) => {
+                    polygon.setAttribute('points', pointsToString(points, value));
+                });
             });
 
-            sides.forEach(({ node, topA, topB, bottomB, bottomA }) => {
-                node.setAttribute(
-                    'points',
-                    [
-                        `${topA.x.toFixed(2)},${(topA.y + offset).toFixed(2)}`,
-                        `${topB.x.toFixed(2)},${(topB.y + offset).toFixed(2)}`,
-                        `${bottomB.x.toFixed(2)},${bottomB.y.toFixed(2)}`,
-                        `${bottomA.x.toFixed(2)},${bottomA.y.toFixed(2)}`,
-                    ].join(' '),
-                );
+            sideGroups.forEach((group) => {
+                const index = Number(group.dataset.index ?? '-1');
+                const points = pointsByIndex.get(index);
+                if (!points) return;
+                group.querySelectorAll<SVGPolygonElement>('[data-side]').forEach((polygon) => {
+                    const edgeIndex = Number(polygon.dataset.side ?? '0');
+                    polygon.setAttribute('points', sideToString(points, edgeIndex, value));
+                });
             });
-        };
 
-        const applyGlow = () => {
-            gradient.setAttribute('cx', glowX.toFixed(2));
-            gradient.setAttribute('cy', glowY.toFixed(2));
+            strokeGroups.forEach((group) => {
+                const index = Number(group.dataset.index ?? '-1');
+                const points = pointsByIndex.get(index);
+                if (!points) return;
+                const path = strokeToPath(points, value);
+                group.querySelectorAll<SVGPathElement>('[data-stroke-base], [data-stroke-glow]').forEach((stroke) => {
+                    stroke.setAttribute('d', path);
+                });
+            });
         };
 
         const tick = (now: number) => {
-            const dt = Math.min((now - lastFrame) / 1000, 0.032);
-            lastFrame = now;
+            const dt = Math.min(0.032, Math.max(0.001, (now - lastTime) / 1000));
+            lastTime = now;
 
-            if (reducedMotion.matches) {
-                pressValue = pressTarget;
-                pressVelocity = 0;
-            } else {
-                const mass = 0.5;
-                const stiffness = 200;
-                const damping = 18;
-                const acceleration = (stiffness * (pressTarget - pressValue) - damping * pressVelocity) / mass;
-                pressVelocity += acceleration * dt;
-                pressValue += pressVelocity * dt;
+            if (isInView) {
+                if (!reducedMotion.matches && finePointer.matches) {
+                    springAdvance(cursorX, cursorTargetX, 300, 30, 0.1, dt);
+                    springAdvance(cursorY, cursorTargetY, 300, 30, 0.1, dt);
+                } else {
+                    cursorX.value = cursorTargetX;
+                    cursorY.value = cursorTargetY;
+                }
+
+                if (!reducedMotion.matches) {
+                    springAdvance(press, pressTarget, 200, 18, 0.5, dt);
+                } else {
+                    press.value = pressTarget ? 7 : 0;
+                    press.velocity = 0;
+                }
+
+                gradient.setAttribute('cx', cursorX.value.toFixed(2));
+                gradient.setAttribute('cy', cursorY.value.toFixed(2));
+                renderPress(press.value);
             }
 
-            if (finePointer.matches && !reducedMotion.matches && inView) {
-                const glowMass = 0.1;
-                const glowStiffness = 300;
-                const glowDamping = 30;
-
-                const ax = (glowStiffness * (glowTargetX - glowX) - glowDamping * glowVelocityX) / glowMass;
-                const ay = (glowStiffness * (glowTargetY - glowY) - glowDamping * glowVelocityY) / glowMass;
-                glowVelocityX += ax * dt;
-                glowVelocityY += ay * dt;
-                glowX += glowVelocityX * dt;
-                glowY += glowVelocityY * dt;
-            } else {
-                glowX = glowTargetX;
-                glowY = glowTargetY;
-            }
-
-            applyGeometry();
-            applyGlow();
-            frame = requestAnimationFrame(tick);
+            frame = window.requestAnimationFrame(tick);
         };
 
-        const syncState = (next: NrnState) => {
-            state = next;
-            mark.dataset.state = next;
-            mark.setAttribute('aria-pressed', String(next === 'pressed'));
+        const handleGlobalMouseMove = (event: MouseEvent) => {
+            if (!finePointer.matches || reducedMotion.matches) return;
+            cursorTargetX = (event.clientX / Math.max(1, window.innerWidth)) * VIEWBOX_W;
+            cursorTargetY = (event.clientY / Math.max(1, window.innerHeight)) * VIEWBOX_H;
         };
 
-        const press = () => {
-            pressTarget = 1;
-            syncState('pressed');
+        const pressDown = () => {
+            pressTarget = PRESS_DEPTH;
+            mark.setAttribute('aria-pressed', 'true');
         };
 
-        const release = (withSound = false) => {
-            if (state !== 'pressed') return;
+        const pressUp = (withSound: boolean) => {
+            if (pressTarget === 0) return;
             pressTarget = 0;
+            mark.setAttribute('aria-pressed', 'false');
             if (withSound) playClick();
-            syncState(mark.matches(':hover') || mark.matches(':focus-visible') ? 'hover' : 'idle');
         };
 
-        const updateGlobalGlowTarget = (event: MouseEvent) => {
-            if (!finePointer.matches || reducedMotion.matches || !inView) return;
-            glowTargetX = (event.clientX / Math.max(window.innerWidth, 1)) * VIEW_WIDTH;
-            glowTargetY = (event.clientY / Math.max(window.innerHeight, 1)) * VIEW_HEIGHT;
-        };
+        mark.addEventListener('pointerdown', (event) => {
+            if (event.button !== 0) return;
+            mark.setPointerCapture?.(event.pointerId);
+            pressDown();
+        });
+        mark.addEventListener('pointerup', (event) => {
+            if (event.button !== 0) return;
+            pressUp(true);
+        });
+        mark.addEventListener('pointercancel', () => pressUp(false));
+        mark.addEventListener('lostpointercapture', () => pressUp(false));
+
+        mark.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            pressDown();
+        });
+        mark.addEventListener('keyup', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            pressUp(true);
+        });
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                inView = entry?.isIntersecting ?? true;
+                isInView = entry?.isIntersecting ?? true;
             },
             { rootMargin: '80px' },
         );
         observer.observe(svg);
 
-        window.addEventListener('mousemove', updateGlobalGlowTarget, { passive: true });
+        window.addEventListener('mousemove', handleGlobalMouseMove, { passive: true });
+        frame = window.requestAnimationFrame(tick);
 
-        mark.addEventListener('pointerenter', () => {
-            if (state !== 'pressed') syncState('hover');
-        });
-        mark.addEventListener('pointerleave', () => {
-            if (state === 'pressed') release(false);
-            syncState('idle');
-        });
-        mark.addEventListener('pointerdown', (event) => {
-            if (event.button !== 0) return;
-            mark.setPointerCapture?.(event.pointerId);
-            press();
-        });
-        mark.addEventListener('pointerup', (event) => {
-            if (event.button !== 0) return;
-            release(true);
-        });
-        mark.addEventListener('pointercancel', () => release(false));
-
-        mark.addEventListener('keydown', (event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-            event.preventDefault();
-            press();
-        });
-        mark.addEventListener('keyup', (event) => {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-            event.preventDefault();
-            release(true);
-        });
-        mark.addEventListener('focus', () => {
-            if (state !== 'pressed') syncState('hover');
-        });
-        mark.addEventListener('blur', () => {
-            release(false);
-            syncState('idle');
-        });
-
-        frame = requestAnimationFrame(tick);
-
-        document.addEventListener(
-            'astro:before-swap',
+        window.addEventListener(
+            'pagehide',
             () => {
-                cancelAnimationFrame(frame);
+                window.cancelAnimationFrame(frame);
+                window.removeEventListener('mousemove', handleGlobalMouseMove);
                 observer.disconnect();
-                window.removeEventListener('mousemove', updateGlobalGlowTarget);
             },
             { once: true },
         );
