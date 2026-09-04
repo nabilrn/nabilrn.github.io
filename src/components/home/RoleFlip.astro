@@ -1,0 +1,120 @@
+---
+interface Props {
+    roles: string[];
+}
+
+const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['Software Engineer'];
+---
+
+<span class="role-flip" data-role-flip data-roles={JSON.stringify(roles)} aria-live="polite">
+    <span class="role-text" data-role-text>{roles[0]}</span>
+    <span class="role-cursor" aria-hidden="true"></span>
+</span>
+
+<style>
+    .role-flip {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 24px;
+        overflow: hidden;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1;
+    }
+
+    .role-text {
+        display: inline-block;
+        will-change: transform, opacity, filter;
+    }
+
+    .role-text.is-leaving {
+        animation: role-leave 180ms ease-in forwards;
+    }
+
+    .role-text.is-entering {
+        animation: role-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .role-cursor {
+        width: 18px;
+        height: 1px;
+        background: currentColor;
+        opacity: 0.7;
+        animation: role-cursor 1.15s steps(1, end) infinite;
+    }
+
+    @keyframes role-leave {
+        to {
+            opacity: 0;
+            filter: blur(4px);
+            transform: translateY(8px);
+        }
+    }
+
+    @keyframes role-enter {
+        from {
+            opacity: 0;
+            filter: blur(5px);
+            transform: translateY(-9px);
+        }
+        to {
+            opacity: 1;
+            filter: blur(0);
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes role-cursor {
+        0%, 54% { opacity: 0.7; }
+        55%, 100% { opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .role-text,
+        .role-cursor {
+            animation: none !important;
+        }
+    }
+</style>
+
+<script>
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    document.querySelectorAll<HTMLElement>('[data-role-flip]').forEach((root) => {
+        if (root.dataset.initialized === 'true') return;
+        root.dataset.initialized = 'true';
+
+        const text = root.querySelector<HTMLElement>('[data-role-text]');
+        if (!text) return;
+
+        let roles: string[] = [];
+        try {
+            roles = JSON.parse(root.dataset.roles ?? '[]') as string[];
+        } catch {
+            roles = [];
+        }
+
+        if (roles.length < 2 || reducedMotion.matches) return;
+
+        let index = 0;
+        let timer = 0;
+
+        const cycle = () => {
+            text.classList.remove('is-entering');
+            text.classList.add('is-leaving');
+
+            window.setTimeout(() => {
+                index = (index + 1) % roles.length;
+                text.textContent = roles[index];
+                text.classList.remove('is-leaving');
+                text.classList.add('is-entering');
+            }, 185);
+        };
+
+        timer = window.setInterval(cycle, 2800);
+
+        window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+    });
+</script>
