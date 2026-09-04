@@ -1,75 +1,81 @@
 # AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to coding agents working in this repository.
 
 ## Project Overview
 
-Personal portfolio site for Nabil Rizki Navisa at nabilrizkinavisa.me. Built with Astro as a static site, deployed to GitHub Pages. Includes a blog with engagement metrics (views, likes, shares) powered by a Cloudflare Worker + D1 database.
+Personal portfolio site for Nabil Rizki Navisa. Built with Astro as a static site and deployed to GitHub Pages. The site includes a localized portfolio, project catalog, blog, search, light/dark themes, and engagement metrics backed by a Cloudflare Worker + D1.
 
 ## Commands
 
 ```bash
-pnpm dev          # Start dev server
-pnpm build        # Build static site to ./dist
-pnpm preview      # Preview production build locally
+pnpm dev
+pnpm build
+pnpm preview
 ```
 
-### Worker (Cloudflare)
+### Worker
 
 ```bash
-pnpm dlx wrangler dev --config worker/wrangler.toml     # Run worker locally
-pnpm dlx wrangler deploy --config worker/wrangler.toml   # Deploy worker
-pnpm dlx wrangler d1 execute portfolio-metrics --file worker/migrations/0001_init.sql --remote  # Run D1 migration
+pnpm dlx wrangler dev --config worker/wrangler.toml
+pnpm dlx wrangler deploy --config worker/wrangler.toml
 ```
-
-### Local engagement API (MySQL alternative)
-
-```bash
-cd worker/local-server && npm install && npm start
-```
-
-Requires `.env` with `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`.
 
 ## Architecture
 
-### Two independent deployables
+- `src/components/Page.astro` — root HTML shell, SEO/meta, JSON-LD, global tokens, font setup, and theme initialization.
+- `src/components/PortfolioFullLayout.astro` — shared full-width shell used by portfolio/project/blog surfaces until the homepage redesign owns its final navigation shell.
+- `src/pages/index.astro` — homepage entry point. On branch `redesign/chanhdai-bento-home`, the old terminal landing implementation has intentionally been removed and replaced by a clean redesign scaffold.
+- `src/pages/[locale]/index.astro` — localized homepage wrapper. Keep one shared homepage implementation; do not fork the layout per locale.
+- `src/data/siteContent.ts` — localized profile, education, experience, skills, certification, SEO, navigation, and UI copy.
+- `src/data/projects.ts` — canonical project data and existing project screenshots.
+- `src/components/GitHubContributionGrid.astro` — existing real GitHub contribution fetch/parser. Reuse its data behavior when recreating the Figma contribution figure.
+- `src/pages/blog/*` — blog listing and article pages.
+- `worker/` — independent Cloudflare Worker for engagement metrics.
 
-1. **Astro site** (root `/`) - Static site built and deployed to GitHub Pages via `.github/workflows/deploy.yml`. Uses pnpm.
-2. **Cloudflare Worker** (`worker/`) - REST API for engagement metrics. Uses D1 (SQLite) in production. Has its own `wrangler.toml`. Not part of the Astro build.
+## Homepage Redesign Direction
 
-### Content system
+The homepage is being rebuilt from the approved Figma file:
+`https://www.figma.com/design/lnqCutwuWkX09ZBltufKwL/Untitled?node-id=2-2`
 
-- Blog posts live in `src/content/blog/*.md` using Astro Content Collections.
-- Schema defined in `src/content.config.ts` — required frontmatter: `title`, `description`, `pubDate`, `tags`. Optional: `featured`, `draft`, `updatedDate`.
-- A Starlight docs collection is still registered in `content.config.ts` but not actively used.
+The target is a restrained technical bento/editorial portfolio inspired by Chanh Dai's visual language, but using original Nabil/NRN identity and existing portfolio content.
 
-### Page structure
+Core visual rules:
 
-- `src/components/Page.astro` — root HTML shell with all global CSS, meta tags, JSON-LD, and theme setup. All pages use this.
-- `src/pages/index.astro` — landing page: a full **interactive terminal** (`src/components/Terminal.astro`). Builds a `termData` payload (about, experience, education, skills, projects, posts, links) from `siteContent` + `projects` data and passes it to the terminal. Uses `layoutVariant="portfolio-full"`. Has a `<noscript>` fallback.
-- `src/components/Terminal.astro` — self-contained shell ("nsh"): virtual filesystem (`ls`/`cd`/`cat`), ~25 commands (`help`, `neofetch`, `skills`, `projects`, `blog`, `open`, `theme`, `lang`, jokes), command history (up/down), tab completion, Ctrl+C/Ctrl+L, phosphor themes (green/amber/white). All output is driven by the `termData` prop — no fetch calls.
-- `src/components/PortfolioFullLayout.astro` — top-header layout (brand prompt `nabil@nabilrn:~`, nav, language links, search, theme toggle). Used by home and projects; `blog-full` variant wraps blog pages.
-- `src/components/PortfolioLayout.astro` — legacy sidebar layout, currently unused by any page.
-- `src/pages/blog/index.astro` — blog listing page.
-- `src/pages/blog/[slug].astro` — individual blog post page. Uses `EngagementBarNew.astro`. Article prose uses `--font-sans` (Inter); UI uses `--font-mono` (JetBrains Mono).
+- Near-black canvas with subtle shared structural borders; avoid floating SaaS-card styling.
+- Geist-style sans for headings/body and mono only for metadata, figures, dates, labels, and technical captions.
+- Thin low-contrast strokes, grid guides, technical figure captions, and sparse diagonal stripe separators.
+- Handwritten annotation is rare and functional (`click around`, contextual notes), never decorative spam.
+- Avoid repetitive arrow icons and redundant labels.
+- Tech stack uses circular monochrome icon-only brand marks grouped under clear category labels.
+- Hero uses the original NRN raised isometric mark, role-flip text, and lightweight pointer/click microinteraction.
+- Use real existing project screenshots/data instead of fake placeholders when implementing Selected Work.
+- Reuse the existing GitHub contribution data source rather than shipping a hard-coded activity pattern.
+- Responsive/mobile behavior is required; the desktop Figma coordinates are a visual reference, not a mandate for absolute positioning at every breakpoint.
 
-### Engagement metrics flow
+## Implementation Constraints
 
-- `EngagementBarNew.astro` is the active engagement component (used on blog posts). `EngagementBar.astro` is the older version.
-- Client-side JS uses the production engagement worker by default and reads `PUBLIC_ENGAGEMENT_API_BASE` only as an optional override.
-- If the API is unreachable or unset, metrics fall back to localStorage-only tracking.
-- The worker API uses visitor IDs (client-generated UUIDs stored in localStorage) for view/like deduplication.
-- Like is a toggle action (like/unlike). Views and shares only increment.
+- Keep the site native Astro + TypeScript + CSS. Do not add React or Tailwind just because Figma design context is emitted as React/Tailwind reference code.
+- Reuse semantic CSS tokens from `Page.astro`; evolve them deliberately instead of scattering raw hex values.
+- Keep `/projects`, `/blog`, localization, search, SEO/JSON-LD, and engagement behavior working during the homepage migration.
+- Do not restore the removed terminal homepage or terminal-rain effect.
+- Do not delete reusable content/assets merely because the old homepage used them; verify references first.
+- Keep accessibility: semantic heading order, keyboard interactions, visible focus, useful aria labels, reduced-motion handling.
 
-### Worker API endpoints
+## Engagement Metrics
 
-- `GET /metrics/:postId` — returns `{ views, likes, shares }`
-- `POST /metrics/:postId` — body: `{ action: "view"|"like"|"share", visitorId }`. Returns updated metrics.
+- `EngagementBarNew.astro` is the active blog engagement component.
+- Production API is the Cloudflare Worker; localStorage is the fallback.
+- `GET /metrics/:postId`
+- `POST /metrics/:postId` with `{ action: "view"|"like"|"share", visitorId }`
 
-### Environment
+## Quality Gates
 
-- `PUBLIC_ENGAGEMENT_API_BASE` — optional local/dev override. Production builds default to `https://portfolio-metrics-api.nabilrizkinavisa.workers.dev`.
+Before merging homepage redesign work:
 
-### Theming
-
-The design language is a **monochrome Linux terminal**: near-black background (`#0a0a0a`), white/grey text, JetBrains Mono as the default UI font (`--font-mono`; Inter/`--font-sans` only for long-form article prose). Color is opt-in only: the terminal's `theme green|amber` command switches phosphor colors locally. The home page IS an interactive terminal — keep UI copy emoji-free and ASCII-only. CSS variables are defined in `Page.astro` as semantic tokens: `--bg`, `--surface`, `--surface-2`, `--border`, `--border-strong`, `--text`, `--muted`, `--text-body`, `--accent` (near-white), `--accent-hover`, `--hint`, `--dir` (grey, for `ls` directories), `--ok`, `--ok-bg`, `--ok-border`, `--warn`, `--danger`, `--done`, `--shadow`, `--contrib-0..4` (greyscale contribution ramp), `--font-sans`, `--font-mono`. Fonts are self-hosted via `@fontsource-variable/inter` + `@fontsource-variable/jetbrains-mono` (imported in `Page.astro`). Legacy `--sl-color-*` aliases still map to these tokens. Supports `data-theme="dark"` (default) and `data-theme="light"`. Theme persisted in localStorage under `starlight-theme`.
+1. `pnpm build` passes.
+2. Existing localized routes build.
+3. `/projects` and `/blog` remain functional.
+4. Desktop visual output is checked against the Figma frame.
+5. Tablet/mobile layouts are checked independently rather than scaled-down desktop.
+6. Theme, keyboard focus, and reduced-motion behavior are verified.
