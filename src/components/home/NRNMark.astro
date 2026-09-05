@@ -14,9 +14,17 @@ const DEPTH = 28;
 const N_FRONT_PATH = 'M 0 84 L 28 70 L 162.39999389648438 137.1999969482422 L 140 14 L 168 0 L 336 84 L 308 98 L 173.60000610351562 30.799999237060547 L 196 154 L 168 168 L 0 84 Z';
 const R_FRONT_PATH = 'M 168 0 L 240.36923217773438 36.18461608886719 C 277.8461570739746 54.923078536987305 283.01537322998047 74.30768966674805 257.1692199707031 87.23076629638672 C 231.32306671142578 100.15384292602539 193.84615898132324 98.21538543701172 165.41539001464844 84 L 138.27691650390625 153.13845825195312 L 102.0923080444336 135.04615783691406 L 124.06153869628906 73.66153717041016 L 99.5076904296875 61.38461685180664 L 27.13846206665039 97.56922912597656 L 0 84 L 168 0 Z M 169.2923126220703 26.492307662963867 L 214.5230712890625 49.10769271850586 C 236.49230194091797 60.09230899810791 241.66153526306152 69.13846349716187 231.3230743408203 74.30769348144531 C 220.98461246490479 79.47692441940308 202.8923110961914 76.89230823516846 180.92308044433594 65.9076919555664 L 135.6923065185547 43.29230880737305 L 169.2923126220703 26.492307662963867 Z';
 
+// Exact N visible-edge geometry from the approved Figma prototype. These extra
+// contours restore the small extrusion/depth lines that the dynamic face mesh
+// alone does not contain at rest.
+const N_EXTRUSION_PATH = 'M 0.23104122281074524 82.61089324951172 L 0 110.60993957519531 L 27.883525848388672 124.84050750732422 L 157.21035766601562 61.504119873046875 L 139.64866638183594 153.7637176513672 L 139.41763305664062 181.7627716064453 L 167.30116271972656 195.9933319091797 L 335.9885559082031 113.38243865966797 L 336.2196044921875 85.38338470458984 L 308.3360900878906 71.15282440185547 L 179.00926208496094 134.4872589111328 L 196.57093811035156 42.229610443115234 L 196.80197143554688 14.230565071105957 L 168.91844177246094 0 L 0.23104122281074524 82.61089324951172 Z';
+const N_DEPTH_PATH = 'M 0 97.84967041015625 L 0.2227897346019745 70.8505859375 M 139.58937072753906 26.999080657958984 L 139.81216430664062 0';
+
 const LEFT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 440.330566 75.151489)';
 const RIGHT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 866.330566 275.151489)';
 const R_MATRIX = 'matrix(0.999965966 0.008251472 -0.008251472 0.999965966 332.126709 179.541138)';
+const LEFT_N_DEPTH_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 271.807373 171.153687)';
+const RIGHT_N_DEPTH_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 697.807373 371.153687)';
 
 // One global hatch field keeps the phase continuous from N → R → N.
 const HATCH_DIRECTION = { x: 0.5885843638383417, y: 0.808435802426522 };
@@ -45,9 +53,8 @@ for (let offset = hatchStart; offset <= hatchMax; offset += HATCH_SPACING) {
 }
 const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
 
-// Visible lower-facing side faces. Unlike the previous silhouette stroke, these are
-// actual extruded faces: the top edge moves on press while the bottom edge remains
-// anchored. This is the same visual mechanism used by ChanhDai's mark.
+// Visible lower-facing side faces. The top edge moves on press while the bottom
+// edge remains anchored, so the depth compresses instead of translating as a block.
 const LEFT_N_SIDE_FACES: SideFace[] = [
     { kind: 'line', p0: { x: 411.753916, y: 144.918065 }, p1: { x: 276.803991, y: 211.00678 } },
     { kind: 'line', p0: { x: 276.803991, y: 211.00678 }, p1: { x: 300.21981, y: 87.995806 } },
@@ -158,6 +165,20 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
                 ))}
             </g>
 
+            <!-- Rest-only detail copied from the final Figma N geometry. It restores
+                 the short depth/connector strokes that were missing in the web mesh. -->
+            <g class="nrn-rest-details" data-nrn-rest-details aria-hidden="true">
+                <path class="nrn-rest-detail-base" d={N_EXTRUSION_PATH} transform="translate(103.417725 73.765259)" />
+                <path class="nrn-rest-detail-glow" d={N_EXTRUSION_PATH} transform="translate(103.417725 73.765259)" />
+                <path class="nrn-rest-detail-base nrn-rest-depth" d={N_DEPTH_PATH} transform={LEFT_N_DEPTH_MATRIX} />
+                <path class="nrn-rest-detail-glow nrn-rest-depth" d={N_DEPTH_PATH} transform={LEFT_N_DEPTH_MATRIX} />
+
+                <path class="nrn-rest-detail-base" d={N_EXTRUSION_PATH} transform="translate(529.417725 273.765259)" />
+                <path class="nrn-rest-detail-glow" d={N_EXTRUSION_PATH} transform="translate(529.417725 273.765259)" />
+                <path class="nrn-rest-detail-base nrn-rest-depth" d={N_DEPTH_PATH} transform={RIGHT_N_DEPTH_MATRIX} />
+                <path class="nrn-rest-detail-glow nrn-rest-depth" d={N_DEPTH_PATH} transform={RIGHT_N_DEPTH_MATRIX} />
+            </g>
+
             <g data-nrn-surface>
                 <g class="nrn-front-fill" aria-hidden="true">
                     <path d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
@@ -206,8 +227,11 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
         overflow: hidden;
         color: var(--text);
         background: var(--bg);
-        --nrn-stroke: color-mix(in srgb, var(--text) 22%, var(--bg));
-        --nrn-hatch: color-mix(in srgb, var(--text) 19%, var(--bg));
+        /* Match the actual Figma prototype rather than the much dimmer ChanhDai
+           base stroke: front ≈52%, side ≈44%, hatch ≈44% at 0.66 opacity. */
+        --nrn-front-stroke: color-mix(in srgb, var(--text) 52%, var(--bg));
+        --nrn-side-stroke: color-mix(in srgb, var(--text) 44%, var(--bg));
+        --nrn-hatch: color-mix(in srgb, var(--text) 44%, var(--bg));
     }
 
     .nrn-mark {
@@ -225,7 +249,7 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
     }
 
     .nrn-mark:focus-visible {
-        outline: 1px solid color-mix(in srgb, var(--text) 55%, transparent);
+        outline: 1px solid color-mix(in srgb, var(--text) 70%, transparent);
         outline-offset: -5px;
     }
 
@@ -253,7 +277,9 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
     .nrn-side-face,
     .nrn-front-stroke,
     .nrn-front-glow,
-    .nrn-global-hatch {
+    .nrn-global-hatch,
+    .nrn-rest-detail-base,
+    .nrn-rest-detail-glow {
         stroke-linejoin: round;
         stroke-linecap: round;
         vector-effect: non-scaling-stroke;
@@ -261,35 +287,57 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
 
     .nrn-side-face-base {
         fill: var(--bg);
-        stroke: var(--nrn-stroke);
-        stroke-width: 1.35;
+        stroke: var(--nrn-side-stroke);
+        stroke-width: 1.6;
     }
 
     .nrn-side-face-glow {
         fill: none;
         stroke: url(#nrn-radial-gradient);
-        stroke-width: 1.35;
+        stroke-width: 1.6;
         pointer-events: none;
     }
 
     .nrn-front-stroke {
         fill: none;
-        stroke: var(--nrn-stroke);
-        stroke-width: 1.35;
+        stroke: var(--nrn-front-stroke);
+        stroke-width: 1.7;
     }
 
     .nrn-front-glow {
         fill: none;
         stroke: url(#nrn-radial-gradient);
-        stroke-width: 1.35;
+        stroke-width: 1.7;
         pointer-events: none;
+    }
+
+    .nrn-rest-details {
+        pointer-events: none;
+    }
+
+    .nrn-rest-detail-base,
+    .nrn-rest-detail-glow {
+        fill: none;
+        stroke-width: 1.35;
+    }
+
+    .nrn-rest-detail-base {
+        stroke: var(--nrn-side-stroke);
+    }
+
+    .nrn-rest-detail-glow {
+        stroke: url(#nrn-radial-gradient);
+    }
+
+    .nrn-rest-depth {
+        stroke-width: 1.25;
     }
 
     .nrn-global-hatch {
         fill: none;
         stroke: var(--nrn-hatch);
-        stroke-width: 0.6;
-        opacity: 0.86;
+        stroke-width: 0.62;
+        opacity: 0.66;
         pointer-events: none;
     }
 
@@ -427,6 +475,7 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
         const mark = root.querySelector<HTMLButtonElement>('[data-nrn-mark]');
         const surface = root.querySelector<SVGGElement>('[data-nrn-surface]');
         const gradient = root.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
+        const restDetails = root.querySelector<SVGGElement>('[data-nrn-rest-details]');
         const sidePaths = Array.from(root.querySelectorAll<SVGPathElement>('[data-side-face]')).map((element) => ({
             element,
             face: JSON.parse(element.dataset.sideFace ?? '{}') as SideFace,
@@ -526,6 +575,12 @@ const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_F
             sidePaths.forEach(({ element, face }) => {
                 element.setAttribute('d', makeSidePath(face, value));
             });
+
+            // The Figma rest-detail paths are exact at rest. Fade them out as soon
+            // as the spring starts compressing so they never ghost behind the moving face.
+            if (restDetails) {
+                restDetails.style.opacity = Math.max(0, 1 - value / 3).toFixed(3);
+            }
         };
 
         const tick = (now: number) => {
