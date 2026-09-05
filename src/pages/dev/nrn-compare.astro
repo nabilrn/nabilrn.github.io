@@ -1,14 +1,14 @@
 ---
 import Page from '../../components/Page.astro';
 import ChanhDaiReferenceMark from '../../components/dev/ChanhDaiReferenceMark.astro';
-import NRNModularMark from '../../components/dev/NRNModularMark.astro';
+import NRModularMark from '../../components/dev/NRModularMark.astro';
 
 const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/portfolio/components/chanhdai-mark-isometric.tsx';
 ---
 
 <Page
-    title="NRN Geometry Development Compare"
-    description="Development-only side-by-side comparison of the ChanhDai isometric reference and the modular NRN candidate."
+    title="NR Geometry Development Compare"
+    description="Development-only side-by-side comparison of the ChanhDai isometric reference and the modular NR candidate."
     path="/dev/nrn-compare/"
     robots="noindex, nofollow"
     layoutVariant="portfolio-full"
@@ -17,11 +17,11 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
         <header class="compare-header">
             <div>
                 <p class="eyebrow">DEVELOPMENT / GEOMETRY LAB</p>
-                <h1>NRN × ChanhDai comparison</h1>
+                <h1>NR × ChanhDai comparison</h1>
             </div>
             <p class="summary">
-                Reference versus candidate only. Compare silhouette, hidden seams, hatch phase, ruler placement,
-                base contrast, and cursor lighting without the legacy NRN implementation adding noise.
+                Two-mass candidate only: Nabil Rizki as an NR monogram. Compare silhouette, true hidden-line
+                behavior, hatch phase, ruler placement, base contrast, and cursor lighting against the reference.
             </p>
         </header>
 
@@ -50,27 +50,27 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
                 <header class="panel-header">
                     <div>
                         <span class="panel-kicker">CANDIDATE</span>
-                        <h2>NRN modular</h2>
+                        <h2>NR modular</h2>
                     </div>
-                    <code>NRNModularMark.astro</code>
+                    <code>NRModularMark.astro</code>
                 </header>
 
                 <div class="stage stage-modular">
-                    <NRNModularMark />
+                    <NRModularMark />
                 </div>
 
                 <footer class="panel-meta">
-                    <span>30° lattice / depth 16</span>
-                    <span>geometry-anchored rulers · transition-only seams</span>
+                    <span>2 masses · 30° lattice · depth 16</span>
+                    <span>top/depth split · occlusion mask</span>
                 </footer>
             </article>
         </section>
 
         <section class="inspection-strip" aria-label="Comparison checklist">
             <span>01 silhouette</span>
-            <span>02 topology</span>
+            <span>02 spacing</span>
             <span>03 hatch phase</span>
-            <span>04 hidden seams</span>
+            <span>04 hidden lines</span>
             <span>05 ruler anchors</span>
             <span>06 cursor glow</span>
         </section>
@@ -108,9 +108,7 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
 
     h1,
     h2,
-    p {
-        margin: 0;
-    }
+    p { margin: 0; }
 
     h1 {
         margin-top: 8px;
@@ -141,13 +139,8 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
         background: var(--bg);
     }
 
-    .compare-panel + .compare-panel {
-        border-left: 1px solid var(--border);
-    }
-
-    .compare-panel-experiment {
-        background: color-mix(in srgb, var(--surface) 12%, var(--bg));
-    }
+    .compare-panel + .compare-panel { border-left: 1px solid var(--border); }
+    .compare-panel-experiment { background: color-mix(in srgb, var(--surface) 12%, var(--bg)); }
 
     .panel-header,
     .panel-meta {
@@ -179,9 +172,7 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
         text-decoration: none;
     }
 
-    .panel-header a:hover {
-        color: var(--text);
-    }
+    .panel-header a:hover { color: var(--text); }
 
     .stage {
         position: relative;
@@ -191,9 +182,7 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
         background: var(--bg);
     }
 
-    .stage-reference {
-        padding: clamp(18px, 2.5vw, 46px);
-    }
+    .stage-reference { padding: clamp(18px, 2.5vw, 46px); }
 
     .stage-reference > :global(.cd-reference),
     .stage-modular > :global(.modular-stage) {
@@ -236,9 +225,7 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
         text-transform: uppercase;
     }
 
-    .inspection-strip span + span {
-        border-left: 1px solid var(--border);
-    }
+    .inspection-strip span + span { border-left: 1px solid var(--border); }
 
     .license-note {
         max-width: 820px;
@@ -249,34 +236,16 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
 
     @media (max-width: 820px) {
         .compare-header,
-        .compare-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .compare-header {
-            gap: 14px;
-        }
-
+        .compare-grid { grid-template-columns: 1fr; }
+        .compare-header { gap: 14px; }
         .compare-panel + .compare-panel {
             border-left: 0;
             border-top: 1px solid var(--border);
         }
-
-        .stage {
-            height: clamp(340px, 74vw, 540px);
-        }
-
-        .inspection-strip {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .inspection-strip span:nth-child(odd) {
-            border-left: 0;
-        }
-
-        .inspection-strip span:nth-child(n+3) {
-            border-top: 1px solid var(--border);
-        }
+        .stage { height: clamp(350px, 76vw, 540px); }
+        .inspection-strip { grid-template-columns: repeat(2, 1fr); }
+        .inspection-strip span:nth-child(odd) { border-left: 0; }
+        .inspection-strip span:nth-child(n+3) { border-top: 1px solid var(--border); }
     }
 
     @media (max-width: 540px) {
@@ -284,11 +253,7 @@ const sourceUrl = 'https://github.com/ncdai/chanhdai.com/blob/main/src/features/
             width: calc(100% - 16px);
             padding-top: 20px;
         }
-
-        .stage-reference {
-            padding: 14px;
-        }
-
+        .stage-reference { padding: 14px; }
         .panel-meta {
             align-items: flex-start;
             flex-direction: column;
