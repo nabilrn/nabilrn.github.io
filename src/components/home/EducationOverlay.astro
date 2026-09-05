@@ -1,199 +1,175 @@
 ---
 const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20Andalas%2C%20Limau%20Manis%2C%20Pauh%2C%20Padang%2C%20Sumatera%20Barat';
+const logoSrc = 'https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html';
+const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
 ---
 
-<template data-education-map-template>
-    <a
-        class="education-map-link"
-        href={mapsHref}
-        target="_blank"
-        rel="noopener"
-        aria-label="See Universitas Andalas on Google Maps"
-    >
-        <span class="education-map-pin education-map-pin-mono" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
-                <circle cx="12" cy="10" r="2.5"></circle>
-            </svg>
-        </span>
-        <span class="education-map-pin education-map-pin-color" aria-hidden="true">
-            <img src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico" alt="" />
-        </span>
-        <span class="education-map-tooltip" role="tooltip">See on Google Maps</span>
-    </a>
+<template data-education-template>
+    <div class="education-panel">
+        <div class="education-heading">my education</div>
+
+        <div class="education-identity">
+            <div class="education-logo-wrap" aria-hidden="true">
+                <img class="education-logo" src={logoSrc} alt="" />
+            </div>
+
+            <div class="education-copy">
+                <strong class="education-school">Universitas Andalas</strong>
+                <span class="education-major">Bachelor of Information Systems</span>
+                <span class="education-gpa">GPA 3.71 / 4.00</span>
+            </div>
+
+            <a
+                class="education-map-link"
+                href={mapsHref}
+                target="_blank"
+                rel="noopener"
+                aria-label="See Universitas Andalas on Google Maps"
+            >
+                <span class="education-map-pin education-map-pin-mono" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+                        <circle cx="12" cy="10" r="2.5"></circle>
+                    </svg>
+                </span>
+                <span class="education-map-pin education-map-pin-color" aria-hidden="true">
+                    <img src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico" alt="" />
+                </span>
+                <span class="education-map-tooltip" role="tooltip">See on Google Maps</span>
+            </a>
+        </div>
+
+        <div class="education-photo" aria-label="Universitas Andalas rectorate building">
+            <img src={campusSrc} alt="Universitas Andalas rectorate building" />
+        </div>
+    </div>
 </template>
 
 <style is:global>
     .home-redesign .identity-board .education-region {
-        position: relative;
-        isolation: isolate;
-        display: grid !important;
-        grid-template-columns: 24px minmax(0, 1fr) 20px !important;
-        grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
-        column-gap: 7px !important;
-        row-gap: 1px !important;
-        align-content: start !important;
-        justify-content: stretch !important;
-        padding: 8px 12px !important;
+        padding: 0 !important;
+        display: block !important;
+        justify-content: initial !important;
         background: var(--bg);
         overflow: hidden;
     }
 
-    .home-redesign .education-region > * {
-        position: relative;
-        z-index: 2;
-        min-width: 0;
-    }
-
-    .home-redesign .education-region .icon-label {
-        grid-column: 1 / 4;
-        grid-row: 1;
-        margin: 0 0 4px !important;
-        gap: 0 !important;
-        color: color-mix(in srgb, var(--muted) 86%, transparent);
-        font-size: 8.5px;
-        line-height: 1;
-        letter-spacing: 0.09em;
-    }
-
-    .home-redesign .education-region .icon-label > svg {
-        display: none;
-    }
-
-    .home-redesign .education-region .region-primary::before {
-        content: none !important;
+    .home-redesign .education-region > .micro-label,
+    .home-redesign .education-region > .region-primary,
+    .home-redesign .education-region > .region-secondary,
+    .home-redesign .education-region > .region-meta {
         display: none !important;
     }
 
-    .home-redesign .education-region::before {
-        content: '';
-        z-index: 2;
-        grid-column: 1;
-        grid-row: 2 / 5;
+    .home-redesign .education-panel {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        padding: 8px 12px;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        row-gap: 6px;
+        background: var(--bg);
+    }
+
+    .home-redesign .education-heading {
+        width: max-content;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.2deg);
+        transform-origin: left center;
+        user-select: none;
+    }
+
+    .home-redesign .education-identity {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) 18px;
+        align-items: start;
+        column-gap: 7px;
+    }
+
+    .home-redesign .education-logo-wrap {
+        width: 28px;
+        height: 38px;
+        display: grid;
+        place-items: center;
         align-self: center;
-        justify-self: center;
-        width: 22px;
-        height: 28px;
-        background-image: url('https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 22px auto;
+    }
+
+    .home-redesign .education-logo {
+        width: 26px;
+        max-height: 32px;
+        display: block;
+        object-fit: contain;
         filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
-        opacity: 0.82;
-        transition: filter 280ms ease, opacity 280ms ease, transform 280ms ease;
-    }
-
-    .home-redesign .education-region .region-primary,
-    .home-redesign .education-region .region-secondary,
-    .home-redesign .education-region .region-meta {
-        grid-column: 2;
-        margin: 0 !important;
-        padding: 0 !important;
-        min-width: 0;
-    }
-
-    .home-redesign .education-region .region-primary {
-        grid-row: 2;
-        align-self: end;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: clamp(13px, 1.03vw, 15px);
-        font-weight: 600;
-        line-height: 1.08;
-        letter-spacing: -0.025em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .home-redesign .education-region .region-secondary {
-        grid-row: 3;
-        color: var(--text-body);
-        font-family: var(--font-sans);
-        font-size: 9.5px;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .home-redesign .education-region .region-meta {
-        grid-row: 4;
-        min-height: 11px;
-        color: transparent;
-        font-size: 0;
-        line-height: 1;
-    }
-
-    .home-redesign .education-region .region-meta::before {
-        content: 'GPA 3.71 / 4.00' !important;
-        position: static !important;
-        display: block !important;
-        color: color-mix(in srgb, var(--text-body) 86%, var(--muted));
-        font-family: var(--font-mono);
-        font-size: 9.5px;
-        font-weight: 500;
-        line-height: 1.15;
-        letter-spacing: 0.004em;
-    }
-
-    .home-redesign .education-region .region-meta::after {
-        content: none !important;
-        display: none !important;
-    }
-
-    .home-redesign .education-region::after {
-        content: '';
-        position: absolute;
-        z-index: 1;
-        left: 12px;
-        right: 12px;
-        top: clamp(76px, 9vh, 82px);
-        bottom: 8px;
-        border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-        background-color: var(--surface);
-        background-image: url('https://www.unand.ac.id/images/gedung%20rektorat.jpg');
-        background-repeat: no-repeat;
-        background-position: center 46%;
-        background-size: cover;
-        filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
         opacity: 0.84;
-        pointer-events: none;
-        transition: filter 320ms ease, opacity 320ms ease;
+        transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
     }
 
-    .home-redesign .education-region:hover::before,
-    .home-redesign .education-region:focus-within::before {
+    .home-redesign .education-logo-wrap:hover .education-logo {
         filter: grayscale(0) saturate(1) contrast(1) brightness(1);
         opacity: 1;
         transform: translateY(-1px);
     }
 
-    .home-redesign .education-region:hover::after,
-    .home-redesign .education-region:focus-within::after {
-        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
-        opacity: 1;
+    .home-redesign .education-copy {
+        min-width: 0;
+        display: grid;
+        align-content: center;
+        row-gap: 1px;
+        min-height: 38px;
+    }
+
+    .home-redesign .education-school,
+    .home-redesign .education-major,
+    .home-redesign .education-gpa {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .home-redesign .education-school {
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: clamp(13.5px, 1.06vw, 14.5px);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+    }
+
+    .home-redesign .education-major {
+        color: var(--text-body);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        line-height: 1.18;
+    }
+
+    .home-redesign .education-gpa {
+        color: color-mix(in srgb, var(--text-body) 90%, var(--muted));
+        font-family: var(--font-mono);
+        font-size: 9.75px;
+        font-weight: 500;
+        line-height: 1.16;
+        letter-spacing: 0.003em;
     }
 
     .home-redesign .education-map-link {
-        grid-column: 3;
-        grid-row: 2 / 5;
-        position: relative !important;
-        z-index: 7 !important;
-        align-self: center;
-        justify-self: end;
-        right: auto !important;
-        top: auto !important;
-        width: 20px !important;
-        height: 20px !important;
-        min-width: 0 !important;
-        display: grid !important;
+        position: relative;
+        width: 18px;
+        height: 18px;
+        display: grid;
         place-items: center;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: color-mix(in srgb, var(--muted) 86%, transparent);
-        transition: color 160ms ease, transform 160ms ease, opacity 160ms ease;
+        align-self: start;
+        justify-self: end;
+        margin-top: -1px;
+        color: color-mix(in srgb, var(--muted) 88%, transparent);
+        transition: color 160ms ease, transform 160ms ease;
     }
 
     .home-redesign .education-map-link:hover,
@@ -246,8 +222,9 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 
     .home-redesign .education-map-tooltip {
         position: absolute;
-        right: -2px;
-        bottom: calc(100% + 8px);
+        z-index: 10;
+        right: calc(100% + 7px);
+        top: 50%;
         width: max-content;
         padding: 4px 7px;
         border: 1px solid var(--border-strong);
@@ -261,40 +238,87 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         white-space: nowrap;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(3px);
+        transform: translate(3px, -50%);
         transition: opacity 120ms ease, transform 120ms ease;
     }
 
     .home-redesign .education-map-link:hover .education-map-tooltip,
     .home-redesign .education-map-link:focus-visible .education-map-tooltip {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(0, -50%);
+    }
+
+    .home-redesign .education-photo {
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: var(--surface);
+    }
+
+    .home-redesign .education-photo img {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        display: block;
+        object-fit: cover;
+        object-position: center 46%;
+        filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
+        opacity: 0.86;
+        transition: filter 320ms ease, opacity 320ms ease, transform 320ms ease;
+    }
+
+    .home-redesign .education-photo:hover img {
+        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
+        opacity: 1;
+        transform: scale(1.006);
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
-        .home-redesign .identity-board .education-region {
-            grid-template-columns: 22px minmax(0, 1fr) 18px !important;
-            column-gap: 6px !important;
-            padding-top: 7px !important;
+        .home-redesign .education-panel {
+            padding-top: 7px;
+            padding-bottom: 7px;
+            row-gap: 5px;
         }
 
-        .home-redesign .education-region::before {
-            width: 21px;
-            height: 27px;
-            background-size: 21px auto;
+        .home-redesign .education-heading {
+            font-size: 14px;
         }
 
-        .home-redesign .education-region .region-primary {
-            font-size: 13px;
+        .home-redesign .education-identity {
+            grid-template-columns: 26px minmax(0, 1fr) 17px;
+            column-gap: 6px;
         }
 
-        .home-redesign .education-region .region-meta::before {
-            font-size: 9px;
+        .home-redesign .education-logo-wrap {
+            width: 26px;
+            height: 36px;
+        }
+
+        .home-redesign .education-logo {
+            width: 24px;
+            max-height: 30px;
+        }
+
+        .home-redesign .education-copy {
+            min-height: 36px;
+        }
+
+        .home-redesign .education-school {
+            font-size: 13.5px;
+        }
+
+        .home-redesign .education-major {
+            font-size: 9.75px;
+        }
+
+        .home-redesign .education-gpa {
+            font-size: 9.5px;
         }
 
         .home-redesign .education-map-link {
-            width: 18px !important;
-            height: 18px !important;
+            width: 17px;
+            height: 17px;
         }
 
         .home-redesign .education-map-pin-mono svg {
@@ -306,28 +330,24 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
             width: 15px;
             height: 15px;
         }
-
-        .home-redesign .education-region::after {
-            top: 74px;
-        }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .home-redesign .education-region::before,
-        .home-redesign .education-region::after,
+        .home-redesign .education-logo,
         .home-redesign .education-map-link,
         .home-redesign .education-map-pin,
-        .home-redesign .education-map-tooltip {
+        .home-redesign .education-map-tooltip,
+        .home-redesign .education-photo img {
             transition: none;
         }
     }
 </style>
 
 <script>
-    const template = document.querySelector<HTMLTemplateElement>('[data-education-map-template]');
+    const template = document.querySelector<HTMLTemplateElement>('[data-education-template]');
     const region = document.querySelector<HTMLElement>('.education-region');
 
-    if (template && region && !region.querySelector('.education-map-link')) {
-        region.append(template.content.cloneNode(true));
+    if (template && region && !region.querySelector('.education-panel')) {
+        region.replaceChildren(template.content.cloneNode(true));
     }
 </script>
