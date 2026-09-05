@@ -2,9 +2,8 @@
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
 type WallState = { normal: string; pressed: string };
+type Surface = { points: Point[]; visible: boolean[] };
 
-// One lattice, one stroke language. This intentionally follows the rendering
-// grammar learned from the ChanhDai reference without copying its letterforms.
 const ISO_STEP = 22;
 const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
@@ -12,7 +11,8 @@ const DEPTH = 16;
 const PRESS_DISTANCE = 8;
 const ORIGIN = { x: 450, y: 120 };
 
-// Geometric plan-view glyphs. No font outline, no arbitrary screen-space curves.
+// Original modular NRN plan-view geometry. Keep this simple enough that the
+// 3D rendering can stay explicit and readable.
 const N_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -82,20 +82,26 @@ const glyphPath = (placement: Placement, dy = 0) => {
 };
 
 const GLYPHS = PLACEMENTS.map((placement) => ({
-    placement,
     path: glyphPath(placement),
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-const visibleEdges = (shape: Point[], placement: Placement, inner = false) => {
+// Surface orientation determines which side-wall faces exist. Stroke visibility
+// is handled separately so adjacent visible faces do not create false seams.
+const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projectedPolygon(shape, placement);
-    return points.flatMap((a, index) => {
+    const visible = points.map((a, index) => {
         const b = points[(index + 1) % points.length];
         const dx = b.x - a.x;
-        const visible = inner ? dx > 0.1 : dx <= 0.1;
-        return visible ? [{ a, b }] : [];
+        return inner ? dx > 0.1 : dx <= 0.1;
     });
+    return { points, visible };
 };
+
+const SURFACES: Surface[] = PLACEMENTS.flatMap((placement) => {
+    if (placement.kind === 'n') return [makeSurface(N_OUTER, placement)];
+    return [makeSurface(R_OUTER, placement), makeSurface(R_HOLE, placement, true)];
+});
 
 const wallPath = (a: Point, b: Point, topShift: number) => {
     const aTop = shifted(a, topShift);
@@ -105,40 +111,44 @@ const wallPath = (a: Point, b: Point, topShift: number) => {
     return `M ${move(aTop)} L ${move(bTop)} L ${move(bBottom)} L ${move(aBottom)} Z`;
 };
 
-const wallEdges = PLACEMENTS.flatMap((placement) => {
-    if (placement.kind === 'n') return visibleEdges(N_OUTER, placement);
-    return [
-        ...visibleEdges(R_OUTER, placement),
-        ...visibleEdges(R_HOLE, placement, true),
-    ];
-});
-
-const WALLS: WallState[] = wallEdges.map(({ a, b }) => ({
-    normal: wallPath(a, b, 0),
-    pressed: wallPath(a, b, PRESS_DISTANCE),
-}));
+const WALLS: WallState[] = SURFACES.flatMap((surface) =>
+    surface.points.flatMap((a, index) => {
+        if (!surface.visible[index]) return [];
+        const b = surface.points[(index + 1) % surface.points.length];
+        return [{
+            normal: wallPath(a, b, 0),
+            pressed: wallPath(a, b, PRESS_DISTANCE),
+        }];
+    }),
+);
 
 const structuralPath = (topShift: number) => {
-    const chunks: string[] = [];
-
-    for (const placement of PLACEMENTS) {
-        chunks.push(glyphPath(placement, topShift));
-    }
-
+    const chunks: string[] = PLACEMENTS.map((placement) => glyphPath(placement, topShift));
     const connectorKeys = new Set<string>();
-    for (const { a, b } of wallEdges) {
-        const aTop = shifted(a, topShift);
-        const bTop = shifted(b, topShift);
-        const aBottom = shifted(a, DEPTH);
-        const bBottom = shifted(b, DEPTH);
-        chunks.push(`M ${move(aBottom)} L ${move(bBottom)}`);
 
-        for (const point of [a, b]) {
+    for (const surface of SURFACES) {
+        const count = surface.points.length;
+
+        // Bottom edges are visible only where a visible wall face exists.
+        surface.points.forEach((a, index) => {
+            if (!surface.visible[index]) return;
+            const b = surface.points[(index + 1) % count];
+            chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
+        });
+
+        // A vertical edge belongs only at the boundary between a visible and a
+        // hidden face. This removes the internal seams produced by connecting
+        // every visible wall endpoint.
+        surface.points.forEach((point, index) => {
+            const incomingVisible = surface.visible[(index - 1 + count) % count];
+            const outgoingVisible = surface.visible[index];
+            if (incomingVisible === outgoingVisible) return;
+
             const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
-            if (connectorKeys.has(key)) continue;
+            if (connectorKeys.has(key)) return;
             connectorKeys.add(key);
             chunks.push(`M ${move(shifted(point, topShift))} L ${move(shifted(point, DEPTH))}`);
-        }
+        });
     }
 
     return chunks.join(' ');
@@ -146,6 +156,27 @@ const structuralPath = (topShift: number) => {
 
 const STROKE_NORMAL = structuralPath(0);
 const STROKE_PRESSED = structuralPath(PRESS_DISTANCE);
+
+// Construction rulers are literal extensions of the NRN lattice through real
+// bottom vertices, matching the reference's technical-drawing behavior.
+const POSITIVE_AXIS = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
+const NEGATIVE_AXIS = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
+const guideThrough = (anchor: Point, direction: Point, extent = 1200) =>
+    `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
+    `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
+
+const LEFT_N = PLACEMENTS[0];
+const CENTER_R = PLACEMENTS[1];
+const RIGHT_N = PLACEMENTS[2];
+
+const GUIDE_PATHS = [
+    // One lattice row passes through the left N and R bottom geometry.
+    guideThrough(shifted(project(N_OUTER[9], LEFT_N), DEPTH), POSITIVE_AXIS),
+    // Parallel lattice row through the far-right N.
+    guideThrough(shifted(project(N_OUTER[4], RIGHT_N), DEPTH), POSITIVE_AXIS),
+    // Opposite lattice family through a real R bottom vertex.
+    guideThrough(shifted(project(R_OUTER[1], CENTER_R), DEPTH), NEGATIVE_AXIS),
+];
 ---
 
 <div class="modular-stage" data-modular-stage>
@@ -172,9 +203,7 @@ const STROKE_PRESSED = structuralPath(PRESS_DISTANCE);
             </defs>
 
             <g class="modular-guides" stroke-width="1" stroke-dasharray="4 2">
-                <path d="M 130 455 L 900 10" />
-                <path d="M 930 470 L 160 25" />
-                <path d="M 1030 410 L 260 -35" />
+                {GUIDE_PATHS.map((path) => <path d={path} />)}
             </g>
 
             <g class="modular-walls" fill-rule="evenodd" clip-rule="evenodd">
@@ -211,7 +240,7 @@ const STROKE_PRESSED = structuralPath(PRESS_DISTANCE);
         --modular-foreground: var(--text);
         --modular-pattern: color-mix(in oklab, var(--modular-foreground) 12%, var(--modular-background));
         --modular-stroke: color-mix(in oklab, var(--modular-foreground) 16%, var(--modular-background));
-        --modular-line: color-mix(in oklab, var(--modular-foreground) 7%, var(--modular-background));
+        --modular-line: color-mix(in oklab, var(--border) 64%, var(--modular-background));
     }
 
     .modular-button {
@@ -246,6 +275,7 @@ const STROKE_PRESSED = structuralPath(PRESS_DISTANCE);
     .modular-guides {
         fill: none;
         stroke: var(--modular-line);
+        opacity: .82;
         pointer-events: none;
     }
 
