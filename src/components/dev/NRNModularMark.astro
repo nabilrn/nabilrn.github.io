@@ -9,24 +9,21 @@ const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
 const DEPTH = 16;
 const PRESS_DISTANCE = 8;
-
-// Match the reference composition: the letter run climbs from lower-left to
-// upper-right on the -30° lattice axis instead of falling toward the right.
 const ORIGIN = { x: 680, y: 95 };
 
-// Original modular NRN plan-view geometry. Keep this simple enough that the
-// 3D rendering can stay explicit and readable.
+// Clean union silhouette of two stems + one diagonal bar. The previous N path
+// crossed itself, which created false interior surface strokes after projection.
 const N_OUTER: Point[] = [
-    { x: 0, y: 0 },
-    { x: 1.4, y: 0 },
-    { x: 3.6, y: 4.9 },
+    { x: 2, y: 0 },
+    { x: 3.6, y: 5.6 },
     { x: 3.6, y: 0 },
     { x: 5, y: 0 },
     { x: 5, y: 7 },
-    { x: 3.6, y: 7 },
-    { x: 1.4, y: 2.1 },
+    { x: 3, y: 7 },
+    { x: 1.4, y: 1.4 },
     { x: 1.4, y: 7 },
     { x: 0, y: 7 },
+    { x: 0, y: 0 },
 ];
 
 const R_OUTER: Point[] = [
@@ -54,9 +51,7 @@ const R_HOLE: Point[] = [
     { x: 1.4, y: 3.1 },
 ];
 
-// Baseline direction follows the reference: first N is lower-left, R is in the
-// middle, final N is upper-right. Translation is along plan-view Y so the run
-// itself sits exactly on the -30° projected lattice axis.
+// Same visual reading direction as the reference: lower-left -> upper-right.
 const PLACEMENTS: Placement[] = [
     { kind: 'n', ox: 0, oy: 14 },
     { kind: 'r', ox: 0, oy: 7 },
@@ -92,8 +87,6 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-// Surface orientation determines which side-wall faces exist. Visible stroke is
-// deliberately kept separate from these fills.
 const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projectedPolygon(shape, placement);
     const visible = points.map((a, index) => {
@@ -121,19 +114,10 @@ const WALLS: WallState[] = SURFACES.flatMap((surface) =>
     surface.points.flatMap((a, index) => {
         if (!surface.visible[index]) return [];
         const b = surface.points[(index + 1) % surface.points.length];
-        return [{
-            normal: wallPath(a, b, 0),
-            pressed: wallPath(a, b, PRESS_DISTANCE),
-        }];
+        return [{ normal: wallPath(a, b, 0), pressed: wallPath(a, b, PRESS_DISTANCE) }];
     }),
 );
 
-// Hidden-line removal is split into two independent paths:
-// 1) top stroke: front-most face boundaries, always readable;
-// 2) depth stroke: bottom silhouette + real visibility-transition connectors.
-// The latter is masked by the front-most top faces in SVG so an edge that sits
-// physically behind a top surface cannot leak through just because it is a
-// mathematically valid extrusion edge.
 const topStrokePath = (topShift: number) =>
     PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
 
@@ -170,7 +154,6 @@ const TOP_STROKE_PRESSED = topStrokePath(PRESS_DISTANCE);
 const DEPTH_STROKE_NORMAL = depthStrokePath(0);
 const DEPTH_STROKE_PRESSED = depthStrokePath(PRESS_DISTANCE);
 
-// Construction rulers are literal extensions of real NRN lattice vertices.
 const POSITIVE_AXIS = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const NEGATIVE_AXIS = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
 const guideThrough = (anchor: Point, direction: Point, extent = 1200) =>
@@ -180,7 +163,6 @@ const guideThrough = (anchor: Point, direction: Point, extent = 1200) =>
 const LEFT_N = PLACEMENTS[0];
 const CENTER_R = PLACEMENTS[1];
 const RIGHT_N = PLACEMENTS[2];
-
 const GUIDE_PATHS = [
     guideThrough(shifted(project(N_OUTER[9], LEFT_N), DEPTH), POSITIVE_AXIS),
     guideThrough(shifted(project(N_OUTER[4], RIGHT_N), DEPTH), POSITIVE_AXIS),
@@ -244,7 +226,6 @@ const GUIDE_PATHS = [
                 <use href="#nrn-modular-depth-stroke" class="modular-stroke-base" />
                 <use href="#nrn-modular-depth-stroke" class="modular-stroke-glow" />
             </g>
-
             <use href="#nrn-modular-top-stroke" class="modular-stroke-base" />
             <use href="#nrn-modular-top-stroke" class="modular-stroke-glow" />
 
@@ -333,13 +314,8 @@ const GUIDE_PATHS = [
         pointer-events: none;
     }
 
-    .modular-stroke-base {
-        stroke: var(--modular-stroke);
-    }
-
-    .modular-stroke-glow {
-        stroke: url(#nrn-modular-gradient);
-    }
+    .modular-stroke-base { stroke: var(--modular-stroke); }
+    .modular-stroke-glow { stroke: url(#nrn-modular-gradient); }
 
     .modular-glow-start {
         stop-color: #fff;
