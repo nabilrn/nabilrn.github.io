@@ -27,8 +27,8 @@ const {
                 stroke="currentColor"
                 aria-hidden="true"
             >
-                <path d="M51 3c-8 2-14 5-20 9-7 4-13 6-21 7" />
-                <path d="m17 13-8 6 9 1" />
+                <path d="M28 2c0 5-4 9-9 12-4 3-8 5-13 6" />
+                <path d="m13 14-7 6 9 1" />
             </svg>
         ) : (
             <svg
@@ -38,8 +38,8 @@ const {
                 stroke="currentColor"
                 aria-hidden="true"
             >
-                <path d="M34 4c1 15-5 26-21 30" />
-                <path d="m21 36-8-2 7-7" />
+                <path d="M20 3c2 10-1 21-13 31" />
+                <path d="m14 32-7 2 4-7" />
             </svg>
         )
     )}
@@ -50,9 +50,10 @@ const {
         pointer-events: none;
         position: absolute;
         z-index: 2;
+        width: max-content;
         display: flex;
         flex-direction: column;
-        align-items: flex-end;
+        align-items: center;
         color: var(--muted);
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
         font-size: var(--note-font-size, 17px);
@@ -62,8 +63,13 @@ const {
         user-select: none;
     }
 
+    .handwritten-note > span {
+        white-space: nowrap;
+    }
+
     .handwritten-arrow {
         flex: none;
+        align-self: center;
         margin-top: var(--note-arrow-gap, 1px);
         stroke-width: var(--note-arrow-stroke, 1.5px);
         stroke-linecap: round;
