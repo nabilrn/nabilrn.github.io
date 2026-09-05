@@ -148,6 +148,20 @@ const formatTooltipDate = (date: string) => {
 </figure>
 
 <style>
+    /* Transitional parent integration while the home board still owns the old
+       contribution-region shell. The graph itself is now the section title. */
+    :global(.contribution-region) {
+        padding: clamp(10px, .8vw, 14px) clamp(12px, 1vw, 16px) !important;
+    }
+
+    :global(.contribution-region > .region-heading) {
+        display: none !important;
+    }
+
+    :global(.contribution-region .contribution-legend) {
+        display: flex !important;
+    }
+
     .contribution-panel {
         --cell-size: clamp(7px, 1.58cqw, 12px);
         --cell-gap: 2px;
@@ -287,7 +301,6 @@ const formatTooltipDate = (date: string) => {
 
     .contribution-legend {
         flex: none;
-        display: flex;
         align-items: center;
         gap: 3px;
         color: var(--muted);
@@ -335,6 +348,11 @@ const formatTooltipDate = (date: string) => {
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
+        :global(.contribution-region) {
+            padding-top: 7px !important;
+            padding-bottom: 7px !important;
+        }
+
         .contribution-panel {
             --cell-size: clamp(6px, 1.42cqw, 10px);
         }
