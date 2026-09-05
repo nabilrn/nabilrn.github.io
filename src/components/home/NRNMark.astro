@@ -1,4 +1,7 @@
 ---
+type Point = { x: number; y: number };
+type Connector = { top: Point; bottom: Point };
+
 const VIEWBOX_X = 60;
 const VIEWBOX_Y = 45;
 const VIEWBOX_WIDTH = 825;
@@ -20,14 +23,38 @@ const LETTERS = [
     { key: 'n-right', path: N_FRONT_PATH, transform: RIGHT_N_MATRIX, fillRule: 'nonzero' },
 ];
 
-// Painter-style swept solids. Every successive front layer covers the hidden parts
-// of the layer behind it, so the browser performs the same visibility cleanup that
-// made the Figma sweep study read as one solid 3D button instead of wireframe blocks.
-const NORMAL_SWEEP_DEPTHS = Array.from({ length: FULL_DEPTH - 1 }, (_, index) => FULL_DEPTH - 1 - index); // 27..1
-const PRESSED_SWEEP_DEPTHS = Array.from(
-    { length: FULL_DEPTH - PRESS_DISTANCE - 1 },
-    (_, index) => FULL_DEPTH - 1 - index,
-); // 27..15
+// Render back-to-front so each opaque slice naturally hides rear geometry.
+const SWEEP_DEPTHS = Array.from({ length: FULL_DEPTH - 1 }, (_, index) => FULL_DEPTH - 1 - index); // 27..1
+
+// These are the exact screen-space depth edges that survived the Figma POV cleanup.
+// They are deliberately NOT every polygon vertex: only edges a human should see.
+const LEFT_N_CONNECTOR_TOPS: Point[] = [
+    { x: 103.648878, y: 156.376136 },
+    { x: 131.532404, y: 170.6067 },
+    { x: 243.06651, y: 227.528959 },
+    { x: 270.950036, y: 241.759524 },
+    { x: 276.803997, y: 211.006777 },
+    { x: 300.21981, y: 87.995806 },
+    { x: 439.637442, y: 159.14863 },
+];
+
+const R_CONNECTOR_TOPS: Point[] = [
+    { x: 455.576209, y: 254.223858 },
+    { x: 431.124499, y: 241.744751 },
+    { x: 496.843346, y: 264.9032 },
+    { x: 469.135302, y: 333.815372 },
+    { x: 433.101213, y: 315.425111 },
+    { x: 588.567394, y: 268.89096 },
+];
+
+const RIGHT_N_CONNECTOR_TOPS = LEFT_N_CONNECTOR_TOPS.map(({ x, y }) => ({ x: x + 426, y: y + 200 }));
+const CONNECTORS: Connector[] = [...LEFT_N_CONNECTOR_TOPS, ...R_CONNECTOR_TOPS, ...RIGHT_N_CONNECTOR_TOPS].map((top) => ({
+    top,
+    bottom: { x: top.x, y: top.y + FULL_DEPTH },
+}));
+
+const connectorPath = ({ top, bottom }: Connector, press = 0) =>
+    `M ${top.x} ${top.y + press} L ${bottom.x} ${bottom.y}`;
 
 // Keep the approved cross-hatch as one global field so its phase reads continuously N → R → N.
 const HATCH_DIRECTION = { x: 0.5885843638383417, y: 0.808435802426522 };
@@ -101,34 +128,26 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
                 <path d="M 174 -24 L 948 422" />
             </g>
 
-            <!-- NORMAL swept solid: back outline first, then opaque frontward slices.
-                 Each slice masks hidden geometry from the slice behind it. -->
-            <g data-solid-normal aria-hidden="true">
+            <g data-nrn-solid aria-hidden="true">
+                <!-- Fixed bottom silhouette. -->
                 <g class="nrn-bottom-base">
                     {LETTERS.map((letter) => (
                         <g transform={letter.transform}>
-                            <path
-                                d={letter.path}
-                                transform={`translate(0 ${FULL_DEPTH})`}
-                                fill-rule={letter.fillRule}
-                            />
+                            <path d={letter.path} transform={`translate(0 ${FULL_DEPTH})`} fill-rule={letter.fillRule} />
                         </g>
                     ))}
                 </g>
                 <g class="nrn-bottom-glow">
                     {LETTERS.map((letter) => (
                         <g transform={letter.transform}>
-                            <path
-                                d={letter.path}
-                                transform={`translate(0 ${FULL_DEPTH})`}
-                                fill-rule={letter.fillRule}
-                            />
+                            <path d={letter.path} transform={`translate(0 ${FULL_DEPTH})`} fill-rule={letter.fillRule} />
                         </g>
                     ))}
                 </g>
 
-                {NORMAL_SWEEP_DEPTHS.map((depth) => (
-                    <g class="nrn-sweep-depth" data-depth={depth}>
+                <!-- Opaque swept volume. JS progressively hides slices above the moving cap. -->
+                {SWEEP_DEPTHS.map((depth) => (
+                    <g class="nrn-sweep-depth" data-sweep-depth={depth}>
                         {LETTERS.map((letter) => (
                             <g transform={letter.transform}>
                                 <path
@@ -141,48 +160,24 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
                         ))}
                     </g>
                 ))}
-            </g>
 
-            <!-- PRESSED swept solid: same bottom plane, but only offsets 15..28 remain.
-                 This is the exact topological change produced by pressing 14px down. -->
-            <g data-solid-pressed aria-hidden="true" opacity="0">
-                <g class="nrn-bottom-base">
-                    {LETTERS.map((letter) => (
-                        <g transform={letter.transform}>
+                <!-- Explicit visible depth connectors from the approved POV. -->
+                <g class="nrn-connectors">
+                    {CONNECTORS.map((connector) => (
+                        <>
                             <path
-                                d={letter.path}
-                                transform={`translate(0 ${FULL_DEPTH})`}
-                                fill-rule={letter.fillRule}
+                                class="nrn-connector nrn-connector-base"
+                                d={connectorPath(connector)}
+                                data-nrn-connector={JSON.stringify(connector)}
                             />
-                        </g>
+                            <path
+                                class="nrn-connector nrn-connector-glow"
+                                d={connectorPath(connector)}
+                                data-nrn-connector={JSON.stringify(connector)}
+                            />
+                        </>
                     ))}
                 </g>
-                <g class="nrn-bottom-glow">
-                    {LETTERS.map((letter) => (
-                        <g transform={letter.transform}>
-                            <path
-                                d={letter.path}
-                                transform={`translate(0 ${FULL_DEPTH})`}
-                                fill-rule={letter.fillRule}
-                            />
-                        </g>
-                    ))}
-                </g>
-
-                {PRESSED_SWEEP_DEPTHS.map((depth) => (
-                    <g class="nrn-sweep-depth" data-depth={depth}>
-                        {LETTERS.map((letter) => (
-                            <g transform={letter.transform}>
-                                <path
-                                    class="nrn-sweep-layer"
-                                    d={letter.path}
-                                    transform={`translate(0 ${depth})`}
-                                    fill-rule={letter.fillRule}
-                                />
-                            </g>
-                        ))}
-                    </g>
-                ))}
             </g>
 
             <!-- Exact approved top surface. It is the rigid cap that moves continuously. -->
@@ -239,6 +234,7 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         --nrn-top-stroke: color-mix(in srgb, var(--text) 34%, var(--bg));
         --nrn-bottom-stroke: color-mix(in srgb, var(--text) 27%, var(--bg));
         --nrn-sweep-stroke: color-mix(in srgb, var(--text) 21%, var(--bg));
+        --nrn-connector-stroke: color-mix(in srgb, var(--text) 31%, var(--bg));
         --nrn-hatch: color-mix(in srgb, var(--text) 24%, var(--bg));
     }
 
@@ -294,6 +290,7 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
     .nrn-bottom-glow,
     .nrn-top-base,
     .nrn-top-glow,
+    .nrn-connector,
     .nrn-global-hatch {
         fill: none;
         stroke-linecap: round;
@@ -310,6 +307,16 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
     .nrn-bottom-glow {
         stroke: url(#nrn-radial-gradient);
         stroke-width: 1.15;
+    }
+
+    .nrn-connector-base {
+        stroke: var(--nrn-connector-stroke);
+        stroke-width: 1.22;
+    }
+
+    .nrn-connector-glow {
+        stroke: url(#nrn-radial-gradient);
+        stroke-width: 1.22;
     }
 
     .nrn-top-base {
@@ -404,6 +411,8 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
 </style>
 
 <script>
+    type Point = { x: number; y: number };
+    type Connector = { top: Point; bottom: Point };
     type SpringState = { value: number; velocity: number };
 
     const PRESS_DEPTH = 14;
@@ -428,10 +437,6 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
     };
 
     const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
-    const smoothstep = (edge0: number, edge1: number, value: number) => {
-        const x = clamp01((value - edge0) / Math.max(edge1 - edge0, 0.0001));
-        return x * x * (3 - 2 * x);
-    };
 
     const setupNRN = (root: HTMLElement) => {
         if (root.dataset.nrnReady === 'true') return;
@@ -440,10 +445,18 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         const mark = root.querySelector<HTMLButtonElement>('[data-nrn-mark]');
         const svg = root.querySelector<SVGSVGElement>('[data-nrn-svg]');
         const surface = root.querySelector<SVGGElement>('[data-nrn-surface]');
-        const normalSolid = root.querySelector<SVGGElement>('[data-solid-normal]');
-        const pressedSolid = root.querySelector<SVGGElement>('[data-solid-pressed]');
         const gradient = root.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
-        if (!mark || !svg || !surface || !normalSolid || !pressedSolid || !gradient) return;
+        if (!mark || !svg || !surface || !gradient) return;
+
+        const sweepLayers = Array.from(root.querySelectorAll<SVGGElement>('[data-sweep-depth]')).map((element) => ({
+            element,
+            depth: Number(element.dataset.sweepDepth ?? 0),
+        }));
+
+        const connectorPaths = Array.from(root.querySelectorAll<SVGPathElement>('[data-nrn-connector]')).map((element) => ({
+            element,
+            connector: JSON.parse(element.dataset.nrnConnector ?? '{}') as Connector,
+        }));
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -543,10 +556,19 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         const renderPress = (value: number) => {
             surface.setAttribute('transform', `translate(0 ${value.toFixed(3)})`);
 
-            const progress = clamp01(value / PRESS_DEPTH);
-            const pressedMix = smoothstep(0.34, 0.66, progress);
-            normalSolid.setAttribute('opacity', (1 - pressedMix).toFixed(4));
-            pressedSolid.setAttribute('opacity', pressedMix.toFixed(4));
+            // Continuous swept-volume compression. Only the single slice at the moving
+            // cap fades; deeper slices stay opaque and continue doing hidden-line removal.
+            sweepLayers.forEach(({ element, depth }) => {
+                const opacity = clamp01(depth - value);
+                element.setAttribute('opacity', opacity.toFixed(3));
+            });
+
+            connectorPaths.forEach(({ element, connector }) => {
+                element.setAttribute(
+                    'd',
+                    `M ${connector.top.x} ${connector.top.y + value} L ${connector.bottom.x} ${connector.bottom.y}`,
+                );
+            });
         };
 
         const tick = (now: number) => {
