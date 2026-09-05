@@ -1,0 +1,314 @@
+---
+/**
+ * Development-only reference port of Chánh Đại's ChanhDaiMarkIsometric.
+ * Original source:
+ * https://github.com/ncdai/chanhdai.com/blob/main/src/features/portfolio/components/chanhdai-mark-isometric.tsx
+ *
+ * MIT License
+ * Copyright (c) 2026 Chánh Đại
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * This Astro port keeps the original SVG geometry and visual color ratios while
+ * replacing React Motion with small vanilla-JS development interactions.
+ */
+
+const STROKE_NORMAL = [
+    'M28.21 240.58 L0.50 224.58 V192.58 L111.35 128.58 L166.78 160.58 V192.58 L83.64 240.58',
+    'M166.78 160.58 L0.50 256.58 V288.58 L111.35 352.58 L166.78 320.58 L222.20 352.58 L333.05 288.58 V256.58 L277.63 224.58 L166.78 288.58 L0.50 192.58',
+    'M0.50 256.58 L111.35 320.58 L166.78 288.58 L222.20 320.58 L333.05 256.58',
+    'M111.35 320.58 V352.58',
+    'M166.78 288.58 V320.58',
+    'M222.20 320.58 V352.58',
+    'M499.33 96.58 L554.76 128.58 V160.58 L388.48 256.58 L166.78 128.58 V96.58 L333.05 0.58 L499.33 96.58',
+    'M166.78 96.58 L388.48 224.58 L554.76 128.58',
+    'M527.04 112.58 L554.76 96.58 V64.58 L443.90 0.58 L277.63 96.58 L388.48 160.58 L554.76 64.58',
+    'M305.34 112.58 L388.48 64.58 L471.62 112.58',
+    'M388.48 224.58 V256.58',
+    'M388.48 32.58 V64.58',
+].join('');
+
+const STROKE_PRESSED = [
+    'M42.07 248.58 L0.50 224.58 V208.58 L111.35 144.58 L166.78 176.58 V192.58 L69.78 248.58',
+    'M166.78 176.58 L0.5 272.58 V288.58 L111.35 352.58 L166.78 320.58 L222.20 352.58 L333.05 288.58 V272.58 L277.63 240.58 L166.78 304.58 L0.5 208.58',
+    'M0.5 272.58 L111.35 336.58 L166.78 304.58 L222.20 336.58 L333.05 272.58',
+    'M111.35 336.58 V352.58',
+    'M166.78 304.58 V320.58',
+    'M222.20 336.58 V352.58',
+    'M499.33 112.58 L554.76 144.58 V160.58 L388.48 256.58 L166.78 128.58 V112.58 L333.05 16.58 L499.33 112.58',
+    'M166.78 112.58 L388.48 240.58 L554.76 144.58',
+    'M513.19 120.58 L554.76 96.58 V80.58 L443.90 16.58 L277.63 112.58 L388.48 176.58 L554.76 80.58',
+    'M291.48 120.58 L388.48 64.58 L485.47 120.58',
+    'M388.48 240.58 V256.58',
+    'M388.48 48.58 V64.58',
+].join('');
+
+const WALLS = [
+    {
+        normal: 'M166.78 160.58L55.93 224.58L0.50 192.58V224.58L55.93 256.58L166.78 192.58V160.58Z',
+        pressed: 'M166.78 176.58L55.93 240.58L0.50 208.58V224.58L55.93 256.58L166.78 192.58V176.58Z',
+    },
+    {
+        normal: 'M166.78 288.58L111.35 320.58L0.50 256.58V288.58L111.35 352.58L166.78 320.58L222.20 352.58L333.05 288.58V256.58L222.20 320.58L166.78 288.58Z',
+        pressed: 'M166.78 304.58L111.35 336.58L0.50 272.58V288.58L111.35 352.58L166.78 320.58L222.20 352.58L333.05 288.58V272.58L222.20 336.58L166.78 304.58Z',
+    },
+    {
+        normal: 'M388.48 224.58L166.78 96.58V128.58L388.48 256.58L554.76 160.58V128.58L388.48 224.58Z',
+        pressed: 'M388.48 240.58L166.78 112.58V128.58L388.48 256.58L554.76 160.58V144.58L388.48 240.58Z',
+    },
+    {
+        normal: 'M388.48 32.58L277.63 96.58V128.58L388.48 64.58L499.33 128.58L554.75 96.58V64.58L499.33 96.58L388.48 32.58Z',
+        pressed: 'M388.48 48.58L277.63 112.58V128.58L388.48 64.58L499.33 128.58L554.75 96.58V80.58L499.33 112.58L388.48 48.58Z',
+    },
+];
+---
+
+<div class="cd-reference" data-cd-reference>
+    <button class="cd-button" type="button" data-cd-button aria-label="Press ChanhDai reference mark">
+        <svg
+            class="cd-svg"
+            data-cd-svg
+            viewBox="0 0 556 354"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+        >
+            <defs>
+                <pattern id="cd-face-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="cd-pattern-line" />
+                </pattern>
+
+                <g id="cd-face-fill" data-cd-face-fill>
+                    <path d="M333.05 256.58L222.20 320.58L166.78 288.58L277.63 224.58L333.05 256.58Z" />
+                    <path d="M388.48 32.58L277.63 96.58L388.48 160.58L499.33 96.58L554.76 128.58L388.48 224.58L166.78 96.58L333.05 0.58L388.48 32.58Z" />
+                    <path d="M166.78 288.58L111.35 320.58L0.50 256.58L55.93 224.58L166.78 288.58Z" />
+                    <path d="M554.76 64.58L499.33 96.58L388.48 32.58L443.90 0.58L554.76 64.58Z" />
+                    <path d="M166.78 160.58L55.93 224.58L0.50 192.58L111.35 128.58L166.78 160.58Z" />
+                </g>
+
+                <path id="cd-stroke" data-cd-stroke d={STROKE_NORMAL} />
+
+                <radialGradient id="cd-radial-gradient" data-cd-gradient cx="278" cy="177" r="200" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" class="cd-glow-start" />
+                    <stop offset="1" class="cd-glow-end" />
+                </radialGradient>
+            </defs>
+
+            <g class="cd-guides" stroke-width="1" stroke-dasharray="4 2">
+                <path d="M-477.55 756.57L1254.51 -243.41" />
+                <path d="M977.37 788.58L-754.67 -211.42" />
+                <path d="M1143.65 692.58L-588.39 -307.42" />
+            </g>
+
+            <g class="cd-walls" fill-rule="evenodd" clip-rule="evenodd">
+                {WALLS.map((wall) => (
+                    <path data-cd-wall data-normal-d={wall.normal} data-pressed-d={wall.pressed} d={wall.normal} />
+                ))}
+            </g>
+
+            <use href="#cd-face-fill" class="cd-face-background" />
+            <use href="#cd-face-fill" fill="url(#cd-face-pattern)" />
+
+            <use href="#cd-stroke" class="cd-stroke-base" />
+            <use href="#cd-stroke" class="cd-stroke-glow" />
+        </svg>
+    </button>
+</div>
+
+<style>
+    .cd-reference {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        background: var(--bg);
+        --cd-background: var(--bg);
+        --cd-foreground: var(--text);
+        --cd-pattern: color-mix(in oklab, var(--cd-foreground) 12%, var(--cd-background));
+        --cd-stroke: color-mix(in oklab, var(--cd-foreground) 16%, var(--cd-background));
+        --cd-line: color-mix(in oklab, var(--cd-foreground) 7%, var(--cd-background));
+    }
+
+    .cd-button {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .cd-button:focus-visible {
+        outline: 1px solid color-mix(in srgb, var(--text) 60%, transparent);
+        outline-offset: -4px;
+    }
+
+    .cd-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .cd-pattern-line {
+        fill: none;
+        stroke: var(--cd-pattern);
+        stroke-width: 1;
+    }
+
+    [data-cd-face-fill] {
+        transition: transform 170ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .cd-guides {
+        fill: none;
+        stroke: var(--cd-line);
+        pointer-events: none;
+    }
+
+    .cd-walls,
+    .cd-face-background {
+        fill: var(--cd-background);
+    }
+
+    .cd-stroke-base,
+    .cd-stroke-glow {
+        fill: none;
+        stroke-width: 1;
+        pointer-events: none;
+    }
+
+    .cd-stroke-base {
+        stroke: var(--cd-stroke);
+    }
+
+    .cd-stroke-glow {
+        stroke: url(#cd-radial-gradient);
+    }
+
+    .cd-glow-start {
+        stop-color: #fff;
+        stop-opacity: 1;
+    }
+
+    .cd-glow-end {
+        stop-color: #52525b;
+        stop-opacity: 0;
+    }
+</style>
+
+<script define:vars={{ STROKE_NORMAL, STROKE_PRESSED }}>
+    const roots = document.querySelectorAll<HTMLElement>('[data-cd-reference]');
+
+    roots.forEach((root) => {
+        if (root.dataset.cdReady === 'true') return;
+        root.dataset.cdReady = 'true';
+
+        const button = root.querySelector<HTMLButtonElement>('[data-cd-button]');
+        const svg = root.querySelector<SVGSVGElement>('[data-cd-svg]');
+        const gradient = root.querySelector<SVGRadialGradientElement>('[data-cd-gradient]');
+        const faceFill = root.querySelector<SVGGElement>('[data-cd-face-fill]');
+        const stroke = root.querySelector<SVGPathElement>('[data-cd-stroke]');
+        const walls = Array.from(root.querySelectorAll<SVGPathElement>('[data-cd-wall]'));
+        if (!button || !svg || !gradient || !faceFill || !stroke) return;
+
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+        let targetX = 278;
+        let targetY = 177;
+        let currentX = targetX;
+        let currentY = targetY;
+        let raf = 0;
+        let pressed = false;
+        let audioContext: AudioContext | null = null;
+
+        const paintGradient = () => {
+            currentX += (targetX - currentX) * 0.16;
+            currentY += (targetY - currentY) * 0.16;
+            gradient.setAttribute('cx', currentX.toFixed(2));
+            gradient.setAttribute('cy', currentY.toFixed(2));
+
+            if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
+                raf = requestAnimationFrame(paintGradient);
+            } else {
+                raf = 0;
+            }
+        };
+
+        const onPointerMove = (event: PointerEvent) => {
+            if (!finePointer.matches || reducedMotion.matches) return;
+            targetX = (event.clientX / window.innerWidth) * 556;
+            targetY = (event.clientY / window.innerHeight) * 354;
+            if (!raf) raf = requestAnimationFrame(paintGradient);
+        };
+
+        const setPressed = (nextPressed: boolean) => {
+            if (pressed === nextPressed) return;
+            pressed = nextPressed;
+            faceFill.style.transform = nextPressed ? 'translateY(16px)' : 'translateY(0px)';
+            stroke.setAttribute('d', nextPressed ? STROKE_PRESSED : STROKE_NORMAL);
+            walls.forEach((wall) => {
+                const nextD = nextPressed ? wall.dataset.pressedD : wall.dataset.normalD;
+                if (nextD) wall.setAttribute('d', nextD);
+            });
+        };
+
+        const playClick = () => {
+            try {
+                audioContext ??= new AudioContext();
+                const now = audioContext.currentTime;
+                const oscillator = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(230, now);
+                oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.04);
+                gain.gain.setValueAtTime(0.0001, now);
+                gain.gain.exponentialRampToValueAtTime(0.035, now + 0.004);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start(now);
+                oscillator.stop(now + 0.075);
+            } catch {
+                // Decorative development-only sound.
+            }
+        };
+
+        window.addEventListener('pointermove', onPointerMove, { passive: true });
+        button.addEventListener('pointerdown', () => setPressed(true));
+        button.addEventListener('pointerup', () => {
+            setPressed(false);
+            playClick();
+        });
+        button.addEventListener('pointercancel', () => setPressed(false));
+        button.addEventListener('pointerleave', () => setPressed(false));
+        button.addEventListener('keydown', (event) => {
+            if (event.key === ' ' || event.key === 'Enter') setPressed(true);
+        });
+        button.addEventListener('keyup', (event) => {
+            if (event.key === ' ' || event.key === 'Enter') {
+                setPressed(false);
+                playClick();
+            }
+        });
+    });
+</script>
