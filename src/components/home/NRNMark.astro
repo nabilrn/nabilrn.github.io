@@ -50,21 +50,40 @@ const R_SIDE_FACES: SideFace[] = [
     { kind: 'line', p0: { x: 469.135302, y: 333.815372 }, p1: { x: 433.101213, y: 315.425111 } },
     { kind: 'line', p0: { x: 455.576209, y: 254.223858 }, p1: { x: 431.124499, y: 241.744751 } },
     { kind: 'line', p0: { x: 431.124499, y: 241.744751 }, p1: { x: 358.459158, y: 277.330979 } },
-    { kind: 'line', p0: { x: 358.459158, y: 277.330979 }, p1: { x: 331.433585, y: 263.538279 } },
+    // Intentionally omit the old arm/body join end-cap. It created a vertical line
+    // in the middle of the chip and made the R read like separate blocks rather than
+    // one button-like solid.
 ];
 
 const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_FACES];
 
-const pointKey = ({ x, y }: Point) => `${x.toFixed(4)}:${y.toFixed(4)}`;
-const connectorPoints = new Map<string, Point>();
-for (const face of ALL_SIDE_FACES) {
-    connectorPoints.set(pointKey(face.p0), face.p0);
-    connectorPoints.set(pointKey(face.p1), face.p1);
-}
-const CONNECTORS: Connector[] = [...connectorPoints.values()].map((top) => ({
-    top,
-    bottom: { x: top.x, y: top.y + DEPTH },
-}));
+const CONNECTORS: Connector[] = [
+    // Left N
+    { top: { x: 103.648878, y: 156.376136 }, bottom: { x: 103.648878, y: 184.376136 } },
+    { top: { x: 131.532404, y: 170.6067 }, bottom: { x: 131.532404, y: 198.6067 } },
+    { top: { x: 243.06651, y: 227.528959 }, bottom: { x: 243.06651, y: 255.528959 } },
+    { top: { x: 270.950036, y: 241.759524 }, bottom: { x: 270.950036, y: 269.759524 } },
+    { top: { x: 276.803997, y: 211.006777 }, bottom: { x: 276.803997, y: 239.006777 } },
+    { top: { x: 300.21981, y: 87.995806 }, bottom: { x: 300.21981, y: 115.995806 } },
+    { top: { x: 439.637442, y: 159.14863 }, bottom: { x: 439.637442, y: 187.14863 } },
+
+    // R
+    { top: { x: 455.576209, y: 254.223858 }, bottom: { x: 455.576209, y: 282.223858 } },
+    { top: { x: 431.124499, y: 241.744751 }, bottom: { x: 431.124499, y: 269.744751 } },
+    { top: { x: 496.843346, y: 264.9032 }, bottom: { x: 496.843346, y: 292.9032 } },
+    { top: { x: 469.135302, y: 333.815372 }, bottom: { x: 469.135302, y: 361.815372 } },
+    { top: { x: 433.101213, y: 315.425111 }, bottom: { x: 433.101213, y: 343.425111 } },
+    { top: { x: 588.567394, y: 268.89096 }, bottom: { x: 588.567394, y: 296.89096 } },
+
+    // Right N
+    { top: { x: 529.648878, y: 356.376136 }, bottom: { x: 529.648878, y: 384.376136 } },
+    { top: { x: 557.532404, y: 370.6067 }, bottom: { x: 557.532404, y: 398.6067 } },
+    { top: { x: 669.06651, y: 427.528959 }, bottom: { x: 669.06651, y: 455.528959 } },
+    { top: { x: 696.950036, y: 441.759524 }, bottom: { x: 696.950036, y: 469.759524 } },
+    { top: { x: 702.803997, y: 411.006777 }, bottom: { x: 702.803997, y: 439.006777 } },
+    { top: { x: 726.21981, y: 287.995806 }, bottom: { x: 726.21981, y: 315.995806 } },
+    { top: { x: 865.637442, y: 359.14863 }, bottom: { x: 865.637442, y: 387.14863 } },
+];
 
 const sideFillPath = (face: SideFace, press = 0) => {
     if (face.kind === 'line') {
