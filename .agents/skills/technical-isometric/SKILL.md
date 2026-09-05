@@ -1,13 +1,13 @@
 ---
-name: technical-isometric-nrn
-description: Use when designing or editing the NRN hero mark, modular lettering, isometric geometry, 3D side walls, hatch, technical ruler lines, structural stroke visibility, cursor spotlight, or pressed-depth interaction.
+name: technical-isometric-nr
+description: Use when designing or editing the NR hero mark, modular lettering, isometric geometry, 3D side walls, hatch, technical ruler lines, structural stroke visibility, cursor spotlight, or pressed-depth interaction.
 ---
 
-# NRN Technical Isometric Skill
+# NR Technical Isometric Skill
 
 ## Purpose
 
-Build the NRN mark as clean technical line-art with modular geometry. The visual grammar is informed by the ChanhDai isometric mark, but NRN letterforms must remain original.
+Build the NR monogram as clean technical line-art with modular geometry. The visual grammar is informed by the ChanhDai isometric mark, but the N/R letterforms remain original.
 
 Reference implementation studied:
 `https://github.com/ncdai/chanhdai.com/blob/main/src/features/portfolio/components/chanhdai-mark-isometric.tsx`
@@ -31,14 +31,17 @@ Avoid:
 
 ## Geometry
 
-- Use one 30° isometric lattice for all glyphs.
+- Use one 30° isometric lattice for both glyphs.
 - Define letters in plan-view coordinates first, then project them.
+- Current hero direction is `NR`, not `NRN`: N represents Nabil, R represents Rizki.
+- Treat N and R as two independent geometric masses with deliberate negative space between them.
+- Do not overlap the two top surfaces merely to make the mark compact.
+- Compose N lower-left and R upper-right along the projected -30° lattice axis.
 - Keep glyph stroke/bar thickness visually consistent.
 - Keep the R modular/angular unless a curve is necessary for recognition.
 - Use simple polygons and a small number of meaningful control points.
 - Depth should read as restrained relief, not a heavy extrusion. A useful target is about half the structural bar thickness.
 - Keep normal and pressed states on the same lattice.
-- For the hero composition, prefer the same overall reading direction as the reference: lower-left toward upper-right along the projected -30° lattice axis.
 
 ## Occlusion and hidden-line removal
 
@@ -49,8 +52,8 @@ Walls and visible strokes are separate concerns. Treat visibility as a design-en
 - Split structural stroke into two groups:
   1. front-most top-face boundaries;
   2. depth silhouette: exposed bottom edges and real visibility-transition connectors.
-- The depth stroke must be geometrically occluded by front-most top faces. A valid implementation is an SVG mask that subtracts top-face coverage from the depth stroke.
-- A depth edge that falls behind a top face must disappear even if the edge is mathematically part of the extrusion.
+- The depth stroke must be geometrically occluded by front-most top faces. An SVG mask that subtracts top-face coverage from depth stroke is valid.
+- A depth edge that falls behind a top face must disappear even if it mathematically belongs to the extrusion.
 - Adjacent visible wall faces do not need a vertical seam between them.
 - Add a vertical depth connector only at a silhouette/visibility transition, not at every wall endpoint.
 - Inner counters use the opposite-facing visibility rule from outer contours.
@@ -66,12 +69,12 @@ Use one structural stroke language.
 - Hatch: roughly `12%` foreground mixed into background.
 - Use `butt` caps and `miter` joins for engineering geometry.
 - Avoid separate top/bottom/connector gray systems unless there is a specific visual reason.
-- Render the same visible structural geometry a second time with a radial gradient spotlight.
+- Render the same visible structural geometry a second time with a radial-gradient spotlight.
 - Let the moving spotlight create hierarchy; do not make the base outline loud.
 
 ## Hatch
 
-- Use one global `userSpaceOnUse` pattern so phase is shared across N -> R -> N.
+- Use one global `userSpaceOnUse` pattern so phase is shared across N -> R.
 - Keep hatch sparse and regular.
 - Hatch belongs only to top faces.
 - Do not procedurally emit hundreds of lines when a single SVG pattern expresses the same system.
@@ -82,8 +85,8 @@ Ruler lines are lattice extensions, not decoration.
 
 - Anchor each ruler to an actual structural vertex of the mark.
 - Extend exactly along a ±30° lattice axis.
-- Draw rulers before wall/top fills so the solid geometry naturally masks them.
-- Prefer the minimum useful set: typically one line in one slope direction and up to two parallel lines in the opposite slope direction.
+- Draw rulers before wall/top fills so solid geometry naturally masks them.
+- Prefer the minimum useful set: typically one baseline-family line and up to two lines from the opposite lattice family.
 - Parallel rulers should share the same lattice family.
 - Use a very low-contrast border/background-derived color and a short dash pattern.
 - Remove a ruler if it adds noise without clarifying the construction system.
@@ -113,9 +116,9 @@ Treat the press as a controlled 3D illusion.
 Use `src/pages/dev/nrn-compare.astro` as the visual lab.
 
 1. Keep the ChanhDai reference intact for side-by-side comparison.
-2. Iterate on the modular NRN candidate without changing the production hero first.
-3. Inspect silhouette, topology, hatch phase, hidden seams, ruler placement, base contrast, cursor glow, and press-state occlusion.
-4. Promote the modular implementation only after the candidate is visually cleaner than the existing production mark.
+2. Iterate on `src/components/dev/NRModularMark.astro` without changing the production hero first.
+3. Inspect silhouette, spacing, topology, hatch phase, hidden seams, ruler placement, base contrast, cursor glow, and press-state occlusion.
+4. Promote the NR implementation only after the candidate is visually cleaner than the existing production mark.
 
 ## Anti-patterns
 
@@ -124,19 +127,21 @@ Do not:
 - generate 20+ sweep/depth copies of the glyph;
 - add connectors at every polygon vertex;
 - render a full lower glyph outline underneath the top face;
+- overlap N and R until they read as one tangled solid;
 - use arbitrary diagonal background lines unrelated to actual vertices;
 - use thick high-contrast outlines to explain weak geometry;
 - rely on rounded joins to hide imprecise intersections;
 - patch visibility with fragile `nth-child`/opacity hacks;
-- copy the ChanhDai C/D geometry into NRN.
+- copy the ChanhDai C/D geometry into NR.
 
 ## QA
 
 Before calling the mark done:
 
-- NRN is recognizable without labels.
-- All three glyphs share one projection and hatch phase.
-- Overall letter flow matches the intended lower-left -> upper-right composition.
+- NR is recognizable without labels.
+- N and R share one projection and hatch phase.
+- The two masses remain visually separate with intentional negative space.
+- Overall letter flow is lower-left -> upper-right.
 - No bottom/depth stroke is visible through a front-most top face.
 - No internal seam looks like an accidental leftover stroke.
 - Ruler lines pass through real structural vertices.
