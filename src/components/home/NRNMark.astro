@@ -17,8 +17,7 @@ const RIGHT_N_DEPTH_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.99
 const R_MATRIX = 'matrix(0.999965966 0.008251472 -0.008251472 0.999965966 332.126709 179.541138)';
 const R_BACK_MATRIX = 'matrix(0.999965966 0.008251472 -0.008251472 0.999965966 331.895668 207.540185)';
 
-// The hatch is one global field, not one pattern per letter. This keeps N → R → N
-// phase, direction and spacing continuous exactly as approved in Figma.
+// One global hatch field keeps N → R → N phase, direction and spacing continuous.
 const HATCH_DIRECTION = { x: 0.5885843638383417, y: 0.808435802426522 };
 const HATCH_NORMAL = { x: -0.808435802426522, y: 0.5885843638383417 };
 const HATCH_SPACING = 5.357116234906698;
@@ -80,7 +79,7 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
                     data-nrn-gradient
                     cx="484"
                     cy="300"
-                    r="260"
+                    r="235"
                     gradientUnits="userSpaceOnUse"
                 >
                     <stop offset="0" class="nrn-glow-start" />
@@ -95,7 +94,7 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
             </g>
 
             <g data-nrn-art>
-                <!-- N left: exact visible extrusion from the approved Figma geometry. -->
+                <!-- Base/extrusion stays anchored during a press, like ChanhDai's isometric mark. -->
                 <g class="nrn-side-layer" aria-hidden="true">
                     <path class="nrn-side-stroke" d={N_EXTRUSION_PATH} transform="translate(103.417725 73.765259)" />
                     <path class="nrn-side-glow" d={N_EXTRUSION_PATH} transform="translate(103.417725 73.765259)" />
@@ -103,7 +102,6 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
                     <path class="nrn-depth-glow" d={N_DEPTH_PATH} transform={LEFT_N_DEPTH_MATRIX} />
                 </g>
 
-                <!-- R: same 28px depth system, with the front surface masking hidden rear edges. -->
                 <g class="nrn-side-layer" aria-hidden="true">
                     <path class="nrn-side-stroke nrn-r-back" d={R_FRONT_PATH} transform={R_BACK_MATRIX} fill-rule="evenodd" />
                     <path class="nrn-side-glow" d={R_FRONT_PATH} transform={R_BACK_MATRIX} fill-rule="evenodd" />
@@ -111,7 +109,6 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
                     <path class="nrn-depth-glow" d={R_CONNECTORS} transform={R_MATRIX} />
                 </g>
 
-                <!-- N right: exact duplicate of the approved N with its final aligned transform. -->
                 <g class="nrn-side-layer" aria-hidden="true">
                     <path class="nrn-side-stroke" d={N_EXTRUSION_PATH} transform="translate(529.417725 273.765259)" />
                     <path class="nrn-side-glow" d={N_EXTRUSION_PATH} transform="translate(529.417725 273.765259)" />
@@ -119,28 +116,29 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
                     <path class="nrn-depth-glow" d={N_DEPTH_PATH} transform={RIGHT_N_DEPTH_MATRIX} />
                 </g>
 
-                <!-- Opaque-to-background front surfaces emulate solid geometry while remaining visually fill-less. -->
-                <g class="nrn-front-fill" aria-hidden="true">
-                    <path d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
-                    <path d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
-                    <path d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
-                </g>
+                <!-- Only the top/surface assembly travels down on press. The anchored base makes the depth visibly collapse. -->
+                <g data-nrn-surface>
+                    <g class="nrn-front-fill" aria-hidden="true">
+                        <path d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
+                        <path d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
+                        <path d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
+                    </g>
 
-                <!-- One global hatch field is clipped by all three surfaces, so the lines visually continue across NRN. -->
-                <path
-                    class="nrn-global-hatch"
-                    d={GLOBAL_HATCH_PATH}
-                    clip-path="url(#nrn-surface-clip)"
-                    aria-hidden="true"
-                />
+                    <path
+                        class="nrn-global-hatch"
+                        d={GLOBAL_HATCH_PATH}
+                        clip-path="url(#nrn-surface-clip)"
+                        aria-hidden="true"
+                    />
 
-                <g class="nrn-front-strokes" aria-hidden="true">
-                    <path class="nrn-front-stroke" d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
-                    <path class="nrn-front-glow" d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
-                    <path class="nrn-front-stroke" d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
-                    <path class="nrn-front-glow" d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
-                    <path class="nrn-front-stroke" d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
-                    <path class="nrn-front-glow" d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
+                    <g class="nrn-front-strokes" aria-hidden="true">
+                        <path class="nrn-front-stroke" d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
+                        <path class="nrn-front-glow" d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
+                        <path class="nrn-front-stroke" d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
+                        <path class="nrn-front-glow" d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" />
+                        <path class="nrn-front-stroke" d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
+                        <path class="nrn-front-glow" d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
+                    </g>
                 </g>
             </g>
 
@@ -168,9 +166,9 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
         overflow: hidden;
         color: var(--text);
         background: var(--bg);
-        --nrn-outline: color-mix(in srgb, var(--text) 55%, var(--bg));
-        --nrn-side-outline: color-mix(in srgb, var(--text) 46%, var(--bg));
-        --nrn-hatch: color-mix(in srgb, var(--text) 49%, var(--bg));
+        --nrn-outline: color-mix(in srgb, var(--text) 42%, var(--bg));
+        --nrn-side-outline: color-mix(in srgb, var(--text) 34%, var(--bg));
+        --nrn-hatch: color-mix(in srgb, var(--text) 35%, var(--bg));
     }
 
     .nrn-mark {
@@ -260,20 +258,20 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
 
     .nrn-side-glow,
     .nrn-front-glow {
-        stroke-width: 1.25;
+        stroke-width: 1.35;
     }
 
     .nrn-depth-glow {
-        stroke-width: 1;
+        stroke-width: 1.1;
     }
 
     .nrn-glow-start {
-        stop-color: color-mix(in srgb, var(--text) 98%, var(--bg));
-        stop-opacity: 0.95;
+        stop-color: color-mix(in srgb, var(--text) 100%, var(--bg));
+        stop-opacity: 1;
     }
 
     .nrn-glow-end {
-        stop-color: color-mix(in srgb, var(--text) 52%, var(--bg));
+        stop-color: color-mix(in srgb, var(--text) 46%, var(--bg));
         stop-opacity: 0;
     }
 
@@ -348,7 +346,7 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
     const VIEW_Y = 20;
     const VIEW_W = 888;
     const VIEW_H = 560;
-    const PRESS_DEPTH = 5;
+    const PRESS_DEPTH = 16;
 
     const springAdvance = (
         state: SpringState,
@@ -374,10 +372,9 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
         root.dataset.nrnReady = 'true';
 
         const mark = root.querySelector<HTMLButtonElement>('[data-nrn-mark]');
-        const svg = root.querySelector<SVGSVGElement>('[data-nrn-svg]');
-        const art = root.querySelector<SVGGElement>('[data-nrn-art]');
+        const surface = root.querySelector<SVGGElement>('[data-nrn-surface]');
         const gradient = root.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
-        if (!mark || !svg || !art || !gradient) return;
+        if (!mark || !surface || !gradient) return;
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -393,14 +390,12 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
         let lastTime = performance.now();
         let audioContext: AudioContext | null = null;
 
+        // Match ChanhDai: cursor position is normalized against the viewport, not the SVG box.
+        // This makes the spotlight continue to travel naturally even when the pointer is outside the mark.
         const onPointerMove = (event: PointerEvent) => {
             if (!finePointer.matches) return;
-            const rect = svg.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            const px = Math.min(1, Math.max(0, (event.clientX - rect.left) / rect.width));
-            const py = Math.min(1, Math.max(0, (event.clientY - rect.top) / rect.height));
-            cursorTargetX = VIEW_X + px * VIEW_W;
-            cursorTargetY = VIEW_Y + py * VIEW_H;
+            cursorTargetX = VIEW_X + (event.clientX / Math.max(window.innerWidth, 1)) * VIEW_W;
+            cursorTargetY = VIEW_Y + (event.clientY / Math.max(window.innerHeight, 1)) * VIEW_H;
         };
 
         const playClick = () => {
@@ -409,18 +404,18 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
                 const now = audioContext.currentTime;
                 const oscillator = audioContext.createOscillator();
                 const gain = audioContext.createGain();
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(155, now);
-                oscillator.frequency.exponentialRampToValueAtTime(92, now + 0.055);
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(210, now);
+                oscillator.frequency.exponentialRampToValueAtTime(82, now + 0.045);
                 gain.gain.setValueAtTime(0.0001, now);
-                gain.gain.exponentialRampToValueAtTime(0.04, now + 0.006);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.07);
+                gain.gain.exponentialRampToValueAtTime(0.055, now + 0.004);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.075);
                 oscillator.connect(gain);
                 gain.connect(audioContext.destination);
                 oscillator.start(now);
-                oscillator.stop(now + 0.075);
+                oscillator.stop(now + 0.08);
             } catch {
-                // Audio is optional.
+                // Sound is optional; interaction remains functional without Web Audio.
             }
         };
 
@@ -467,7 +462,7 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
             ([entry]) => {
                 inView = entry?.isIntersecting ?? true;
             },
-            { threshold: 0.01 },
+            { rootMargin: '80px', threshold: 0.01 },
         );
         observer.observe(root);
 
@@ -475,23 +470,23 @@ const R_CONNECTORS = 'M 0 84 L 0 112 M 27.138462 97.569229 L 27.138462 125.56922
             const dt = Math.min((now - lastTime) / 1000, 0.05);
             lastTime = now;
 
+            // ChanhDai only disables cursor-follow motion for reduced-motion users;
+            // the tactile press itself remains immediate and usable.
             if (reducedMotion.matches) {
                 cursorX.value = cursorTargetX;
                 cursorY.value = cursorTargetY;
-                press.value = pressTarget;
                 cursorX.velocity = 0;
                 cursorY.velocity = 0;
-                press.velocity = 0;
             } else {
                 springAdvance(cursorX, cursorTargetX, 300, 30, 0.1, dt);
                 springAdvance(cursorY, cursorTargetY, 300, 30, 0.1, dt);
-                springAdvance(press, pressTarget, 190, 19, 0.5, dt);
             }
+            springAdvance(press, pressTarget, 200, 18, 0.5, dt);
 
             if (inView) {
                 gradient.setAttribute('cx', cursorX.value.toFixed(2));
                 gradient.setAttribute('cy', cursorY.value.toFixed(2));
-                art.setAttribute('transform', `translate(0 ${press.value.toFixed(2)})`);
+                surface.setAttribute('transform', `translate(0 ${press.value.toFixed(2)})`);
             }
 
             raf = requestAnimationFrame(tick);
