@@ -1,7 +1,7 @@
 ---
 import Page from '../components/Page.astro';
 import HomeHeader from '../components/home/HomeHeader.astro';
-import NRNMark from '../components/home/NRNMark.astro';
+import NRModularMark from '../components/dev/NRModularMark.astro';
 import RoleFlip from '../components/home/RoleFlip.astro';
 import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
@@ -42,7 +42,7 @@ const introByLocale: Record<SiteLocale, string> = {
             <section class="hero" aria-labelledby="hero-name">
                 <div class="hero-intro">
                     <div class="identity">
-                        <div class="identity-mark" aria-hidden="true">NRN</div>
+                        <div class="identity-mark" aria-hidden="true">NR</div>
                         <div class="identity-copy">
                             <h1 id="hero-name">{content.profile.name}</h1>
                             <RoleFlip roles={rolesByLocale[locale]} />
@@ -53,7 +53,7 @@ const introByLocale: Record<SiteLocale, string> = {
                 </div>
 
                 <div class="hero-visual">
-                    <NRNMark />
+                    <NRModularMark />
                 </div>
             </section>
 
