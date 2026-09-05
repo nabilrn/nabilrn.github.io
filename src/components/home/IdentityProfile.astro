@@ -33,10 +33,6 @@ const socialLinks = [
 ---
 
 <div class="identity-profile" data-locale={locale}>
-    <div class="profile-annotation-layer" aria-hidden="true">
-        <HandwrittenNote text="my social" class="social-note" />
-    </div>
-
     <div class="avatar-stage">
         <div class="avatar-wrap">
             <Image src={avatar} alt={avatarAlt} width={320} height={320} />
@@ -57,6 +53,10 @@ const socialLinks = [
     </div>
 
     <div class="social-block">
+        <div class="social-annotation-layer" aria-hidden="true">
+            <HandwrittenNote text="my social" class="social-note" arrowVariant="shallow" />
+        </div>
+
         <nav class="social-links" aria-label="Social links">
             {socialLinks.map((item) => (
                 <a
@@ -94,21 +94,6 @@ const socialLinks = [
         align-items: flex-start;
         border-right: 1px solid var(--profile-line);
         overflow: visible;
-    }
-
-    .profile-annotation-layer {
-        position: absolute;
-        inset: 0;
-        z-index: 4;
-        pointer-events: none;
-        overflow: visible;
-    }
-
-    :global(.profile-annotation-layer .social-note) {
-        right: -7px;
-        bottom: calc(var(--waterfall-height) + 31px);
-        transform: scale(.9) rotate(-5deg);
-        transform-origin: right bottom;
     }
 
     .avatar-stage {
@@ -221,7 +206,26 @@ const socialLinks = [
     .social-block {
         position: relative;
         width: 100%;
-        margin-top: 18px;
+        margin-top: 16px;
+    }
+
+    .social-annotation-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        overflow: visible;
+    }
+
+    :global(.social-annotation-layer .social-note) {
+        right: -5px;
+        top: -23px;
+        --note-font-size: 15px;
+        --note-arrow-width: 36px;
+        --note-arrow-height: 16px;
+        --note-arrow-gap: -1px;
+        transform: rotate(-4deg);
+        transform-origin: right top;
     }
 
     .social-links {
@@ -312,7 +316,7 @@ const socialLinks = [
         height: var(--waterfall-height);
         min-height: 0;
         flex: none;
-        margin-top: 12px;
+        margin-top: 10px;
         overflow: hidden;
     }
 
@@ -351,7 +355,7 @@ const socialLinks = [
         }
 
         .social-block {
-            margin-top: 14px;
+            margin-top: 13px;
         }
 
         .social-links {
@@ -363,14 +367,16 @@ const socialLinks = [
             height: 28px;
         }
 
-        :global(.profile-annotation-layer .social-note) {
-            right: -5px;
-            bottom: calc(var(--waterfall-height) + 27px);
-            transform: scale(.78) rotate(-5deg);
+        :global(.social-annotation-layer .social-note) {
+            right: -4px;
+            top: -20px;
+            --note-font-size: 13px;
+            --note-arrow-width: 31px;
+            --note-arrow-height: 14px;
         }
 
         .waterfall-wrap {
-            margin-top: 9px;
+            margin-top: 8px;
         }
     }
 
@@ -390,7 +396,7 @@ const socialLinks = [
             width: 136px;
         }
 
-        .profile-annotation-layer {
+        .social-annotation-layer {
             display: none;
         }
     }
