@@ -212,7 +212,7 @@ try {
                 const value = streakRegion.querySelector('.streak-value');
                 const secondary = streakRegion.querySelector('.region-secondary');
 
-                if (label) label.textContent = '';
+                if (label) label.textContent = '@bilcikiwir';
                 if (secondary) secondary.remove();
                 if (value) {
                     value.innerHTML = `
@@ -595,14 +595,15 @@ try {
         }
     }
 
-    /* Board-level optical pass: activity only gets the height its graph needs;
-       the reclaimed budget is reserved for the Experience / Education rail. */
+    /* The contribution rail is capped by its real content height instead of
+       scaling with the full board. The remaining vertical budget belongs to
+       Experience / Education, so no dead strip grows below Fig. 02. */
     @media (min-width: 721px) {
         :global(.identity-board) {
             grid-template-rows:
-                minmax(0, 42.5%)
+                clamp(180px, 35%, 195px)
                 minmax(0, 11.8034%)
-                minmax(0, 45.6966%);
+                minmax(0, 1fr);
         }
 
         :global(.contribution-region .graph-caption) {
@@ -617,15 +618,18 @@ try {
         :global(.home-redesign .streak-region) {
             padding-inline: clamp(12px, 0.95vw, 17px);
             padding-block: 0;
-            display: flex;
-            flex-direction: row;
             align-items: center;
-            justify-content: flex-start;
-            gap: clamp(10px, 0.9vw, 15px);
+        }
+
+        :global(.home-redesign .location-region) {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            column-gap: clamp(12px, 1.1vw, 18px);
         }
 
         :global(.home-redesign .location-region .icon-label) {
-            flex: none;
+            min-width: 0;
+            justify-self: start;
             gap: 6px;
             color: var(--text);
             font-family: var(--font-sans);
@@ -634,10 +638,12 @@ try {
             line-height: 1.2;
             letter-spacing: -0.015em;
             text-transform: none;
+            white-space: nowrap;
         }
 
         :global(.home-redesign .location-region .region-primary) {
-            flex: none;
+            min-width: 0;
+            justify-self: center;
             margin: 0;
             display: inline-flex;
             align-items: center;
@@ -668,13 +674,14 @@ try {
 
         :global(.home-redesign .location-region .region-secondary) {
             min-width: 0;
-            flex: 1 1 auto;
+            justify-self: end;
             margin: 0;
             overflow: hidden;
             color: var(--muted);
             font-family: var(--font-mono);
             font-size: 9px;
             line-height: 1.2;
+            text-align: right;
             white-space: nowrap;
             text-overflow: ellipsis;
         }
@@ -684,31 +691,48 @@ try {
         }
 
         :global(.home-redesign .streak-region) {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap: clamp(12px, 1.1vw, 18px);
             cursor: default;
         }
 
         :global(.home-redesign .streak-region .icon-label) {
-            width: 20px;
+            min-width: 0;
             height: 20px;
-            flex: none;
-            display: grid;
-            place-items: center;
-            gap: 0;
+            flex: 0 1 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
             color: color-mix(in srgb, var(--text) 82%, var(--muted));
-            font-size: 0;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 500;
+            line-height: 1;
             letter-spacing: 0;
+            text-transform: none;
+            white-space: nowrap;
             transition: color 180ms ease, transform 180ms ease;
+        }
+
+        :global(.home-redesign .streak-region .icon-label span) {
+            overflow: hidden;
+            color: var(--muted);
+            text-overflow: ellipsis;
         }
 
         :global(.home-redesign .streak-region .icon-label svg) {
             width: 20px;
             height: 20px;
+            flex: none;
             display: block;
         }
 
         :global(.home-redesign .streak-region .streak-value) {
             min-width: 0;
-            margin: 0;
+            flex: none;
+            margin: 0 0 0 auto;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -753,7 +777,11 @@ try {
 
         :global(.home-redesign .streak-region:hover .icon-label) {
             color: #58cc02;
-            transform: translateY(-1px) scale(1.05);
+            transform: translateY(-1px) scale(1.03);
+        }
+
+        :global(.home-redesign .streak-region:hover .icon-label span) {
+            color: #58cc02;
         }
 
         :global(.home-redesign .streak-region:hover .streak-flame) {
@@ -842,27 +870,41 @@ try {
             display: flex;
             flex-direction: row;
             align-items: center;
-            justify-content: flex-start;
-            gap: 9px;
+            justify-content: space-between;
+            gap: 10px;
         }
 
         :global(.home-redesign .streak-region .icon-label) {
-            width: 22px;
+            min-width: 0;
             height: 22px;
-            flex: none;
-            display: grid;
-            place-items: center;
+            flex: 0 1 auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
             color: color-mix(in srgb, var(--text) 82%, var(--muted));
-            font-size: 0;
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0;
+            text-transform: none;
+            white-space: nowrap;
+        }
+
+        :global(.home-redesign .streak-region .icon-label span) {
+            overflow: hidden;
+            color: var(--muted);
+            text-overflow: ellipsis;
         }
 
         :global(.home-redesign .streak-region .icon-label svg) {
             width: 22px;
             height: 22px;
+            flex: none;
         }
 
         :global(.home-redesign .streak-region .streak-value) {
-            margin: 0;
+            flex: none;
+            margin: 0 0 0 auto;
             display: inline-flex;
             align-items: center;
             gap: 6px;
