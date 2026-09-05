@@ -260,3 +260,63 @@ const blogPath = localizePath('/blog/', locale);
         }
     }
 </style>
+
+<style is:global>
+    /* Homepage drawing-sheet coordinate system.
+       Content keeps its centered rails; selected horizontal structure escapes
+       that content box and is clipped only by the viewport. */
+    html,
+    body,
+    .full-shell {
+        overflow-x: clip;
+    }
+
+    .full-shell .home-redesign[data-home-redesign] {
+        overflow-x: visible;
+    }
+
+    .home-redesign[data-home-redesign] .portfolio-board {
+        isolation: isolate;
+        border-top: 0;
+        border-bottom: 0;
+    }
+
+    .home-redesign[data-home-redesign] .portfolio-board::before,
+    .home-redesign[data-home-redesign] .portfolio-board::after,
+    .home-redesign[data-home-redesign] .top-layout::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        width: 100vw;
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+
+    .home-redesign[data-home-redesign] .portfolio-board::before,
+    .home-redesign[data-home-redesign] .portfolio-board::after {
+        z-index: 6;
+        height: var(--minor-stroke);
+        background: var(--sheet-line);
+    }
+
+    .home-redesign[data-home-redesign] .portfolio-board::before {
+        top: 0;
+    }
+
+    .home-redesign[data-home-redesign] .portfolio-board::after {
+        bottom: 0;
+    }
+
+    .home-redesign[data-home-redesign] .top-layout {
+        position: relative;
+        border-bottom: 0;
+    }
+
+    .home-redesign[data-home-redesign] .top-layout::after {
+        right: auto;
+        bottom: 0;
+        z-index: 8;
+        height: var(--major-stroke);
+        background: var(--border);
+    }
+</style>
