@@ -41,7 +41,7 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         margin: 0 !important;
         padding: 0 34px 0 0 !important;
         display: grid !important;
-        grid-template-columns: 26px minmax(0, 1fr);
+        grid-template-columns: 26px minmax(0, 1fr) !important;
         align-items: center !important;
         column-gap: 8px !important;
         color: var(--text);
@@ -56,8 +56,8 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
     .home-redesign .education-region .region-primary::before {
         width: 24px !important;
         height: 24px !important;
-        align-self: center;
-        justify-self: center;
+        align-self: center !important;
+        justify-self: center !important;
         margin: 0 !important;
         background-position: center !important;
         background-size: 22px auto !important;
@@ -100,13 +100,14 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
     }
 
     .home-redesign .education-map-link {
-        position: absolute;
-        z-index: 7;
-        right: 12px;
-        top: 24px;
-        width: 27px;
-        height: 27px;
-        display: grid;
+        position: absolute !important;
+        z-index: 7 !important;
+        right: 12px !important;
+        top: 24px !important;
+        width: 27px !important;
+        height: 27px !important;
+        min-width: 0 !important;
+        display: grid !important;
         place-items: center;
         border: 1px solid color-mix(in srgb, var(--text) 18%, var(--border));
         border-radius: 5px;
@@ -202,9 +203,9 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         }
 
         .home-redesign .education-map-link {
-            top: 22px;
-            width: 25px;
-            height: 25px;
+            top: 22px !important;
+            width: 25px !important;
+            height: 25px !important;
         }
 
         .home-redesign .education-region .region-primary {
