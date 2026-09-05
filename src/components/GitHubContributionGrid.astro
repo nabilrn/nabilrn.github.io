@@ -1,5 +1,7 @@
 ---
-import { getSiteContent, localeMeta, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import HandwrittenNote from './home/HandwrittenNote.astro';
+import { getGitHubContributions } from '../lib/githubContributions';
 
 interface Props {
     username?: string;
@@ -16,13 +18,14 @@ interface ContributionDay {
 const { username = 'nabilrn', locale: rawLocale } = Astro.props;
 const locale = normalizeLocale(rawLocale);
 const copy = getSiteContent(locale).home.contributions;
-const dateFormatter = new Intl.DateTimeFormat(localeMeta[locale].dateLocale, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-});
-const monthFormatter = new Intl.DateTimeFormat(localeMeta[locale].dateLocale, { month: 'short' });
-const weekdayFormatter = new Intl.DateTimeFormat(localeMeta[locale].dateLocale, { weekday: 'short' });
+
+// Geometry and information hierarchy are adapted from ChanhDai's MIT-licensed
+// GitHub Contributions component, which credits Kibo UI's contribution graph.
+// We keep the Astro implementation framework-free while preserving the useful
+// open-source ideas: rolling-year activities, square blocks, month labels,
+// per-day tooltips, technical figure caption, and Less -> More legend.
+const activities = await getGitHubContributions(username);
+const activityMap = new Map(activities.map((activity) => [activity.date, activity]));
 
 const toUtcDay = (date: Date) => new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 const toDateKey = (date: Date) => date.toISOString().slice(0, 10);
@@ -32,322 +35,405 @@ const addDays = (date: Date, days: number) => {
     return next;
 };
 
-const getAttr = (tag: string, attr: string) => {
-    const match = tag.match(new RegExp(`${attr}="([^"]*)"`));
-    return match?.[1];
-};
-
-const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-const decodeHtmlText = (value: string) =>
-    value
-        .replace(/<[^>]*>/g, '')
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .trim();
-
-const getTooltipLabel = (html: string, cellId: string) => {
-    const tooltipMatch = html.match(
-        new RegExp(`<tool-tip\\b(?=[^>]*\\bfor="${escapeRegExp(cellId)}")[^>]*>([\\s\\S]*?)<\\/tool-tip>`, 'i'),
-    );
-    return tooltipMatch ? decodeHtmlText(tooltipMatch[1]) : undefined;
-};
-
-const countFromTooltip = (label?: string) => {
-    if (!label) return undefined;
-    if (/^no contributions/i.test(label)) return 0;
-    const match = label.match(/([\d,]+)\s+contributions?/i);
-    if (!match) return undefined;
-    const count = Number(match[1].replace(/,/g, ''));
-    return Number.isFinite(count) ? count : undefined;
-};
-
-const levelFromCount = (count: number) => {
-    if (count <= 0) return 0;
-    if (count < 3) return 1;
-    if (count < 6) return 2;
-    if (count < 10) return 3;
-    return 4;
-};
-
-const fetchContributionMap = async () => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4500);
-
-    try {
-        const response = await fetch(`https://github.com/users/${username}/contributions`, {
-            headers: {
-                'user-agent': 'nabilrizkinavisa.me portfolio build',
-            },
-            signal: controller.signal,
-        });
-        if (!response.ok) return new Map<string, { count: number; level: number }>();
-
-        const html = await response.text();
-        const cells = html.match(/<td\b[^>]*data-date="[^"]+"[^>]*>/g) ?? [];
-        const result = new Map<string, { count: number; level: number }>();
-
-        for (const cell of cells) {
-            const date = getAttr(cell, 'data-date');
-            if (!date) continue;
-            const tooltipCount = countFromTooltip(getTooltipLabel(html, getAttr(cell, 'id') ?? ''));
-            const rawCount = Number(getAttr(cell, 'data-count') ?? '');
-            const count = tooltipCount ?? (Number.isFinite(rawCount) ? rawCount : 0);
-            const rawLevel = Number(getAttr(cell, 'data-level') ?? '');
-            const level = Number.isFinite(rawLevel) ? rawLevel : levelFromCount(count);
-            result.set(date, { count, level });
-        }
-
-        return result;
-    } catch {
-        return new Map<string, { count: number; level: number }>();
-    } finally {
-        clearTimeout(timeout);
-    }
-};
-
 const today = toUtcDay(new Date());
 const currentWeekEnd = addDays(today, 6 - today.getUTCDay());
 const start = addDays(currentWeekEnd, -(53 * 7 - 1));
-const contributionMap = await fetchContributionMap();
+const weekCount = 53;
 
-const days: ContributionDay[] = Array.from({ length: 53 * 7 }, (_, index) => {
+const days: ContributionDay[] = Array.from({ length: weekCount * 7 }, (_, index) => {
     const date = addDays(start, index);
     const dateKey = toDateKey(date);
-    const parsed = contributionMap.get(dateKey);
+    const activity = activityMap.get(dateKey);
     const isFuture = date > today;
-    const count = isFuture ? 0 : parsed?.count ?? 0;
+
     return {
         date: dateKey,
-        count,
-        level: isFuture ? 0 : parsed?.level ?? levelFromCount(count),
+        count: isFuture ? 0 : activity?.count ?? 0,
+        level: isFuture ? 0 : activity?.level ?? 0,
         isFuture,
     };
 });
 
-const total = days.reduce((sum, day) => sum + day.count, 0);
-const weekCount = 53;
-const monthLabels = Array.from({ length: weekCount }, (_, week) => {
-    const firstDay = days[week * 7];
-    const previousWeek = week > 0 ? days[(week - 1) * 7] : undefined;
-    const month = firstDay.date.slice(5, 7);
-    const shouldShow = week === 0 || previousWeek?.date.slice(5, 7) !== month;
-    return {
-        label: shouldShow ? monthFormatter.format(new Date(`${firstDay.date}T00:00:00Z`)) : '',
-    };
+const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const rawMonthLabels = Array.from({ length: weekCount }, (_, weekIndex) => {
+    const firstDay = days[weekIndex * 7];
+    const month = new Date(`${firstDay.date}T00:00:00Z`).getUTCMonth();
+    const previous = weekIndex > 0
+        ? new Date(`${days[(weekIndex - 1) * 7].date}T00:00:00Z`).getUTCMonth()
+        : -1;
+
+    return month !== previous ? { weekIndex, label: monthNames[month] } : null;
+}).filter((value): value is { weekIndex: number; label: string } => Boolean(value));
+
+const monthLabels = rawMonthLabels.filter(({ weekIndex }, index, labels) => {
+    const minimumWeeks = 3;
+    const next = labels[index + 1];
+    const previous = labels[index - 1];
+
+    if (!previous && next) return next.weekIndex - weekIndex >= minimumWeeks;
+    if (!next) return weekCount - weekIndex >= minimumWeeks;
+    return true;
 });
+
+const visibleDays = days.filter((day) => !day.isFuture);
+const total = visibleDays.reduce((sum, day) => sum + day.count, 0);
+const firstDate = visibleDays[0]?.date ?? toDateKey(start);
+const lastDate = visibleDays.at(-1)?.date ?? toDateKey(today);
+const formatFigureDate = (date: string) => {
+    const [year, month, day] = date.split('-');
+    return `${day}.${month}.${year}`;
+};
+const formatTooltipDate = (date: string) => {
+    const value = new Date(`${date}T00:00:00Z`);
+    return new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+    }).format(value);
+};
 ---
 
-<div class="contribution-panel">
-    <div class="contribution-summary">
-        <strong>{copy.totalLabel(total)}</strong>
-        <a href={`https://github.com/${username}`} target="_blank" rel="noopener">{copy.label}</a>
-    </div>
-    <div class="contribution-calendar" aria-label={copy.chartAlt} style={`--week-count: ${weekCount};`}>
-        <div class="month-row" aria-hidden="true">
-            {monthLabels.map((month) => <span>{month.label}</span>)}
+<figure class="contribution-panel" aria-labelledby="github-activity-caption">
+    <HandwrittenNote text="my activity" class="activity-note" />
+
+    {activities.length > 0 ? (
+        <>
+            <div class="contribution-calendar" aria-label={copy.chartAlt} style={`--week-count:${weekCount};`}>
+                <div class="month-row" aria-hidden="true">
+                    {monthLabels.map((month) => (
+                        <span style={`grid-column:${month.weekIndex + 1};`}>{month.label}</span>
+                    ))}
+                </div>
+
+                <div class="contribution-grid">
+                    {days.map((day) => {
+                        if (day.isFuture) return <span class="contribution-day is-future"></span>;
+
+                        const tooltip = copy.contributionLabel(day.count, formatTooltipDate(day.date));
+                        return (
+                            <span
+                                class="contribution-day"
+                                data-level={day.level}
+                                data-contribution-tooltip={tooltip}
+                                aria-label={tooltip}
+                                tabindex="0"
+                            ></span>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div class="graph-footer">
+                <figcaption id="github-activity-caption" class="graph-caption">
+                    <span class="figure-number">Fig. 02.</span>
+                    <span class="caption-copy">
+                        {copy.totalLabel(total)}, {formatFigureDate(firstDate)} — {formatFigureDate(lastDate)}. Source:{' '}
+                        <a href={`https://github.com/${username}`} target="_blank" rel="noopener">GitHub</a>.
+                    </span>
+                </figcaption>
+
+                <div class="contribution-legend" aria-hidden="true">
+                    <span>{copy.less}</span>
+                    {[0, 1, 2, 3, 4].map((level) => <span class="legend-cell" data-level={level}></span>)}
+                    <span>{copy.more}</span>
+                </div>
+            </div>
+        </>
+    ) : (
+        <div class="contribution-fallback" role="status">
+            GitHub activity is temporarily unavailable.
         </div>
-        <div class="weekday-row" aria-hidden="true">
-            <span></span>
-            <span>{weekdayFormatter.format(new Date('2023-01-02T12:00:00Z'))}</span>
-            <span></span>
-            <span>{weekdayFormatter.format(new Date('2023-01-04T12:00:00Z'))}</span>
-            <span></span>
-            <span>{weekdayFormatter.format(new Date('2023-01-06T12:00:00Z'))}</span>
-            <span></span>
-        </div>
-        <div class="contribution-grid">
-            {days.map((day) => {
-                const date = new Date(`${day.date}T00:00:00Z`);
-                const tooltip = copy.contributionLabel(day.count, dateFormatter.format(date));
-                return (
-                    <span
-                        class={day.isFuture ? 'contribution-day is-future' : 'contribution-day'}
-                        data-level={day.level}
-                        data-tooltip={tooltip}
-                        aria-label={tooltip}
-                        tabindex={day.isFuture ? undefined : 0}
-                    ></span>
-                );
-            })}
-        </div>
-    </div>
-    <div class="contribution-legend" aria-hidden="true">
-        <span>{copy.less}</span>
-        <span class="legend-cell" data-level="0"></span>
-        <span class="legend-cell" data-level="1"></span>
-        <span class="legend-cell" data-level="2"></span>
-        <span class="legend-cell" data-level="3"></span>
-        <span class="legend-cell" data-level="4"></span>
-        <span>{copy.more}</span>
-    </div>
-</div>
+    )}
+</figure>
 
 <style>
     .contribution-panel {
-        --cell-size: clamp(6px, 0.55vw, 9px);
+        --cell-size: clamp(7px, 1.58cqw, 12px);
         --cell-gap: 2px;
+        --level-0: color-mix(in srgb, var(--muted) 9%, transparent);
+        --level-1: color-mix(in srgb, var(--muted) 24%, transparent);
+        --level-2: color-mix(in srgb, var(--muted) 42%, transparent);
+        --level-3: color-mix(in srgb, var(--muted) 62%, transparent);
+        --level-4: color-mix(in srgb, var(--muted) 84%, transparent);
+
+        position: relative;
+        width: 100%;
         min-width: 0;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        overflow: hidden;
-    }
-
-    .contribution-summary {
+        height: 100%;
+        margin: 0;
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 8px;
-        color: var(--text);
-        font-size: 10px;
+        flex-direction: column;
+        justify-content: center;
+        container-type: inline-size;
+        overflow: visible;
     }
 
-    .contribution-summary strong,
-    .contribution-summary a {
-        font-size: 10px;
-    }
-
-    .contribution-summary a {
-        color: var(--muted);
+    :global(.contribution-panel .activity-note) {
+        right: 2px;
+        top: -3px;
+        z-index: 4;
+        transform: scale(.82) rotate(-4deg);
+        transform-origin: right top;
     }
 
     .contribution-calendar {
-        display: grid;
-        grid-template-columns: 22px max-content;
-        grid-template-rows: 12px max-content;
-        gap: 3px 5px;
         width: max-content;
         max-width: 100%;
+        padding-top: 22px;
+        overflow: visible;
+    }
+
+    .month-row,
+    .contribution-grid {
+        display: grid;
+        grid-template-columns: repeat(var(--week-count), var(--cell-size));
+        column-gap: var(--cell-gap);
     }
 
     .month-row {
-        grid-column: 2;
-        display: grid;
-        grid-template-columns: repeat(var(--week-count), var(--cell-size));
-        gap: var(--cell-gap);
-        color: var(--muted);
+        min-height: 11px;
+        margin-bottom: 4px;
+        color: color-mix(in srgb, var(--muted) 80%, transparent);
         font-family: var(--font-sans);
-        font-size: 7px;
+        font-size: 8px;
         line-height: 1;
+        user-select: none;
     }
 
     .month-row span {
         white-space: nowrap;
     }
 
-    .weekday-row {
-        grid-column: 1;
-        grid-row: 2;
-        display: grid;
-        grid-template-rows: repeat(7, var(--cell-size));
-        gap: var(--cell-gap);
-        color: var(--muted);
-        font-family: var(--font-sans);
-        font-size: 7px;
-        line-height: var(--cell-size);
-        text-align: right;
-    }
-
     .contribution-grid {
-        grid-column: 2;
-        grid-row: 2;
-        display: grid;
-        grid-auto-flow: column;
         grid-template-rows: repeat(7, var(--cell-size));
-        grid-auto-columns: var(--cell-size);
-        gap: var(--cell-gap);
-        position: relative;
+        grid-auto-flow: column;
+        row-gap: var(--cell-gap);
     }
 
     .contribution-day,
     .legend-cell {
         width: var(--cell-size);
         height: var(--cell-size);
+        display: block;
+        border: 0;
         border-radius: 0;
-        background: var(--contrib-0);
-        outline: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
-        position: relative;
+        background: var(--level-0);
     }
 
     .contribution-day[data-level='1'],
-    .legend-cell[data-level='1'] { background: var(--contrib-1); }
+    .legend-cell[data-level='1'] { background: var(--level-1); }
     .contribution-day[data-level='2'],
-    .legend-cell[data-level='2'] { background: var(--contrib-2); }
+    .legend-cell[data-level='2'] { background: var(--level-2); }
     .contribution-day[data-level='3'],
-    .legend-cell[data-level='3'] { background: var(--contrib-3); }
+    .legend-cell[data-level='3'] { background: var(--level-3); }
     .contribution-day[data-level='4'],
-    .legend-cell[data-level='4'] { background: var(--contrib-4); }
+    .legend-cell[data-level='4'] { background: var(--level-4); }
 
     .contribution-day.is-future {
         visibility: hidden;
     }
 
+    .contribution-day:not(.is-future) {
+        cursor: default;
+        outline: 1px solid transparent;
+        outline-offset: 1px;
+        transition: background 100ms ease, outline-color 100ms ease;
+    }
+
     .contribution-day:hover,
     .contribution-day:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 1px;
+        outline-color: color-mix(in srgb, var(--text) 78%, transparent);
+        background: color-mix(in srgb, var(--text) 88%, transparent);
         z-index: 2;
     }
 
-    .contribution-day:hover::after,
-    .contribution-day:focus-visible::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        left: 50%;
-        bottom: calc(100% + 7px);
-        transform: translateX(-50%);
-        min-width: max-content;
-        padding: 5px 7px;
-        border: 1px solid var(--border-strong);
-        border-radius: 0;
-        background: var(--surface);
-        color: var(--text);
+    .contribution-day:focus-visible {
+        outline-width: 2px;
+    }
+
+    .graph-footer {
+        width: 100%;
+        margin-top: 12px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .graph-caption {
+        min-width: 0;
+        color: var(--text-body);
         font-family: var(--font-sans);
         font-size: 9px;
-        line-height: 1.2;
+        line-height: 1.35;
+        text-wrap: balance;
+    }
+
+    .figure-number {
+        margin-right: 7px;
+        color: color-mix(in srgb, var(--muted) 78%, transparent);
+        font-family: var(--font-mono);
+        letter-spacing: 0.06em;
         white-space: nowrap;
-        pointer-events: none;
+    }
+
+    .graph-caption a {
+        color: var(--text);
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, var(--muted) 60%, transparent);
+        text-underline-offset: 2px;
     }
 
     .contribution-legend {
+        flex: none;
         display: flex;
         align-items: center;
-        justify-content: flex-end;
-        gap: 4px;
-        margin-top: 8px;
+        gap: 3px;
         color: var(--muted);
+        font-family: var(--font-sans);
         font-size: 9px;
+        white-space: nowrap;
     }
 
     .contribution-legend .legend-cell {
-        --cell-size: 7px;
+        --cell-size: 8px;
+    }
+
+    .contribution-fallback {
+        min-height: 110px;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 10px;
+    }
+
+    :global(.contribution-floating-tooltip) {
+        position: fixed;
+        z-index: 1100;
+        left: 0;
+        top: 0;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, calc(-100% - 7px));
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    :global(.contribution-floating-tooltip.is-visible) {
+        opacity: 1;
+        transform: translate(-50%, calc(-100% - 10px));
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .contribution-panel {
+            --cell-size: clamp(6px, 1.42cqw, 10px);
+        }
+
+        .contribution-calendar {
+            padding-top: 16px;
+        }
+
+        :global(.contribution-panel .activity-note) {
+            top: -8px;
+            transform: scale(.72) rotate(-4deg);
+        }
+
+        .graph-footer {
+            margin-top: 8px;
+        }
+
+        .graph-caption,
+        .contribution-legend {
+            font-size: 8px;
+        }
+
+        .contribution-legend .legend-cell {
+            --cell-size: 7px;
+        }
     }
 
     @media (max-width: 640px) {
         .contribution-panel {
-            --cell-size: 5px;
-            --cell-gap: 2px;
-        }
-
-        .weekday-row,
-        .month-row {
-            display: none;
+            --cell-size: 6px;
         }
 
         .contribution-calendar {
-            grid-template-columns: max-content;
-            grid-template-rows: max-content;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: none;
         }
 
-        .contribution-grid {
-            grid-column: 1;
-            grid-row: 1;
+        .contribution-calendar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .graph-footer {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .month-row {
+            font-size: 7px;
+        }
+
+        :global(.contribution-panel .activity-note) {
+            display: none;
         }
     }
 </style>
+
+<script>
+    const tooltipClass = 'contribution-floating-tooltip';
+    let tooltip = document.querySelector<HTMLElement>(`.${tooltipClass}`);
+
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = tooltipClass;
+        tooltip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tooltip);
+    }
+
+    const hideTooltip = () => tooltip?.classList.remove('is-visible');
+    const showTooltip = (cell: HTMLElement) => {
+        if (!tooltip) return;
+        const label = cell.dataset.contributionTooltip;
+        if (!label) return;
+
+        tooltip.textContent = label;
+        tooltip.style.left = '0px';
+        tooltip.style.top = '0px';
+        tooltip.classList.add('is-visible');
+
+        const rect = cell.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const half = tooltipRect.width / 2;
+        const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
+        const top = Math.max(tooltipRect.height + 12, rect.top);
+
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+    };
+
+    document.querySelectorAll<HTMLElement>('[data-contribution-tooltip]').forEach((cell) => {
+        if (cell.dataset.tooltipReady === 'true') return;
+        cell.dataset.tooltipReady = 'true';
+        cell.addEventListener('pointerenter', () => showTooltip(cell));
+        cell.addEventListener('pointerleave', hideTooltip);
+        cell.addEventListener('focus', () => showTooltip(cell));
+        cell.addEventListener('blur', hideTooltip);
+    });
+
+    window.addEventListener('blur', hideTooltip);
+</script>
