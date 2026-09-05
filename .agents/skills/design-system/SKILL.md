@@ -1,91 +1,57 @@
 ---
-name: design-system-nabilrn-nabil-github
-description: Creates implementation-ready design-system guidance for the nabilrn portfolio. Use when creating or updating UI rules, component specifications, or design-system documentation.
+name: design-system-nabilrn-portfolio
+description: Use for general portfolio layout, component, typography, spacing, token, responsive, and content presentation work. Do not use this as the detailed NRN isometric-mark specification; load technical-isometric for that.
 ---
 
-# nabilrn · Technical Bento Portfolio
+# nabilrn Portfolio Design System
 
-## Mission
-Create a precise, compact, monochrome portfolio system that feels personal and engineered rather than like a generic developer dashboard.
+## Goal
 
-## Brand
-- Product/brand: nabilrn / Nabil Rizki Navisa
-- URL: https://portfolio.nabilrn.space
-- Audience: engineering teams, recruiters, technical collaborators, and developers
-- Product surface: portfolio + projects + blog
+Build a compact, monochrome, technical/editorial portfolio that feels engineered and personal, not like a generic SaaS dashboard.
 
-## Canonical Design Reference
-Approved homepage Figma frame:
+## Reference
+
+Homepage Figma reference:
 `https://www.figma.com/design/lnqCutwuWkX09ZBltufKwL/Untitled?node-id=2-2`
 
-Use Figma as the visual source of truth for the homepage. Adapt its geometry responsively instead of copying generated React/Tailwind code verbatim.
+Use it for composition and hierarchy. Keep implementation responsive and native to Astro rather than translating generated framework code literally.
 
-## Style Foundations
-- Dark-first editorial/technical bento composition.
-- Near-black background, restrained grayscale surfaces, subtle shared borders, no colorful floating-card dashboard aesthetic.
-- Structural lines and dividers create hierarchy: thin strokes, technical grids, sparse diagonal hatch separators.
-- Typography hierarchy: sans for names, section headings, body, and human-readable content; mono for metadata, dates, figure labels, technical captions, and tiny controls.
-- Handwritten copy is an accent for meaningful spatial annotation only. Keep it rare.
-- Circular icon-only technology/social marks are preferred where the category or context already explains the icon.
-- Tech/logo marks remain monochrome/grayscale by default.
-- Radius is restrained; connected bento cells should visually share edges.
-- Large empty areas must be intentional. Do not create whitespace simply because a card has a fixed height.
+## Visual language
 
-## Homepage Composition
-1. Navigation — compact brand, Overview / Projects / Blog, restrained theme/search/language controls.
-2. Hero — profile identity anchored low-left; original NRN isometric mark on technical grid at right; short personal sentence; role flip.
-3. Overview bento — Stack / GitHub activity + Quick Info / Experience. The cells visually connect with shared borders.
-4. Selected Work — myPaaS as primary feature with supporting real projects using existing screenshots.
-5. Lower information — Notes / Background / Elsewhere.
-6. Minimal footer.
+- Near-black/near-white theme with restrained grayscale hierarchy.
+- Connected surfaces and shared borders are preferred over floating cards.
+- Sans for human-readable content; mono for metadata, dates, figures, and technical captions.
+- Thin low-contrast dividers and sparse technical details; decoration must have a reason.
+- Handwritten annotation is rare and contextual.
+- Tech/social marks remain crisp and monochrome when context already identifies them.
+- Radius and shadows are restrained.
+- Empty space must support hierarchy, not compensate for arbitrary fixed heights.
 
-## Interaction Language
-- NRN mark: pointer-aware highlight, pressed compression, rebound. Respect `prefers-reduced-motion`.
-- Role line: subtle vertical/opacity/blur cycling, never distracting.
-- Links: minimal state change. Avoid decorating every clickable item with an arrow.
-- Handwritten annotation can explain unusual interaction (`click around`) but must not become navigation chrome.
-- Hover must never be required to discover essential information.
+## Content and interaction
 
-## Token Usage Rules
-- Prefer semantic CSS custom properties and extend the token layer in `Page.astro` deliberately.
-- Avoid one-off raw colors when an existing semantic token expresses the intent.
-- Keep dark/light theme parity where practical.
-- Contribution heatmap remains grayscale.
-- Focus styles must be visible and accessible even when default borders are subtle.
+- Keep copy short, specific, and human.
+- Let real projects, screenshots, and experience carry credibility.
+- Avoid repetitive arrows, badges, labels, and decorative numbering.
+- Hover is enhancement only; essential information must remain discoverable without it.
+- Motion stays subtle and respects `prefers-reduced-motion`.
 
-## Content Rules
-- Keep copy short, human, and specific.
-- Prefer `Just a dude who likes building useful software, systems, and infrastructure.` over corporate self-marketing prose on the hero.
-- Let project evidence and experience carry credibility rather than excessive explanatory text.
-- Avoid decorative section numbering when it adds no meaning.
-- Avoid repetitive `↗`/`→` glyphs across cards and headings.
+## Implementation
 
-## Implementation Rules
-- Native stack remains Astro + TypeScript + CSS.
-- Do not introduce React or Tailwind solely to reproduce Figma.
-- Reuse `src/data/siteContent.ts` and `src/data/projects.ts` instead of duplicating content inside components.
-- Reuse real GitHub contribution behavior from `GitHubContributionGrid.astro`.
-- Use actual project assets already in the repository.
-- Do not restore the removed terminal homepage, fake shell commands, ASCII boot screen, or terminal-rain canvas.
+- Astro + TypeScript + CSS only unless a feature genuinely requires another runtime.
+- Prefer semantic tokens from `Page.astro` over one-off raw colors.
+- Reuse `src/data/siteContent.ts`, `src/data/projects.ts`, and existing assets.
+- Reuse existing live contribution behavior rather than hardcoding activity.
+- Preserve localization, SEO, theme, search, projects, blog, and accessibility.
 
-## Accessibility
-- Target WCAG 2.2 AA.
-- Keyboard access and visible focus are mandatory.
-- Icon-only controls require accessible names/tooltips where useful.
-- Motion must degrade cleanly under `prefers-reduced-motion`.
-- Text contrast must remain readable despite muted visual treatment.
+## Responsive and QA
 
-## Responsive Rules
-- Desktop Figma is the reference for composition and proportion, not absolute breakpoint geometry.
-- Collapse the 580 / 520 / 340 overview row deliberately on smaller widths.
-- Preserve information hierarchy when stacking; do not simply shrink typography and cells proportionally.
-- Project previews and contribution grids must avoid horizontal page overflow.
+- Preserve hierarchy when stacking; do not merely shrink desktop geometry.
+- Avoid horizontal overflow in project previews and data visualizations.
+- Check dark/light, keyboard focus, reduced motion, desktop, tablet, and mobile.
+- Run `pnpm build` before completion.
 
-## QA Checklist
-- Matches the Figma visual language at desktop size.
-- No legacy terminal UI remains on the homepage.
-- No repetitive decorative arrows.
-- Handwritten annotations are sparse and purposeful.
-- Tech/social icons are crisp, monochrome, and correctly labeled for accessibility.
-- Real portfolio data and screenshots are used.
-- Dark/light, keyboard, reduced-motion, tablet, and mobile states are checked.
+## Specialized visual work
+
+For the NRN hero mark, modular lettering, isometric projection, hatch, stroke visibility, technical ruler lines, cursor spotlight, or pressed-depth interaction, load:
+
+`.agents/skills/technical-isometric/SKILL.md`
