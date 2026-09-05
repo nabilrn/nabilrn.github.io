@@ -357,10 +357,8 @@ const experienceItems = [
 </style>
 
 <style is:global>
-    /* Transitional Education treatment while the lower-right rail is still
-       authored inline in index.astro. The imagery comes from first-party UNAND
-       sources and can move into a dedicated Education component once geometry
-       is visually locked. */
+    /* Education still lives inline in index.astro; keep this pass purely
+       geometric so the section can be visually locked before extracting it. */
     .home-redesign .identity-board .education-region {
         position: relative;
         isolation: isolate;
@@ -368,8 +366,8 @@ const experienceItems = [
         grid-template-rows: auto auto auto auto minmax(0, 1fr);
         align-content: start;
         justify-content: stretch !important;
-        gap: 4px;
-        padding: 10px 12px 30px !important;
+        gap: 2px;
+        padding: 8px 12px 28px !important;
         background: var(--bg);
         overflow: hidden;
     }
@@ -382,9 +380,10 @@ const experienceItems = [
 
     .home-redesign .education-region .icon-label {
         gap: 0;
-        margin-bottom: 1px;
+        margin: 0 0 2px;
         color: color-mix(in srgb, var(--muted) 86%, transparent);
         font-size: 8.5px;
+        line-height: 1;
         letter-spacing: 0.09em;
     }
 
@@ -393,6 +392,7 @@ const experienceItems = [
     }
 
     .home-redesign .education-region .region-primary {
+        margin: 0 !important;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -408,29 +408,47 @@ const experienceItems = [
     .home-redesign .education-region .region-primary::before {
         content: '';
         flex: none;
-        width: 27px;
-        height: 31px;
+        width: 24px;
+        height: 28px;
         background-image: url('https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html');
         background-repeat: no-repeat;
         background-position: center;
         background-size: contain;
         filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
-        opacity: 0.76;
+        opacity: 0.78;
         transition: filter 280ms ease, opacity 280ms ease, transform 280ms ease;
     }
 
     .home-redesign .education-region .region-secondary {
+        margin: 0 !important;
+        padding-left: 32px;
         color: var(--text-body);
         font-family: var(--font-sans);
         font-size: 9.5px;
-        line-height: 1.25;
+        line-height: 1.2;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
     }
 
     .home-redesign .education-region .region-meta {
+        position: static !important;
+        min-height: 10px;
+        margin: 0 !important;
+        padding-left: 32px;
+        color: transparent;
+        font-size: 0;
+        line-height: 1;
+    }
+
+    .home-redesign .education-region .region-meta::before {
+        content: 'GPA 3.71 / 4.00';
+        position: static;
+        display: block;
         color: var(--muted);
         font-family: var(--font-mono);
         font-size: 8.5px;
-        line-height: 1.2;
+        line-height: 1.15;
         letter-spacing: 0.005em;
     }
 
@@ -440,8 +458,8 @@ const experienceItems = [
         z-index: 1;
         left: 12px;
         right: 12px;
-        bottom: 31px;
-        height: clamp(76px, 7.2vw, 92px);
+        top: clamp(82px, 10.5vh, 96px);
+        bottom: 28px;
         border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
         background-color: var(--surface);
         background-image: url('https://www.unand.ac.id/images/gedung%20rektorat.jpg');
@@ -449,30 +467,16 @@ const experienceItems = [
         background-position: center 46%;
         background-size: cover;
         filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
-        opacity: 0.82;
+        opacity: 0.84;
         pointer-events: none;
         transition: filter 320ms ease, opacity 320ms ease;
     }
 
-    .home-redesign .education-region .region-meta::before {
-        content: '';
+    .home-redesign .education-region .region-meta::after {
+        content: '⌖  Limau Manis · Padang, Indonesia';
         position: absolute;
         z-index: 3;
         left: 12px;
-        bottom: 10px;
-        width: 11px;
-        height: 11px;
-        background: var(--muted);
-        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
-        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z'/%3E%3Ccircle cx='12' cy='10' r='2.5'/%3E%3C/svg%3E") center / contain no-repeat;
-        pointer-events: none;
-    }
-
-    .home-redesign .education-region .region-meta::after {
-        content: 'Limau Manis · Padang, Indonesia';
-        position: absolute;
-        z-index: 3;
-        left: 28px;
         bottom: 9px;
         color: var(--muted);
         font-family: var(--font-mono);
@@ -483,7 +487,7 @@ const experienceItems = [
         pointer-events: none;
     }
 
-    .home-redesign .education-region:hover .region-primary::before {
+    .home-redesign .education-region .region-primary:hover::before {
         filter: grayscale(0) saturate(1) contrast(1) brightness(1);
         opacity: 1;
         transform: translateY(-1px);
@@ -496,8 +500,8 @@ const experienceItems = [
 
     @media (min-width: 1100px) and (max-height: 859px) {
         .home-redesign .identity-board .education-region {
-            gap: 3px;
-            padding-top: 8px !important;
+            gap: 1px;
+            padding-top: 7px !important;
         }
 
         .home-redesign .education-region .region-primary {
@@ -509,8 +513,9 @@ const experienceItems = [
             height: 27px;
         }
 
-        .home-redesign .education-region::after {
-            height: 76px;
+        .home-redesign .education-region .region-secondary,
+        .home-redesign .education-region .region-meta {
+            padding-left: 31px;
         }
     }
 
