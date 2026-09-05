@@ -400,4 +400,33 @@ const socialLinks = [
             display: none;
         }
     }
+
+    /* Optical board pass: keep the status strip compact while returning a
+       small amount of vertical budget from GitHub activity to the lower rail. */
+    @media (min-width: 721px) {
+        :global(.identity-board) {
+            grid-template-rows:
+                minmax(0, 47.5%)
+                minmax(0, 11.8034%)
+                minmax(0, 40.6966%);
+        }
+
+        :global(.contribution-region .graph-caption) {
+            font-size: 10.5px;
+        }
+
+        :global(.contribution-region .figure-number) {
+            font-size: 9px;
+        }
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        :global(.contribution-region .graph-caption) {
+            font-size: 10px;
+        }
+
+        :global(.contribution-region .figure-number) {
+            font-size: 8.5px;
+        }
+    }
 </style>
