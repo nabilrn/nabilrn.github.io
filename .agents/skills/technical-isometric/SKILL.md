@@ -12,10 +12,13 @@ Build the NR monogram as clean technical line-art with modular geometry. The vis
 Reference implementation studied:
 `https://github.com/ncdai/chanhdai.com/blob/main/src/features/portfolio/components/chanhdai-mark-isometric.tsx`
 
+Flat brand mark studied:
+`https://github.com/ncdai/chanhdai.com/blob/main/src/components/chanhdai-mark.tsx`
+
 Brand geometry reference studied:
 `https://github.com/ncdai/chanhdai.com/blob/main/src/features/doc/content/blog/chanhdai-brand.mdx`
 
-Use the reference for rendering discipline, not for copying C/D letterforms.
+Use the reference for rendering discipline and projection basis, not for copying C/D letterforms.
 
 ## Core principle
 
@@ -23,20 +26,39 @@ Prefer a small number of intentional geometric primitives over a physically comp
 
 Good:
 
-`plan-view glyphs -> visible wall polygons -> top faces -> hatch -> curated structural stroke -> spotlight`
+`flat modular glyphs -> canonical isometric projection -> visible wall polygons -> top faces -> hatch -> curated structural stroke -> spotlight`
 
 Avoid:
 
 `font outline -> dozens of depth slices -> duplicated contours -> connector soup -> multiple competing gray strokes`
 
+## Canonical isometric basis
+
+This is the non-negotiable orientation rule derived from the ChanhDai flat mark and its isometric version.
+
+For a flat glyph coordinate system where `+X` means left-to-right and `+Y` means top-to-bottom:
+
+- flat `+X` projects to screen upper-right (`-30°`);
+- flat `+Y` projects to screen lower-right (`+30°`).
+
+Use this affine basis:
+
+```ts
+screenX = originX + (x + y) * cos(30deg) * step
+screenY = originY + (y - x) * sin(30deg) * step
+```
+
+Do **not** use `(x - y, x + y)` for the glyph plane. That basis can still place masses lower-left -> upper-right, but it rotates the actual letterforms relative to the ChanhDai C/D orientation.
+
+Compose multiple letters like a normal flat wordmark first: put N and R on the same flat baseline and advance R by increasing its flat `x` offset. The isometric projection will naturally place N lower-left and R upper-right. Do not fake that arrangement by changing the letters' flat `y` offsets.
+
 ## Geometry
 
 - Use one 30° isometric lattice for both glyphs.
-- Define letters in plan-view coordinates first, then project them.
+- Define letters in flat/plan-view coordinates first, then project them with the canonical basis above.
 - Current hero direction is `NR`, not `NRN`: N represents Nabil, R represents Rizki.
 - Treat N and R as two independent geometric masses with deliberate negative space between them.
 - Do not overlap the two top surfaces merely to make the mark compact.
-- Compose N lower-left and R upper-right along the projected -30° lattice axis.
 - Keep glyph stroke/bar thickness visually consistent.
 - Keep the R modular/angular unless a curve is necessary for recognition.
 - Use simple polygons and a small number of meaningful control points.
@@ -57,6 +79,7 @@ Walls and visible strokes are separate concerns. Treat visibility as a design-en
 - Adjacent visible wall faces do not need a vertical seam between them.
 - Add a vertical depth connector only at a silhouette/visibility transition, not at every wall endpoint.
 - Inner counters use the opposite-facing visibility rule from outer contours.
+- With a downward screen-space extrusion and consistently wound outer contours, exposed outer-wall edges are the downward silhouette family (`dx < 0` in the current projected path ordering); counters reverse the rule.
 - If an edge still reads as an internal seam after masking, remove it from the visible-edge set; do not rescue it with opacity tricks.
 - Top outlines remain clean and continuous unless a real front-to-front occlusion requires interruption.
 - Never render a complete translated copy of the glyph as a visible bottom outline.
@@ -85,6 +108,7 @@ Ruler lines are lattice extensions, not decoration.
 
 - Anchor each ruler to an actual structural vertex of the mark.
 - Extend exactly along a ±30° lattice axis.
+- The shared NR baseline is a `-30°` ruler because both letters share flat `Y` and differ in flat `X`.
 - Draw rulers before wall/top fills so solid geometry naturally masks them.
 - Prefer the minimum useful set: typically one baseline-family line and up to two lines from the opposite lattice family.
 - Parallel rulers should share the same lattice family.
@@ -117,13 +141,15 @@ Use `src/pages/dev/nrn-compare.astro` as the visual lab.
 
 1. Keep the ChanhDai reference intact for side-by-side comparison.
 2. Iterate on `src/components/dev/NRModularMark.astro` without changing the production hero first.
-3. Inspect silhouette, spacing, topology, hatch phase, hidden seams, ruler placement, base contrast, cursor glow, and press-state occlusion.
+3. Inspect letter orientation first, then silhouette, spacing, topology, hatch phase, hidden seams, ruler placement, base contrast, cursor glow, and press-state occlusion.
 4. Promote the NR implementation only after the candidate is visually cleaner than the existing production mark.
 
 ## Anti-patterns
 
 Do not:
 
+- place R upper-right by changing only its flat `y` offset;
+- use the rotated `(x - y, x + y)` projection for the glyph plane;
 - generate 20+ sweep/depth copies of the glyph;
 - add connectors at every polygon vertex;
 - render a full lower glyph outline underneath the top face;
@@ -139,9 +165,10 @@ Do not:
 Before calling the mark done:
 
 - NR is recognizable without labels.
+- The flat N and R remain upright after projection in the same orientation family as ChanhDai's flat C/D -> isometric C/D transformation.
 - N and R share one projection and hatch phase.
+- R is advanced by flat X on the same flat baseline, not by fake Y staggering.
 - The two masses remain visually separate with intentional negative space.
-- Overall letter flow is lower-left -> upper-right.
 - No bottom/depth stroke is visible through a front-most top face.
 - No internal seam looks like an accidental leftover stroke.
 - Ruler lines pass through real structural vertices.
