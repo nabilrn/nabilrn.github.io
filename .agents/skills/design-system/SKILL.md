@@ -1,57 +1,37 @@
 ---
-name: design-system-nabilrn-portfolio
-description: Use for general portfolio layout, component, typography, spacing, token, responsive, and content presentation work. Do not use this as the detailed NRN isometric-mark specification; load technical-isometric for that.
+name: portfolio-design-system
+description: Use for portfolio layout, typography, spacing, responsive behavior, and visual-system work. Use technical-isometric for the NR mark itself.
 ---
 
-# nabilrn Portfolio Design System
+# Portfolio design system
 
-## Goal
+## Direction
 
-Build a compact, monochrome, technical/editorial portfolio that feels engineered and personal, not like a generic SaaS dashboard.
+Clean editorial portfolio inspired by the restraint and hierarchy of ChanhDai, without copying its identity. The site is no longer terminal-themed.
 
-## Reference
+## Typography
 
-Homepage Figma reference:
-`https://www.figma.com/design/lnqCutwuWkX09ZBltufKwL/Untitled?node-id=2-2`
+- Use a neutral modern sans for almost all UI, headings, body copy, navigation, and project titles.
+- Mono is secondary only: dates, figure labels, compact metadata, code, and technical annotations.
+- Avoid making the whole interface look like a terminal or developer console.
+- Keep type hierarchy strong through size, weight, spacing, and contrast rather than decorative styling.
 
-Use it for composition and hierarchy. Keep implementation responsive and native to Astro rather than translating generated framework code literally.
+## Visual system
 
-## Visual language
-
-- Near-black/near-white theme with restrained grayscale hierarchy.
-- Connected surfaces and shared borders are preferred over floating cards.
-- Sans for human-readable content; mono for metadata, dates, figures, and technical captions.
-- Thin low-contrast dividers and sparse technical details; decoration must have a reason.
-- Handwritten annotation is rare and contextual.
-- Tech/social marks remain crisp and monochrome when context already identifies them.
-- Radius and shadows are restrained.
-- Empty space must support hierarchy, not compensate for arbitrary fixed heights.
-
-## Content and interaction
-
-- Keep copy short, specific, and human.
-- Let real projects, screenshots, and experience carry credibility.
-- Avoid repetitive arrows, badges, labels, and decorative numbering.
-- Hover is enhancement only; essential information must remain discoverable without it.
-- Motion stays subtle and respects `prefers-reduced-motion`.
+- Near-black/near-white neutral palette with restrained grayscale hierarchy.
+- Thin borders and connected surfaces over floating dashboard cards.
+- Minimal radius and shadow; use them only where they clarify grouping.
+- Keep decoration sparse. Technical lines and annotations need a structural reason.
+- Preserve generous negative space and clear section rhythm.
+- The NR mark may be visually technical; surrounding UI should stay calm and human-readable.
 
 ## Implementation
 
-- Astro + TypeScript + CSS only unless a feature genuinely requires another runtime.
-- Prefer semantic tokens from `Page.astro` over one-off raw colors.
+- Keep the existing Astro + TypeScript + CSS stack.
+- Prefer tokens from `src/components/Page.astro` over raw one-off colors.
 - Reuse `src/data/siteContent.ts`, `src/data/projects.ts`, and existing assets.
-- Reuse existing live contribution behavior rather than hardcoding activity.
-- Preserve localization, SEO, theme, search, projects, blog, and accessibility.
-
-## Responsive and QA
-
-- Preserve hierarchy when stacking; do not merely shrink desktop geometry.
-- Avoid horizontal overflow in project previews and data visualizations.
-- Check dark/light, keyboard focus, reduced motion, desktop, tablet, and mobile.
+- Preserve localization, theme behavior, SEO, search, projects, blog, and accessibility.
+- Check desktop, mobile, dark/light theme, keyboard focus, and reduced motion.
 - Run `pnpm build` before completion.
 
-## Specialized visual work
-
-For the NRN hero mark, modular lettering, isometric projection, hatch, stroke visibility, technical ruler lines, cursor spotlight, or pressed-depth interaction, load:
-
-`.agents/skills/technical-isometric/SKILL.md`
+For NR geometry, hatch, visible edges, ruler lines, spotlight, and press interaction, use `.agents/skills/technical-isometric/SKILL.md`.
