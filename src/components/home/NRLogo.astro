@@ -1,0 +1,32 @@
+---
+interface Props {
+    width?: number;
+    height?: number;
+    class?: string;
+}
+
+const {
+    width = 44,
+    height = 24,
+    class: className,
+} = Astro.props;
+
+// Canonical plan-view geometry from NRMark.astro before isometric projection.
+// The header mark is the flat identity; the hero mark is its 3D realization.
+const N_PATH = 'M0 0 L1.4 0 L3.6 4.9 L3.6 0 L5 0 L5 7 L3.6 7 L1.4 2.1 L1.4 7 L0 7 Z';
+const R_PATH = 'M7.5 0 L8.9 0 L11.5 0 L12.7 1.2 L12.7 3.4 L11.7 4.4 L10.6 4.4 L12.7 7 L10.9 7 L9.3 4.5 L8.9 4.5 L8.9 7 L7.5 7 Z M8.9 1.2 L11.2 1.2 L11.5 1.5 L11.5 2.8 L11.2 3.1 L8.9 3.1 Z';
+---
+
+<svg
+    class={className}
+    width={width}
+    height={height}
+    viewBox="0 0 12.7 7"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+    focusable="false"
+>
+    <path d={N_PATH} />
+    <path d={R_PATH} fill-rule="evenodd" clip-rule="evenodd" />
+</svg>
