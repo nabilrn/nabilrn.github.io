@@ -7,44 +7,40 @@ interface Props {
 
 const { heading } = Astro.props;
 
-// Canonical work-history copy is condensed from the Master CV so the homepage
-// can stay dense while the full resume remains the detailed source of truth.
+const resumeHref = 'https://drive.google.com/uc?export=download&id=1ynLaBBeJue9JrGGVVJcTzlhoHGd1SQeV';
+
+// Homepage copy stays intentionally compact; the public resume remains the
+// detailed source of truth for responsibilities, impact, and technical scope.
 const experienceItems = [
     {
-        organization: 'Department of Information Systems, Universitas Andalas · NeoCentral',
+        organization: 'NeoCentral · Department of Information Systems, Universitas Andalas',
         role: 'Software Engineer · Full Stack, Mobile & Platform',
         period: 'Aug 2025 — May 2026',
-        detail: '100+ users · 40+ REST endpoints · Docker CI/CD · 336 automated tests',
     },
     {
-        organization: 'Laboratory of IT Governance & Infrastructure (TKITI), Universitas Andalas',
+        organization: 'TKITI · Universitas Andalas',
         role: 'Coordinator Assistant',
         period: 'Mar 2025 — Mar 2026',
-        detail: 'Proxmox VE · bare-metal · LAN/rack bring-up · Cloudflare Zero Trust · led 12 assistants',
     },
     {
         organization: 'Department of Information Systems, Universitas Andalas',
         role: 'Teaching Assistant · Android Development Practicum',
         period: 'Aug 2025 — Dec 2025',
-        detail: '15 sessions · 3 classes · 80+ students · Kotlin & Jetpack Compose debugging',
     },
     {
         organization: 'UPT Perpustakaan Universitas Andalas · Library Analytics',
         role: 'Software Engineer',
         period: 'Aug 2025 — Nov 2025',
-        detail: 'Fastify · Redis · SSE · ~0.5s live updates · public lobby displays',
     },
     {
         organization: 'Bank Nagari · Technology & Digitalization Division',
         role: 'Programmer Intern · Full Stack / Backend',
         period: 'Jan 2025 — Apr 2025',
-        detail: 'React · Node.js/Express · PostgreSQL · JWT rotation · SQL reporting · DOCX/PDF automation',
     },
     {
         organization: 'Laboratory of Basic Computing, Universitas Andalas',
         role: 'Research & Development Staff',
         period: 'Aug 2024 — Mar 2025',
-        detail: '22 workstations · Linux hosting · aaPanel · Cloudflare Tunnel · server/hardware incident response',
     },
 ] as const;
 ---
@@ -56,13 +52,16 @@ const experienceItems = [
             <span>{heading}</span>
         </div>
 
-        <div class="experience-actions">
-            <span class="experience-count">{String(experienceItems.length).padStart(2, '0')} roles</span>
-            <span class="resume-placeholder" title="Resume download tracking will be wired after the experience layout is approved">
-                <UiIcon name="download" size={11} strokeWidth={1.5} />
-                <span>Resume</span>
-            </span>
-        </div>
+        <a
+            class="resume-cta"
+            href={resumeHref}
+            target="_blank"
+            rel="noopener"
+            aria-label="Download public resume PDF"
+        >
+            <UiIcon name="download" size={11} strokeWidth={1.5} />
+            <span>Resume</span>
+        </a>
     </header>
 
     <div
@@ -71,23 +70,27 @@ const experienceItems = [
         aria-label="Work experience history"
         tabindex="0"
     >
-        {experienceItems.map((item, index) => (
-            <article class="experience-entry">
-                <div class="experience-entry-head">
-                    <span class="experience-index">{String(index + 1).padStart(2, '0')}</span>
-                    <strong class="experience-organization">{item.organization}</strong>
-                    <time class="experience-period">{item.period}</time>
-                </div>
-                <div class="experience-role">{item.role}</div>
-                <div class="experience-detail">{item.detail}</div>
-            </article>
-        ))}
+        <div class="experience-timeline">
+            {experienceItems.map((item) => (
+                <article class="experience-entry">
+                    <span class="timeline-dot" aria-hidden="true"></span>
+                    <div class="experience-copy">
+                        <strong class="experience-organization">{item.organization}</strong>
+                        <div class="experience-meta">
+                            <span class="experience-role">{item.role}</span>
+                            <time class="experience-period">{item.period}</time>
+                        </div>
+                    </div>
+                </article>
+            ))}
+        </div>
     </div>
 </div>
 
 <style>
     .experience-panel {
         --experience-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+        --timeline-line: color-mix(in srgb, var(--muted) 30%, transparent);
         width: 100%;
         height: 100%;
         min-width: 0;
@@ -98,7 +101,7 @@ const experienceItems = [
 
     .experience-header {
         min-width: 0;
-        padding: 10px clamp(12px, 0.95vw, 17px) 9px;
+        padding: 9px clamp(12px, 0.95vw, 17px) 8px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -107,8 +110,7 @@ const experienceItems = [
     }
 
     .experience-heading,
-    .experience-actions,
-    .resume-placeholder {
+    .resume-cta {
         min-width: 0;
         display: inline-flex;
         align-items: center;
@@ -124,28 +126,64 @@ const experienceItems = [
         line-height: 1.2;
     }
 
-    .experience-actions {
-        justify-content: flex-end;
-        gap: 10px;
-    }
-
-    .experience-count,
-    .resume-placeholder {
-        color: var(--muted);
+    .resume-cta {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        flex: none;
+        gap: 5px;
+        padding: 4px 7px;
+        border: 1px solid color-mix(in srgb, var(--text) 22%, var(--border));
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--surface) 22%, transparent);
+        color: color-mix(in srgb, var(--text) 82%, var(--muted));
         font-family: var(--font-mono);
         font-size: 8.5px;
-        line-height: 1.2;
+        line-height: 1;
+        letter-spacing: 0.015em;
         white-space: nowrap;
+        transition:
+            color 160ms ease,
+            background 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease,
+            transform 160ms ease;
     }
 
-    .experience-count {
-        letter-spacing: 0.045em;
-        text-transform: uppercase;
+    .resume-cta::after {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        z-index: -1;
+        width: 34%;
+        background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 12%, transparent), transparent);
+        transform: translateX(-180%) skewX(-18deg);
+        animation: resume-glint 4.8s ease-in-out infinite;
+        pointer-events: none;
     }
 
-    .resume-placeholder {
-        gap: 4px;
-        cursor: default;
+    .resume-cta:hover,
+    .resume-cta:focus-visible {
+        color: var(--bg);
+        background: var(--text);
+        border-color: var(--text);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--text) 18%, transparent), 0 0 12px color-mix(in srgb, var(--text) 12%, transparent);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .resume-cta:hover :global(svg),
+    .resume-cta:focus-visible :global(svg) {
+        transform: translateY(1px);
+    }
+
+    .resume-cta :global(svg) {
+        transition: transform 160ms ease;
+    }
+
+    @keyframes resume-glint {
+        0%, 68% { transform: translateX(-180%) skewX(-18deg); }
+        82%, 100% { transform: translateX(430%) skewX(-18deg); }
     }
 
     .experience-scroll {
@@ -156,7 +194,7 @@ const experienceItems = [
         overscroll-behavior-y: contain;
         scrollbar-gutter: stable;
         scrollbar-width: thin;
-        scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
+        scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transparent;
         outline: none;
     }
 
@@ -170,64 +208,69 @@ const experienceItems = [
 
     .experience-scroll::-webkit-scrollbar-thumb {
         border-radius: 999px;
-        background: color-mix(in srgb, var(--muted) 38%, transparent);
+        background: color-mix(in srgb, var(--muted) 34%, transparent);
     }
 
     .experience-scroll:focus-visible {
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 38%, transparent);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent);
+    }
+
+    .experience-timeline {
+        position: relative;
+        min-width: 0;
+        padding: 5px 0 6px;
+    }
+
+    .experience-timeline::before {
+        content: '';
+        position: absolute;
+        left: clamp(16px, 1.15vw, 20px);
+        top: 14px;
+        bottom: 15px;
+        width: 1px;
+        background: var(--timeline-line);
+        pointer-events: none;
     }
 
     .experience-entry {
         position: relative;
         min-width: 0;
-        padding: 10px clamp(12px, 0.95vw, 17px) 11px;
-        border-bottom: 1px solid var(--experience-line);
-        background: transparent;
-        transition: background 140ms ease;
-    }
-
-    .experience-entry:last-child {
-        border-bottom: 0;
-    }
-
-    .experience-entry::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 1px;
+        display: grid;
+        grid-template-columns: clamp(32px, 2.4vw, 38px) minmax(0, 1fr);
+        padding: 8px clamp(12px, 0.95vw, 17px) 9px 0;
         background: transparent;
         transition: background 140ms ease;
     }
 
     .experience-entry:hover {
-        background: color-mix(in srgb, var(--surface) 28%, transparent);
+        background: color-mix(in srgb, var(--surface) 24%, transparent);
     }
 
-    .experience-entry:hover::before {
-        background: color-mix(in srgb, var(--text) 56%, transparent);
+    .timeline-dot {
+        position: relative;
+        z-index: 2;
+        justify-self: center;
+        align-self: start;
+        width: 5px;
+        height: 5px;
+        margin-top: 4px;
+        border: 1px solid color-mix(in srgb, var(--muted) 68%, transparent);
+        border-radius: 50%;
+        background: var(--bg);
+        box-shadow: 0 0 0 2px var(--bg);
+        transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
     }
 
-    .experience-entry-head {
+    .experience-entry:hover .timeline-dot {
+        border-color: color-mix(in srgb, var(--text) 82%, transparent);
+        background: color-mix(in srgb, var(--text) 74%, transparent);
+        transform: scale(1.08);
+    }
+
+    .experience-copy {
         min-width: 0;
         display: grid;
-        grid-template-columns: 22px minmax(0, 1fr) auto;
-        align-items: baseline;
-        column-gap: 7px;
-    }
-
-    .experience-index,
-    .experience-period,
-    .experience-detail {
-        font-family: var(--font-mono);
-    }
-
-    .experience-index {
-        color: color-mix(in srgb, var(--muted) 70%, transparent);
-        font-size: 8px;
-        line-height: 1.2;
-        letter-spacing: 0.04em;
+        gap: 4px;
     }
 
     .experience-organization {
@@ -243,72 +286,72 @@ const experienceItems = [
         text-overflow: ellipsis;
     }
 
+    .experience-meta {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+        gap: 10px;
+    }
+
+    .experience-role {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text-body);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        line-height: 1.25;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
     .experience-period {
         color: var(--muted);
+        font-family: var(--font-mono);
         font-size: 8px;
         line-height: 1.2;
         white-space: nowrap;
     }
 
-    .experience-role {
-        margin: 4px 0 0 29px;
-        color: var(--text-body);
-        font-family: var(--font-sans);
-        font-size: 9.5px;
-        line-height: 1.25;
-    }
-
-    .experience-detail {
-        margin: 5px 0 0 29px;
-        overflow: hidden;
-        color: var(--muted);
-        font-size: 8px;
-        line-height: 1.35;
-        white-space: nowrap;
-        text-overflow: ellipsis;
+    @media (prefers-reduced-motion: reduce) {
+        .resume-cta::after {
+            animation: none;
+        }
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
         .experience-header {
-            padding-top: 8px;
-            padding-bottom: 7px;
+            padding-top: 7px;
+            padding-bottom: 6px;
         }
 
         .experience-entry {
-            padding-top: 8px;
-            padding-bottom: 9px;
+            padding-top: 7px;
+            padding-bottom: 8px;
         }
     }
 
     @media (max-width: 720px) {
         .experience-header {
-            padding: 12px 14px 10px;
+            padding: 11px 14px 9px;
         }
 
-        .experience-count {
-            display: none;
+        .experience-timeline::before {
+            left: 17px;
         }
 
         .experience-entry {
-            padding: 11px 14px 12px;
+            grid-template-columns: 34px minmax(0, 1fr);
+            padding: 10px 14px 11px 0;
         }
 
-        .experience-entry-head {
-            grid-template-columns: 22px minmax(0, 1fr);
-            row-gap: 4px;
+        .experience-meta {
+            grid-template-columns: 1fr;
+            gap: 3px;
         }
 
         .experience-period {
-            grid-column: 2;
-        }
-
-        .experience-role,
-        .experience-detail {
-            margin-left: 29px;
-        }
-
-        .experience-detail {
-            white-space: normal;
+            justify-self: start;
         }
     }
 </style>
