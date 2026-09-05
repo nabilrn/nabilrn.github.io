@@ -86,15 +86,20 @@ const {
         height: var(--note-arrow-height, 18px);
     }
 
-    /* Shallow is the reusable down-left annotation used by "my social".
-       Activity intentionally mirrors that primitive so its arrow travels
-       down-right toward the newest contribution cells. */
+    /* "my social" keeps the default shallow down-left arrow. The activity note
+       reuses the same primitive mirrored down-right, but lives in the negative
+       space immediately left of the contribution calendar instead of competing
+       with Jul/Aug and the dense recent cells. */
     .handwritten-note.activity-note {
-        top: -2px !important;
-        right: 14px !important;
-        --note-arrow-width: 42px !important;
+        top: -5px !important;
+        right: auto !important;
+        left: -56px !important;
+        --note-font-size: 13px !important;
+        --note-arrow-width: 54px !important;
         --note-arrow-height: 22px !important;
         --note-arrow-gap: 0px !important;
+        transform: rotate(-3deg) !important;
+        transform-origin: center top !important;
     }
 
     .handwritten-note.activity-note .arrow-shallow {
@@ -102,11 +107,19 @@ const {
         transform-origin: center;
     }
 
+    /* The activity annotation intentionally crosses the internal profile /
+       contribution rail. The identity board still clips the outer sheet, so
+       only this local boundary is relaxed. */
+    :global(.home-redesign .contribution-region) {
+        overflow: visible !important;
+    }
+
     @media (min-width: 1100px) and (max-height: 859px) {
         .handwritten-note.activity-note {
-            top: -4px !important;
-            right: 12px !important;
-            --note-arrow-width: 38px !important;
+            top: -7px !important;
+            left: -52px !important;
+            --note-font-size: 12.5px !important;
+            --note-arrow-width: 50px !important;
             --note-arrow-height: 20px !important;
         }
     }
