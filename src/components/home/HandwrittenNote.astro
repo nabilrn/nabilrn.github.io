@@ -1,20 +1,47 @@
 ---
+type ArrowVariant = 'curve' | 'shallow';
+
 interface Props {
     text: string;
     class?: string;
     showArrow?: boolean;
+    arrowVariant?: ArrowVariant;
 }
 
-const { text, class: className, showArrow = true } = Astro.props;
+const {
+    text,
+    class: className,
+    showArrow = true,
+    arrowVariant = 'curve',
+} = Astro.props;
 ---
 
 <div class:list={['handwritten-note', className]} aria-hidden="true">
     <span>{text}</span>
     {showArrow && (
-        <svg class="handwritten-arrow" viewBox="0 0 40 40" fill="none" stroke="currentColor" aria-hidden="true">
-            <path d="M34 4c1 15-5 26-21 30" />
-            <path d="m21 36-8-2 7-7" />
-        </svg>
+        arrowVariant === 'shallow' ? (
+            <svg
+                class="handwritten-arrow arrow-shallow"
+                viewBox="0 0 56 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path d="M51 3c-8 2-14 5-20 9-7 4-13 6-21 7" />
+                <path d="m17 13-8 6 9 1" />
+            </svg>
+        ) : (
+            <svg
+                class="handwritten-arrow arrow-curve"
+                viewBox="0 0 40 40"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path d="M34 4c1 15-5 26-21 30" />
+                <path d="m21 36-8-2 7-7" />
+            </svg>
+        )
     )}
 </div>
 
@@ -28,7 +55,7 @@ const { text, class: className, showArrow = true } = Astro.props;
         align-items: flex-end;
         color: var(--muted);
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-        font-size: 17px;
+        font-size: var(--note-font-size, 17px);
         font-weight: 400;
         line-height: 1;
         letter-spacing: 0;
@@ -36,12 +63,20 @@ const { text, class: className, showArrow = true } = Astro.props;
     }
 
     .handwritten-arrow {
-        width: 30px;
-        height: 30px;
         flex: none;
-        margin-top: 1px;
-        stroke-width: 1.5;
+        margin-top: var(--note-arrow-gap, 1px);
+        stroke-width: var(--note-arrow-stroke, 1.5px);
         stroke-linecap: round;
         stroke-linejoin: round;
+    }
+
+    .arrow-curve {
+        width: var(--note-arrow-width, 30px);
+        height: var(--note-arrow-height, 30px);
+    }
+
+    .arrow-shallow {
+        width: var(--note-arrow-width, 38px);
+        height: var(--note-arrow-height, 18px);
     }
 </style>
