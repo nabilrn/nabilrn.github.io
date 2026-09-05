@@ -23,7 +23,7 @@ Prefer a small number of intentional geometric primitives over a physically comp
 
 Good:
 
-`plan-view glyphs -> visible wall polygons -> top faces -> hatch -> one structural stroke -> spotlight`
+`plan-view glyphs -> visible wall polygons -> top faces -> hatch -> curated structural stroke -> spotlight`
 
 Avoid:
 
@@ -38,19 +38,25 @@ Avoid:
 - Use simple polygons and a small number of meaningful control points.
 - Depth should read as restrained relief, not a heavy extrusion. A useful target is about half the structural bar thickness.
 - Keep normal and pressed states on the same lattice.
+- For the hero composition, prefer the same overall reading direction as the reference: lower-left toward upper-right along the projected -30° lattice axis.
 
-## Occlusion and visible edges
+## Occlusion and hidden-line removal
 
-Walls and visible strokes are separate concerns.
+Walls and visible strokes are separate concerns. Treat visibility as a design-engineering problem, not as a styling problem.
 
 - Wall polygons may be generated from face orientation and filled with the background color.
 - Do not stroke every wall edge.
-- The structural stroke should contain only edges that the viewer should perceive from the chosen POV.
+- Split structural stroke into two groups:
+  1. front-most top-face boundaries;
+  2. depth silhouette: exposed bottom edges and real visibility-transition connectors.
+- The depth stroke must be geometrically occluded by front-most top faces. A valid implementation is an SVG mask that subtracts top-face coverage from the depth stroke.
+- A depth edge that falls behind a top face must disappear even if the edge is mathematically part of the extrusion.
 - Adjacent visible wall faces do not need a vertical seam between them.
 - Add a vertical depth connector only at a silhouette/visibility transition, not at every wall endpoint.
 - Inner counters use the opposite-facing visibility rule from outer contours.
-- If a mathematically valid edge reads as an internal seam, remove it from the visible stroke rather than hiding it with CSS patches.
-- Top outlines remain clean and continuous unless a real occlusion requires interruption.
+- If an edge still reads as an internal seam after masking, remove it from the visible-edge set; do not rescue it with opacity tricks.
+- Top outlines remain clean and continuous unless a real front-to-front occlusion requires interruption.
+- Never render a complete translated copy of the glyph as a visible bottom outline.
 
 ## Stroke and color hierarchy
 
@@ -60,7 +66,7 @@ Use one structural stroke language.
 - Hatch: roughly `12%` foreground mixed into background.
 - Use `butt` caps and `miter` joins for engineering geometry.
 - Avoid separate top/bottom/connector gray systems unless there is a specific visual reason.
-- Render the same structural path a second time with a radial gradient spotlight.
+- Render the same visible structural geometry a second time with a radial gradient spotlight.
 - Let the moving spotlight create hierarchy; do not make the base outline loud.
 
 ## Hatch
@@ -89,7 +95,8 @@ Treat the press as a controlled 3D illusion.
 - Keep the bottom footprint fixed.
 - Move the top surface toward the bottom.
 - Morph visible wall polygons so depth compresses.
-- Morph the structural stroke to match the new top position.
+- Morph both top and depth structural strokes to match the new top position.
+- Move the top-face occlusion mask with the top face so hidden-line removal remains correct during the press.
 - Do not move the entire solid as one block.
 - Respect `prefers-reduced-motion`.
 
@@ -98,7 +105,7 @@ Treat the press as a controlled 3D illusion.
 - Track pointer position only for fine pointers.
 - Map pointer coordinates into SVG space.
 - Smooth the gradient center with spring/easing behavior.
-- The spotlight overlays the same structural path as the base stroke.
+- The spotlight overlays the same visible structural paths as the base stroke.
 - The base drawing must remain understandable without the spotlight.
 
 ## Development workflow
@@ -107,7 +114,7 @@ Use `src/pages/dev/nrn-compare.astro` as the visual lab.
 
 1. Keep the ChanhDai reference intact for side-by-side comparison.
 2. Iterate on the modular NRN candidate without changing the production hero first.
-3. Inspect silhouette, topology, hatch phase, hidden seams, ruler placement, base contrast, and cursor glow.
+3. Inspect silhouette, topology, hatch phase, hidden seams, ruler placement, base contrast, cursor glow, and press-state occlusion.
 4. Promote the modular implementation only after the candidate is visually cleaner than the existing production mark.
 
 ## Anti-patterns
@@ -116,6 +123,7 @@ Do not:
 
 - generate 20+ sweep/depth copies of the glyph;
 - add connectors at every polygon vertex;
+- render a full lower glyph outline underneath the top face;
 - use arbitrary diagonal background lines unrelated to actual vertices;
 - use thick high-contrast outlines to explain weak geometry;
 - rely on rounded joins to hide imprecise intersections;
@@ -128,10 +136,12 @@ Before calling the mark done:
 
 - NRN is recognizable without labels.
 - All three glyphs share one projection and hatch phase.
+- Overall letter flow matches the intended lower-left -> upper-right composition.
+- No bottom/depth stroke is visible through a front-most top face.
 - No internal seam looks like an accidental leftover stroke.
 - Ruler lines pass through real structural vertices.
 - Walls mask rulers naturally.
 - Base stroke is quiet; cursor highlight provides the brightest edge.
-- Press state compresses depth without shifting the bottom footprint.
+- Press state compresses depth without shifting the bottom footprint or breaking the occlusion mask.
 - Fine-pointer, coarse-pointer, keyboard, and reduced-motion behavior remain valid.
 - `pnpm build` passes.
