@@ -24,25 +24,24 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 </template>
 
 <style is:global>
-    /* Treat the institution name, degree and GPA as one identity block.
-       The crest is centered against the whole three-line block rather than
-       against the title line alone. */
     .home-redesign .identity-board .education-region {
         position: relative;
         isolation: isolate;
         display: grid !important;
-        grid-template-columns: 26px minmax(0, 1fr) 27px !important;
+        grid-template-columns: 24px minmax(0, 1fr) 20px !important;
         grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
-        column-gap: 8px !important;
+        column-gap: 7px !important;
         row-gap: 1px !important;
         align-content: start !important;
         justify-content: stretch !important;
-        padding: 8px 12px 8px !important;
+        padding: 8px 12px !important;
         background: var(--bg);
         overflow: hidden;
     }
 
     .home-redesign .education-region > * {
+        position: relative;
+        z-index: 2;
         min-width: 0;
     }
 
@@ -61,25 +60,24 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         display: none;
     }
 
-    /* Disable the transitional crest that was attached only to the title row. */
     .home-redesign .education-region .region-primary::before {
         content: none !important;
         display: none !important;
     }
 
-    /* The crest belongs to the entire identity group. */
     .home-redesign .education-region::before {
         content: '';
+        z-index: 2;
         grid-column: 1;
         grid-row: 2 / 5;
         align-self: center;
         justify-self: center;
-        width: 24px;
-        height: 30px;
+        width: 22px;
+        height: 28px;
         background-image: url('https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html');
         background-repeat: no-repeat;
         background-position: center;
-        background-size: 24px auto;
+        background-size: 22px auto;
         filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
         opacity: 0.82;
         transition: filter 280ms ease, opacity 280ms ease, transform 280ms ease;
@@ -121,7 +119,7 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 
     .home-redesign .education-region .region-meta {
         grid-row: 4;
-        min-height: 10px;
+        min-height: 11px;
         color: transparent;
         font-size: 0;
         line-height: 1;
@@ -131,11 +129,12 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         content: 'GPA 3.71 / 4.00' !important;
         position: static !important;
         display: block !important;
-        color: var(--muted);
+        color: color-mix(in srgb, var(--text-body) 86%, var(--muted));
         font-family: var(--font-mono);
-        font-size: 8.5px;
+        font-size: 9.5px;
+        font-weight: 500;
         line-height: 1.15;
-        letter-spacing: 0.005em;
+        letter-spacing: 0.004em;
     }
 
     .home-redesign .education-region .region-meta::after {
@@ -143,10 +142,24 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         display: none !important;
     }
 
-    /* Keep the campus image as the visual anchor and reclaim the old location row. */
     .home-redesign .education-region::after {
-        top: clamp(82px, 10.5vh, 92px) !important;
-        bottom: 8px !important;
+        content: '';
+        position: absolute;
+        z-index: 1;
+        left: 12px;
+        right: 12px;
+        top: clamp(76px, 9vh, 82px);
+        bottom: 8px;
+        border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background-color: var(--surface);
+        background-image: url('https://www.unand.ac.id/images/gedung%20rektorat.jpg');
+        background-repeat: no-repeat;
+        background-position: center 46%;
+        background-size: cover;
+        filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
+        opacity: 0.84;
+        pointer-events: none;
+        transition: filter 320ms ease, opacity 320ms ease;
     }
 
     .home-redesign .education-region:hover::before,
@@ -154,6 +167,12 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         filter: grayscale(0) saturate(1) contrast(1) brightness(1);
         opacity: 1;
         transform: translateY(-1px);
+    }
+
+    .home-redesign .education-region:hover::after,
+    .home-redesign .education-region:focus-within::after {
+        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
+        opacity: 1;
     }
 
     .home-redesign .education-map-link {
@@ -165,23 +184,22 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         justify-self: end;
         right: auto !important;
         top: auto !important;
-        width: 27px !important;
-        height: 27px !important;
+        width: 20px !important;
+        height: 20px !important;
         min-width: 0 !important;
         display: grid !important;
         place-items: center;
-        border: 1px solid color-mix(in srgb, var(--text) 18%, var(--border));
-        border-radius: 5px;
-        background: color-mix(in srgb, var(--surface) 22%, transparent);
-        color: color-mix(in srgb, var(--muted) 92%, transparent);
-        transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: color-mix(in srgb, var(--muted) 86%, transparent);
+        transition: color 160ms ease, transform 160ms ease, opacity 160ms ease;
     }
 
     .home-redesign .education-map-link:hover,
     .home-redesign .education-map-link:focus-visible {
-        border-color: color-mix(in srgb, var(--text) 44%, var(--border));
-        background: color-mix(in srgb, var(--surface) 62%, transparent);
-        transform: translateY(-1px);
+        color: var(--text);
+        transform: translateY(-1px) scale(1.04);
         outline: none;
     }
 
@@ -208,8 +226,8 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
     }
 
     .home-redesign .education-map-pin-color img {
-        width: 17px;
-        height: 17px;
+        width: 16px;
+        height: 16px;
         display: block;
         object-fit: contain;
     }
@@ -228,7 +246,7 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 
     .home-redesign .education-map-tooltip {
         position: absolute;
-        right: -1px;
+        right: -2px;
         bottom: calc(100% + 8px);
         width: max-content;
         padding: 4px 7px;
@@ -253,36 +271,50 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         transform: translateY(0);
     }
 
-    .home-redesign .education-region:focus-within::after {
-        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
-        opacity: 1;
-    }
-
     @media (min-width: 1100px) and (max-height: 859px) {
         .home-redesign .identity-board .education-region {
-            grid-template-columns: 24px minmax(0, 1fr) 25px !important;
-            column-gap: 7px !important;
+            grid-template-columns: 22px minmax(0, 1fr) 18px !important;
+            column-gap: 6px !important;
             padding-top: 7px !important;
         }
 
         .home-redesign .education-region::before {
-            width: 22px;
-            height: 28px;
-            background-size: 22px auto;
-        }
-
-        .home-redesign .education-map-link {
-            width: 25px !important;
-            height: 25px !important;
+            width: 21px;
+            height: 27px;
+            background-size: 21px auto;
         }
 
         .home-redesign .education-region .region-primary {
             font-size: 13px;
         }
+
+        .home-redesign .education-region .region-meta::before {
+            font-size: 9px;
+        }
+
+        .home-redesign .education-map-link {
+            width: 18px !important;
+            height: 18px !important;
+        }
+
+        .home-redesign .education-map-pin-mono svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .home-redesign .education-map-pin-color img {
+            width: 15px;
+            height: 15px;
+        }
+
+        .home-redesign .education-region::after {
+            top: 74px;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .home-redesign .education-region::before,
+        .home-redesign .education-region::after,
         .home-redesign .education-map-link,
         .home-redesign .education-map-pin,
         .home-redesign .education-map-tooltip {
