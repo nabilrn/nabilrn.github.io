@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Page from '../components/Page.astro';
 import GitHubContributionGrid from '../components/GitHubContributionGrid.astro';
+import ExperienceRail from '../components/home/ExperienceRail.astro';
 import HomeHeader from '../components/home/HomeHeader.astro';
 import IdentityProfile from '../components/home/IdentityProfile.astro';
 import NRMark from '../components/home/NRMark.astro';
@@ -37,7 +38,6 @@ const latestPosts = (localizedPosts.length > 0 ? localizedPosts : fallbackPosts)
 const blogPath = localizePath('/blog/', locale);
 const projectsPath = localizePath('/projects/', locale);
 const education = home.education;
-const experienceItems = home.experiences.items.slice(0, 2);
 
 const DUOLINGO_USERNAME = 'bilcikiwir';
 const DUOLINGO_FIELDS = 'users{id,username,streak}';
@@ -127,25 +127,8 @@ try {
                         </div>
                     </div>
 
-                    <div class="experience-region compact-region">
-                        <div class="region-heading">
-                            <span class="heading-label">
-                                <UiIcon name="briefcase" size={12} strokeWidth={1.5} />
-                                <span>{home.experiences.heading}</span>
-                            </span>
-                            <span class="resume-placeholder" title="Resume file will be wired after the layout is approved">
-                                <UiIcon name="download" size={11} strokeWidth={1.5} />
-                                <span>Resume</span>
-                            </span>
-                        </div>
-                        <div class="experience-list">
-                            {experienceItems.map((item) => (
-                                <div class="experience-row">
-                                    <span>{item.title}</span>
-                                    <span>{item.period}</span>
-                                </div>
-                            ))}
-                        </div>
+                    <div class="experience-region">
+                        <ExperienceRail heading={home.experiences.heading} />
                     </div>
 
                     <div class="education-region compact-region">
@@ -722,7 +705,12 @@ try {
     .experience-region {
         grid-column: 2;
         grid-row: 3;
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
+        display: block;
         border-right: var(--minor-stroke) solid var(--sheet-line);
+        overflow: hidden;
     }
 
     .education-region {
@@ -754,35 +742,6 @@ try {
 
     .region-meta {
         margin-top: 4px;
-    }
-
-    .experience-list {
-        display: grid;
-        gap: 5px;
-    }
-
-    .experience-row {
-        min-width: 0;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 10px;
-        color: var(--text-body);
-        font-family: var(--font-sans);
-        font-size: var(--type-meta);
-        line-height: 1.3;
-    }
-
-    .experience-row span:first-child {
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-    .experience-row span:last-child {
-        color: var(--muted);
-        font-family: var(--font-mono);
-        font-size: 8px;
-        white-space: nowrap;
     }
 
     .nr-region {
@@ -1102,6 +1061,7 @@ try {
         .experience-region {
             grid-column: 1;
             grid-row: 4;
+            min-height: 280px;
         }
 
         .education-region {
