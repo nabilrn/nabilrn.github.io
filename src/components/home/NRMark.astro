@@ -1,0 +1,421 @@
+---
+type Point = { x: number; y: number };
+type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
+type Surface = { points: Point[]; visible: boolean[] };
+type WallState = { normal: string; pressed: string };
+
+const ISO_STEP = 26;
+const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
+const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
+const DEPTH = 16;
+const PRESS_DISTANCE = 8;
+
+// Canonical plane orientation learned from the ChanhDai construction:
+//   flat +X (letter left -> right) => screen upper-right  (-30°)
+//   flat +Y (letter top  -> bottom) => screen lower-right  (+30°)
+// N and R are therefore authored as an ordinary flat NR wordmark first.
+const ORIGIN = { x: 165, y: 210 };
+
+const PLACEMENTS: Placement[] = [
+    { kind: 'n', ox: 0, oy: 0 },
+    { kind: 'r', ox: 7.5, oy: 0 },
+];
+
+const N_OUTER: Point[] = [
+    { x: 0, y: 0 },
+    { x: 1.4, y: 0 },
+    { x: 3.6, y: 4.9 },
+    { x: 3.6, y: 0 },
+    { x: 5, y: 0 },
+    { x: 5, y: 7 },
+    { x: 3.6, y: 7 },
+    { x: 1.4, y: 2.1 },
+    { x: 1.4, y: 7 },
+    { x: 0, y: 7 },
+];
+
+const R_OUTER: Point[] = [
+    { x: 0, y: 0 },
+    { x: 1.4, y: 0 },
+    { x: 4, y: 0 },
+    { x: 5.2, y: 1.2 },
+    { x: 5.2, y: 3.4 },
+    { x: 4.2, y: 4.4 },
+    { x: 3.1, y: 4.4 },
+    { x: 5.2, y: 7 },
+    { x: 3.4, y: 7 },
+    { x: 1.8, y: 4.5 },
+    { x: 1.4, y: 4.5 },
+    { x: 1.4, y: 7 },
+    { x: 0, y: 7 },
+];
+
+const R_HOLE: Point[] = [
+    { x: 1.4, y: 1.2 },
+    { x: 3.7, y: 1.2 },
+    { x: 4, y: 1.5 },
+    { x: 4, y: 2.8 },
+    { x: 3.7, y: 3.1 },
+    { x: 1.4, y: 3.1 },
+];
+
+const project = (point: Point, placement: Placement): Point => {
+    const x = point.x + placement.ox;
+    const y = point.y + placement.oy;
+    return {
+        x: ORIGIN.x + (x + y) * ISO_X,
+        y: ORIGIN.y + (y - x) * ISO_Y,
+    };
+};
+
+const shifted = (point: Point, dy: number): Point => ({ x: point.x, y: point.y + dy });
+const move = (point: Point) => `${point.x.toFixed(3)} ${point.y.toFixed(3)}`;
+const projected = (shape: Point[], placement: Placement) => shape.map((point) => project(point, placement));
+
+const polygonPath = (points: Point[], dy = 0) => {
+    const [first, ...rest] = points.map((point) => shifted(point, dy));
+    return `M ${move(first)} ${rest.map((point) => `L ${move(point)}`).join(' ')} Z`;
+};
+
+const glyphPath = (placement: Placement, dy = 0) => {
+    if (placement.kind === 'n') return polygonPath(projected(N_OUTER, placement), dy);
+    return `${polygonPath(projected(R_OUTER, placement), dy)} ${polygonPath(projected(R_HOLE, placement), dy)}`;
+};
+
+const GLYPHS = PLACEMENTS.map((placement) => ({
+    placement,
+    path: glyphPath(placement),
+    fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
+}));
+
+// Downward screen-space extrusion: outer contour faces with dx < 0 face the
+// viewer. Counter walls reverse that facing rule.
+const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
+    const points = projected(shape, placement);
+    const visible = points.map((a, index) => {
+        const b = points[(index + 1) % points.length];
+        const dx = b.x - a.x;
+        return inner ? dx > 0.1 : dx < -0.1;
+    });
+    return { points, visible };
+};
+
+const SURFACES: Surface[] = PLACEMENTS.flatMap((placement) => {
+    if (placement.kind === 'n') return [makeSurface(N_OUTER, placement)];
+    return [makeSurface(R_OUTER, placement), makeSurface(R_HOLE, placement, true)];
+});
+
+const wallPath = (a: Point, b: Point, topShift: number) => {
+    const aTop = shifted(a, topShift);
+    const bTop = shifted(b, topShift);
+    const bBottom = shifted(b, DEPTH);
+    const aBottom = shifted(a, DEPTH);
+    return `M ${move(aTop)} L ${move(bTop)} L ${move(bBottom)} L ${move(aBottom)} Z`;
+};
+
+const WALLS: WallState[] = SURFACES.flatMap((surface) =>
+    surface.points.flatMap((a, index) => {
+        if (!surface.visible[index]) return [];
+        const b = surface.points[(index + 1) % surface.points.length];
+        return [{ normal: wallPath(a, b, 0), pressed: wallPath(a, b, PRESS_DISTANCE) }];
+    }),
+);
+
+const topStrokePath = (topShift: number) =>
+    PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
+
+// Exposed lower edges are kept separate from the vertical wall creases. This
+// lets the top-face fill act as a painter-style hidden-line mask while still
+// preserving every vertical edge a viewer can actually see, like the reference.
+const bottomStrokePath = () => {
+    const chunks: string[] = [];
+    for (const surface of SURFACES) {
+        surface.points.forEach((a, index) => {
+            if (!surface.visible[index]) return;
+            const b = surface.points[(index + 1) % surface.points.length];
+            chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
+        });
+    }
+    return chunks.join(' ');
+};
+
+const connectorStrokePath = (topShift: number) => {
+    const chunks: string[] = [];
+    const connectorKeys = new Set<string>();
+
+    for (const surface of SURFACES) {
+        const count = surface.points.length;
+        surface.points.forEach((point, index) => {
+            const incomingVisible = surface.visible[(index - 1 + count) % count];
+            const outgoingVisible = surface.visible[index];
+
+            // A real vertical extrusion edge is visible whenever at least one
+            // incident side face is viewer-facing. This includes the crease
+            // between two visible faces; omitting those is what made the NR
+            // depth look incomplete compared with ChanhDai.
+            if (!incomingVisible && !outgoingVisible) return;
+
+            const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
+            if (connectorKeys.has(key)) return;
+            connectorKeys.add(key);
+            chunks.push(`M ${move(shifted(point, topShift))} L ${move(shifted(point, DEPTH))}`);
+        });
+    }
+
+    return chunks.join(' ');
+};
+
+const TOP_STROKE_NORMAL = topStrokePath(0);
+const TOP_STROKE_PRESSED = topStrokePath(PRESS_DISTANCE);
+const BOTTOM_STROKE = bottomStrokePath();
+const CONNECTOR_STROKE_NORMAL = connectorStrokePath(0);
+const CONNECTOR_STROKE_PRESSED = connectorStrokePath(PRESS_DISTANCE);
+
+const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
+const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
+const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
+    `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
+    `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
+
+const N = PLACEMENTS[0];
+const R = PLACEMENTS[1];
+const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
+const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
+
+const GUIDE_PATHS = [
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_NEGATIVE),
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_POSITIVE),
+    guideThrough(R_BOTTOM_ANCHOR, AXIS_POSITIVE),
+];
+---
+
+<div class="nr-stage" data-nr-stage>
+    <button class="nr-button" type="button" data-nr-button aria-label="Press the interactive NR mark">
+        <svg
+            class="nr-svg"
+            data-nr-svg
+            viewBox="125 30 525 315"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Interactive isometric NR monogram"
+        >
+            <defs>
+                <pattern id="nr-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nr-pattern-line" />
+                </pattern>
+
+                <path id="nr-top-stroke" data-nr-top-stroke d={TOP_STROKE_NORMAL} />
+                <path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
+                <path id="nr-connector-stroke" data-nr-connector-stroke d={CONNECTOR_STROKE_NORMAL} />
+
+                <radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" class="nr-glow-start" />
+                    <stop offset="1" class="nr-glow-end" />
+                </radialGradient>
+            </defs>
+
+            <g class="nr-guides" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+                {GUIDE_PATHS.map((path) => <path d={path} />)}
+            </g>
+
+            <g class="nr-walls" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                {WALLS.map((wall) => (
+                    <path data-nr-wall data-normal-d={wall.normal} data-pressed-d={wall.pressed} d={wall.normal} />
+                ))}
+            </g>
+
+            <use href="#nr-bottom-stroke" class="nr-stroke-base" />
+            <use href="#nr-bottom-stroke" class="nr-stroke-glow" />
+            <use href="#nr-connector-stroke" class="nr-stroke-base" />
+            <use href="#nr-connector-stroke" class="nr-stroke-glow" />
+
+            <g data-nr-top class="nr-top">
+                <g class="nr-face-background" aria-hidden="true">
+                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+                </g>
+                <g class="nr-face-pattern" aria-hidden="true">
+                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+                </g>
+            </g>
+
+            <use href="#nr-top-stroke" class="nr-stroke-base" />
+            <use href="#nr-top-stroke" class="nr-stroke-glow" />
+
+            <text class="nr-fig-label" x="142" y="330">FIG. 01 / NR SYSTEM</text>
+        </svg>
+    </button>
+</div>
+
+<style>
+    .nr-stage {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        background: var(--bg);
+        --nr-background: var(--bg);
+        --nr-foreground: var(--text);
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 12%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
+        --nr-line: color-mix(in oklab, var(--border) 64%, var(--nr-background));
+    }
+
+    .nr-button {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .nr-button:focus-visible {
+        outline: 1px solid color-mix(in srgb, var(--text) 60%, transparent);
+        outline-offset: -4px;
+    }
+
+    .nr-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .nr-pattern-line {
+        fill: none;
+        stroke: var(--nr-pattern);
+        stroke-width: 1;
+    }
+
+    .nr-guides {
+        fill: none;
+        stroke: var(--nr-line);
+        opacity: .8;
+        pointer-events: none;
+    }
+
+    .nr-walls,
+    .nr-face-background {
+        fill: var(--nr-background);
+    }
+
+    .nr-face-pattern { fill: url(#nr-pattern); }
+
+    .nr-top {
+        transition: transform 170ms cubic-bezier(.2,.8,.2,1);
+    }
+
+    .nr-stroke-base,
+    .nr-stroke-glow {
+        fill: none;
+        stroke-width: 1;
+        stroke-linecap: butt;
+        stroke-linejoin: miter;
+        pointer-events: none;
+    }
+
+    .nr-stroke-base { stroke: var(--nr-stroke); }
+    .nr-stroke-glow { stroke: url(#nr-gradient); }
+
+    .nr-glow-start {
+        stop-color: #fff;
+        stop-opacity: 1;
+    }
+
+    .nr-glow-end {
+        stop-color: #52525b;
+        stop-opacity: 0;
+    }
+
+    .nr-fig-label {
+        fill: color-mix(in srgb, var(--muted) 48%, var(--bg));
+        font-family: var(--font-mono);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: .05em;
+        user-select: none;
+    }
+</style>
+
+<script define:vars={{ TOP_STROKE_NORMAL, TOP_STROKE_PRESSED, CONNECTOR_STROKE_NORMAL, CONNECTOR_STROKE_PRESSED, PRESS_DISTANCE }}>
+    const roots = document.querySelectorAll('[data-nr-stage]');
+
+    roots.forEach((root) => {
+        if (!(root instanceof HTMLElement) || root.dataset.nrReady === 'true') return;
+        root.dataset.nrReady = 'true';
+
+        const button = root.querySelector('[data-nr-button]');
+        const svg = root.querySelector('[data-nr-svg]');
+        const gradient = root.querySelector('[data-nr-gradient]');
+        const top = root.querySelector('[data-nr-top]');
+        const topStroke = root.querySelector('[data-nr-top-stroke]');
+        const connectorStroke = root.querySelector('[data-nr-connector-stroke]');
+        const walls = Array.from(root.querySelectorAll('[data-nr-wall]'));
+
+        if (
+            !(button instanceof HTMLButtonElement) ||
+            !(svg instanceof SVGSVGElement) ||
+            !(gradient instanceof SVGRadialGradientElement) ||
+            !(top instanceof SVGGElement) ||
+            !(topStroke instanceof SVGPathElement) ||
+            !(connectorStroke instanceof SVGPathElement)
+        ) return;
+
+        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let targetX = 385;
+        let targetY = 190;
+        let currentX = targetX;
+        let currentY = targetY;
+        let raf = 0;
+        let pressed = false;
+
+        const paintGradient = () => {
+            currentX += (targetX - currentX) * 0.18;
+            currentY += (targetY - currentY) * 0.18;
+            gradient.setAttribute('cx', currentX.toFixed(2));
+            gradient.setAttribute('cy', currentY.toFixed(2));
+            if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
+                raf = requestAnimationFrame(paintGradient);
+            } else {
+                raf = 0;
+            }
+        };
+
+        const onPointerMove = (event) => {
+            if (!finePointer.matches || reducedMotion.matches) return;
+            const ctm = svg.getScreenCTM();
+            if (!ctm) return;
+            const point = svg.createSVGPoint();
+            point.x = event.clientX;
+            point.y = event.clientY;
+            const local = point.matrixTransform(ctm.inverse());
+            targetX = local.x;
+            targetY = local.y;
+            if (!raf) raf = requestAnimationFrame(paintGradient);
+        };
+
+        const setPressed = (nextPressed) => {
+            if (pressed === nextPressed) return;
+            pressed = nextPressed;
+            top.style.transform = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
+            topStroke.setAttribute('d', nextPressed ? TOP_STROKE_PRESSED : TOP_STROKE_NORMAL);
+            connectorStroke.setAttribute('d', nextPressed ? CONNECTOR_STROKE_PRESSED : CONNECTOR_STROKE_NORMAL);
+            walls.forEach((wall) => {
+                if (!(wall instanceof SVGPathElement)) return;
+                const d = nextPressed ? wall.dataset.pressedD : wall.dataset.normalD;
+                if (d) wall.setAttribute('d', d);
+            });
+        };
+
+        window.addEventListener('pointermove', onPointerMove, { passive: true });
+        button.addEventListener('pointerdown', () => setPressed(true));
+        button.addEventListener('pointerup', () => setPressed(false));
+        button.addEventListener('pointercancel', () => setPressed(false));
+        button.addEventListener('pointerleave', () => setPressed(false));
+        button.addEventListener('blur', () => setPressed(false));
+    });
+</script>
