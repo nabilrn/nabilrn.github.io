@@ -96,7 +96,7 @@ const formatTooltipDate = (date: string) => {
 
 <figure class="contribution-panel" aria-labelledby="github-activity-caption">
     <div class="contribution-annotation-layer" aria-hidden="true">
-        <HandwrittenNote text="my activity" class="activity-note" />
+        <HandwrittenNote text="my activity" class="activity-note" arrowVariant="shallow" />
     </div>
 
     {activities.length > 0 ? (
@@ -153,7 +153,7 @@ const formatTooltipDate = (date: string) => {
     /* Transitional parent integration while the home board still owns the old
        contribution-region shell. The graph itself is now the section title. */
     :global(.contribution-region) {
-        padding: clamp(8px, .72vw, 12px) clamp(12px, 1vw, 16px) !important;
+        padding: clamp(9px, .8vw, 13px) clamp(12px, 1vw, 16px) !important;
     }
 
     :global(.contribution-region > .region-heading) {
@@ -165,8 +165,10 @@ const formatTooltipDate = (date: string) => {
     }
 
     .contribution-panel {
-        --cell-size: clamp(7px, 1.58cqw, 12px);
-        --cell-gap: 2px;
+        /* 53 weeks + 52 one-pixel gaps. This makes the cells consume the
+           available inline size instead of relying on a viewport-specific guess. */
+        --cell-gap: 1px;
+        --cell-size: clamp(8px, calc((100cqw - 52px) / 53), 12px);
         --level-0: color-mix(in srgb, var(--muted) 9%, transparent);
         --level-1: color-mix(in srgb, var(--muted) 24%, transparent);
         --level-2: color-mix(in srgb, var(--muted) 42%, transparent);
@@ -194,9 +196,13 @@ const formatTooltipDate = (date: string) => {
     }
 
     :global(.contribution-annotation-layer .activity-note) {
-        right: -2px;
-        top: -4px;
-        transform: scale(.8) rotate(-4deg);
+        right: 5px;
+        top: 13px;
+        --note-font-size: 15px;
+        --note-arrow-width: 40px;
+        --note-arrow-height: 18px;
+        --note-arrow-gap: -1px;
+        transform: rotate(-3deg);
         transform-origin: right top;
     }
 
@@ -215,11 +221,11 @@ const formatTooltipDate = (date: string) => {
     }
 
     .month-row {
-        min-height: 11px;
-        margin-bottom: 4px;
-        color: color-mix(in srgb, var(--muted) 80%, transparent);
+        min-height: 12px;
+        margin-bottom: 5px;
+        color: color-mix(in srgb, var(--muted) 82%, transparent);
         font-family: var(--font-sans);
-        font-size: 8px;
+        font-size: 9px;
         line-height: 1;
         user-select: none;
     }
@@ -277,7 +283,7 @@ const formatTooltipDate = (date: string) => {
 
     .graph-footer {
         width: 100%;
-        margin-top: 10px;
+        margin-top: 11px;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
@@ -288,7 +294,7 @@ const formatTooltipDate = (date: string) => {
         min-width: 0;
         color: var(--text-body);
         font-family: var(--font-sans);
-        font-size: 9px;
+        font-size: 10px;
         line-height: 1.35;
         text-wrap: balance;
     }
@@ -314,7 +320,7 @@ const formatTooltipDate = (date: string) => {
         gap: 3px;
         color: var(--muted);
         font-family: var(--font-sans);
-        font-size: 9px;
+        font-size: 9.5px;
         white-space: nowrap;
     }
 
@@ -358,36 +364,40 @@ const formatTooltipDate = (date: string) => {
 
     @media (min-width: 1100px) and (max-height: 859px) {
         :global(.contribution-region) {
-            padding-top: 6px !important;
-            padding-bottom: 6px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
         }
 
         .contribution-panel {
-            --cell-size: clamp(6px, 1.42cqw, 10px);
+            --cell-size: clamp(7px, calc((100cqw - 52px) / 53), 11.5px);
         }
 
         :global(.contribution-annotation-layer .activity-note) {
-            top: -7px;
-            transform: scale(.7) rotate(-4deg);
+            right: 4px;
+            top: 10px;
+            --note-font-size: 13px;
+            --note-arrow-width: 36px;
+            --note-arrow-height: 16px;
         }
 
         .graph-footer {
-            margin-top: 7px;
+            margin-top: 9px;
         }
 
         .graph-caption,
         .contribution-legend {
-            font-size: 8px;
+            font-size: 9px;
         }
 
         .contribution-legend .legend-cell {
-            --cell-size: 7px;
+            --cell-size: 8px;
         }
     }
 
     @media (max-width: 640px) {
         .contribution-panel {
             --cell-size: 6px;
+            --cell-gap: 2px;
         }
 
         .contribution-calendar {
