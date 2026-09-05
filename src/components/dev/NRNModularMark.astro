@@ -9,7 +9,10 @@ const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
 const DEPTH = 16;
 const PRESS_DISTANCE = 8;
-const ORIGIN = { x: 450, y: 120 };
+
+// Match the reference composition: the letter run climbs from lower-left to
+// upper-right on the -30° lattice axis instead of falling toward the right.
+const ORIGIN = { x: 680, y: 95 };
 
 // Original modular NRN plan-view geometry. Keep this simple enough that the
 // 3D rendering can stay explicit and readable.
@@ -51,10 +54,13 @@ const R_HOLE: Point[] = [
     { x: 1.4, y: 3.1 },
 ];
 
+// Baseline direction follows the reference: first N is lower-left, R is in the
+// middle, final N is upper-right. Translation is along plan-view Y so the run
+// itself sits exactly on the -30° projected lattice axis.
 const PLACEMENTS: Placement[] = [
+    { kind: 'n', ox: 0, oy: 14 },
+    { kind: 'r', ox: 0, oy: 7 },
     { kind: 'n', ox: 0, oy: 0 },
-    { kind: 'r', ox: 7, oy: 0 },
-    { kind: 'n', ox: 14, oy: 0 },
 ];
 
 const project = (point: Point, placement: Placement): Point => {
@@ -86,8 +92,8 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-// Surface orientation determines which side-wall faces exist. Stroke visibility
-// is handled separately so adjacent visible faces do not create false seams.
+// Surface orientation determines which side-wall faces exist. Visible stroke is
+// deliberately kept separate from these fills.
 const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projectedPolygon(shape, placement);
     const visible = points.map((a, index) => {
@@ -122,23 +128,28 @@ const WALLS: WallState[] = SURFACES.flatMap((surface) =>
     }),
 );
 
-const structuralPath = (topShift: number) => {
-    const chunks: string[] = PLACEMENTS.map((placement) => glyphPath(placement, topShift));
+// Hidden-line removal is split into two independent paths:
+// 1) top stroke: front-most face boundaries, always readable;
+// 2) depth stroke: bottom silhouette + real visibility-transition connectors.
+// The latter is masked by the front-most top faces in SVG so an edge that sits
+// physically behind a top surface cannot leak through just because it is a
+// mathematically valid extrusion edge.
+const topStrokePath = (topShift: number) =>
+    PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
+
+const depthStrokePath = (topShift: number) => {
+    const chunks: string[] = [];
     const connectorKeys = new Set<string>();
 
     for (const surface of SURFACES) {
         const count = surface.points.length;
 
-        // Bottom edges are visible only where a visible wall face exists.
         surface.points.forEach((a, index) => {
             if (!surface.visible[index]) return;
             const b = surface.points[(index + 1) % count];
             chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
         });
 
-        // A vertical edge belongs only at the boundary between a visible and a
-        // hidden face. This removes the internal seams produced by connecting
-        // every visible wall endpoint.
         surface.points.forEach((point, index) => {
             const incomingVisible = surface.visible[(index - 1 + count) % count];
             const outgoingVisible = surface.visible[index];
@@ -154,11 +165,12 @@ const structuralPath = (topShift: number) => {
     return chunks.join(' ');
 };
 
-const STROKE_NORMAL = structuralPath(0);
-const STROKE_PRESSED = structuralPath(PRESS_DISTANCE);
+const TOP_STROKE_NORMAL = topStrokePath(0);
+const TOP_STROKE_PRESSED = topStrokePath(PRESS_DISTANCE);
+const DEPTH_STROKE_NORMAL = depthStrokePath(0);
+const DEPTH_STROKE_PRESSED = depthStrokePath(PRESS_DISTANCE);
 
-// Construction rulers are literal extensions of the NRN lattice through real
-// bottom vertices, matching the reference's technical-drawing behavior.
+// Construction rulers are literal extensions of real NRN lattice vertices.
 const POSITIVE_AXIS = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const NEGATIVE_AXIS = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
 const guideThrough = (anchor: Point, direction: Point, extent = 1200) =>
@@ -170,11 +182,8 @@ const CENTER_R = PLACEMENTS[1];
 const RIGHT_N = PLACEMENTS[2];
 
 const GUIDE_PATHS = [
-    // One lattice row passes through the left N and R bottom geometry.
     guideThrough(shifted(project(N_OUTER[9], LEFT_N), DEPTH), POSITIVE_AXIS),
-    // Parallel lattice row through the far-right N.
     guideThrough(shifted(project(N_OUTER[4], RIGHT_N), DEPTH), POSITIVE_AXIS),
-    // Opposite lattice family through a real R bottom vertex.
     guideThrough(shifted(project(R_OUTER[1], CENTER_R), DEPTH), NEGATIVE_AXIS),
 ];
 ---
@@ -194,7 +203,17 @@ const GUIDE_PATHS = [
                     <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="modular-pattern-line" />
                 </pattern>
 
-                <path id="nrn-modular-structural-stroke" data-modular-stroke d={STROKE_NORMAL} />
+                <path id="nrn-modular-top-stroke" data-modular-top-stroke d={TOP_STROKE_NORMAL} />
+                <path id="nrn-modular-depth-stroke" data-modular-depth-stroke d={DEPTH_STROKE_NORMAL} />
+
+                <mask id="nrn-modular-depth-visibility" maskUnits="userSpaceOnUse" x="250" y="50" width="620" height="390">
+                    <rect x="250" y="50" width="620" height="390" fill="white" />
+                    <g data-modular-mask-top class="modular-depth-occluder">
+                        {GLYPHS.map((glyph) => (
+                            <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />
+                        ))}
+                    </g>
+                </mask>
 
                 <radialGradient id="nrn-modular-gradient" data-modular-gradient cx="560" cy="250" r="190" gradientUnits="userSpaceOnUse">
                     <stop offset="0" class="modular-glow-start" />
@@ -221,8 +240,13 @@ const GUIDE_PATHS = [
                 </g>
             </g>
 
-            <use href="#nrn-modular-structural-stroke" class="modular-stroke-base" />
-            <use href="#nrn-modular-structural-stroke" class="modular-stroke-glow" />
+            <g mask="url(#nrn-modular-depth-visibility)">
+                <use href="#nrn-modular-depth-stroke" class="modular-stroke-base" />
+                <use href="#nrn-modular-depth-stroke" class="modular-stroke-glow" />
+            </g>
+
+            <use href="#nrn-modular-top-stroke" class="modular-stroke-base" />
+            <use href="#nrn-modular-top-stroke" class="modular-stroke-glow" />
 
             <text class="modular-fig-label" x="292" y="414">FIG. B / NRN MODULAR SYSTEM</text>
         </svg>
@@ -288,7 +312,15 @@ const GUIDE_PATHS = [
         fill: url(#nrn-modular-pattern);
     }
 
-    .modular-top {
+    .modular-depth-occluder {
+        fill: #000;
+        stroke: #000;
+        stroke-width: 1.4;
+        stroke-linejoin: miter;
+    }
+
+    .modular-top,
+    .modular-depth-occluder {
         transition: transform 170ms cubic-bezier(.2,.8,.2,1);
     }
 
@@ -329,7 +361,7 @@ const GUIDE_PATHS = [
     }
 </style>
 
-<script define:vars={{ STROKE_NORMAL, STROKE_PRESSED, PRESS_DISTANCE }}>
+<script define:vars={{ TOP_STROKE_NORMAL, TOP_STROKE_PRESSED, DEPTH_STROKE_NORMAL, DEPTH_STROKE_PRESSED, PRESS_DISTANCE }}>
     const roots = document.querySelectorAll('[data-modular-stage]');
 
     roots.forEach((root) => {
@@ -340,9 +372,19 @@ const GUIDE_PATHS = [
         const svg = root.querySelector('[data-modular-svg]');
         const gradient = root.querySelector('[data-modular-gradient]');
         const top = root.querySelector('[data-modular-top]');
-        const stroke = root.querySelector('[data-modular-stroke]');
+        const maskTop = root.querySelector('[data-modular-mask-top]');
+        const topStroke = root.querySelector('[data-modular-top-stroke]');
+        const depthStroke = root.querySelector('[data-modular-depth-stroke]');
         const walls = Array.from(root.querySelectorAll('[data-modular-wall]'));
-        if (!(button instanceof HTMLButtonElement) || !(svg instanceof SVGSVGElement) || !(gradient instanceof SVGRadialGradientElement) || !(top instanceof SVGGElement) || !(stroke instanceof SVGPathElement)) return;
+        if (
+            !(button instanceof HTMLButtonElement) ||
+            !(svg instanceof SVGSVGElement) ||
+            !(gradient instanceof SVGRadialGradientElement) ||
+            !(top instanceof SVGGElement) ||
+            !(maskTop instanceof SVGGElement) ||
+            !(topStroke instanceof SVGPathElement) ||
+            !(depthStroke instanceof SVGPathElement)
+        ) return;
 
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -381,8 +423,11 @@ const GUIDE_PATHS = [
         const setPressed = (nextPressed) => {
             if (pressed === nextPressed) return;
             pressed = nextPressed;
-            top.style.transform = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
-            stroke.setAttribute('d', nextPressed ? STROKE_PRESSED : STROKE_NORMAL);
+            const translate = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
+            top.style.transform = translate;
+            maskTop.style.transform = translate;
+            topStroke.setAttribute('d', nextPressed ? TOP_STROKE_PRESSED : TOP_STROKE_NORMAL);
+            depthStroke.setAttribute('d', nextPressed ? DEPTH_STROKE_PRESSED : DEPTH_STROKE_NORMAL);
             walls.forEach((wall) => {
                 if (!(wall instanceof SVGPathElement)) return;
                 const d = nextPressed ? wall.dataset.pressedD : wall.dataset.normalD;
