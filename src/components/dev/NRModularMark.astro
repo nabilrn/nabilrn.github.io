@@ -4,30 +4,23 @@ type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
 type Surface = { points: Point[]; visible: boolean[] };
 type WallState = { normal: string; pressed: string };
 
-const ISO_STEP = 22;
+const ISO_STEP = 26;
 const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
 const DEPTH = 16;
 const PRESS_DISTANCE = 8;
 
-// Canonical plane orientation taken from the ChanhDai construction, not from
-// eyeballing the screenshot:
+// Canonical plane orientation learned from the ChanhDai construction:
 //   flat +X (letter left -> right) => screen upper-right  (-30°)
 //   flat +Y (letter top  -> bottom) => screen lower-right  (+30°)
-// This is why C sits lower-left and D sits upper-right while both glyphs remain
-// upright on the same isometric plane.
-const ORIGIN = { x: 175, y: 210 };
+// N and R are therefore authored as an ordinary flat NR wordmark first.
+const ORIGIN = { x: 165, y: 210 };
 
-// Build the monogram exactly like a flat NR wordmark first: N then R on the
-// same baseline. Increasing ox moves the next glyph along the -30° screen axis,
-// exactly as increasing flat X does in the ChanhDai mark.
 const PLACEMENTS: Placement[] = [
     { kind: 'n', ox: 0, oy: 0 },
     { kind: 'r', ox: 7.5, oy: 0 },
 ];
 
-// Simple modular N. Keep one non-self-intersecting outer contour so the top
-// face, visible walls, and hidden-line mask all describe the same solid.
 const N_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -41,7 +34,6 @@ const N_OUTER: Point[] = [
     { x: 0, y: 7 },
 ];
 
-// Angular R: deliberately modular rather than a font-outline extrusion.
 const R_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -67,9 +59,6 @@ const R_HOLE: Point[] = [
     { x: 1.4, y: 3.1 },
 ];
 
-// Same affine isometric basis as the reference mark. Do not swap this back to
-// (x - y, x + y): that rotates the actual letterforms even if their positions
-// still happen to form a lower-left -> upper-right composition.
 const project = (point: Point, placement: Placement): Point => {
     const x = point.x + placement.ox;
     const y = point.y + placement.oy;
@@ -99,9 +88,8 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-// With screen-space extrusion pointing straight down, only the downward-facing
-// silhouette family is exposed. For these consistently wound outer contours,
-// that is dx < 0. Hole/counter walls reverse the rule.
+// Downward screen-space extrusion: outer contour faces with dx < 0 face the
+// viewer. Counter walls reverse that facing rule.
 const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projected(shape, placement);
     const visible = points.map((a, index) => {
@@ -133,30 +121,39 @@ const WALLS: WallState[] = SURFACES.flatMap((surface) =>
     }),
 );
 
-// Hidden-line rendering is deliberately split. Top contours are front-most.
-// Exposed depth edges are a separate geometry set and are then occluded by the
-// actual top-face silhouettes. A mathematically valid edge behind a top face is
-// therefore not visible to the viewer.
 const topStrokePath = (topShift: number) =>
     PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
 
-const depthStrokePath = (topShift: number) => {
+// Exposed lower edges are kept separate from the vertical wall creases. This
+// lets the top-face fill act as a painter-style hidden-line mask while still
+// preserving every vertical edge a viewer can actually see, like the reference.
+const bottomStrokePath = () => {
+    const chunks: string[] = [];
+    for (const surface of SURFACES) {
+        surface.points.forEach((a, index) => {
+            if (!surface.visible[index]) return;
+            const b = surface.points[(index + 1) % surface.points.length];
+            chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
+        });
+    }
+    return chunks.join(' ');
+};
+
+const connectorStrokePath = (topShift: number) => {
     const chunks: string[] = [];
     const connectorKeys = new Set<string>();
 
     for (const surface of SURFACES) {
         const count = surface.points.length;
-
-        surface.points.forEach((a, index) => {
-            if (!surface.visible[index]) return;
-            const b = surface.points[(index + 1) % count];
-            chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
-        });
-
         surface.points.forEach((point, index) => {
-            const incoming = surface.visible[(index - 1 + count) % count];
-            const outgoing = surface.visible[index];
-            if (incoming === outgoing) return;
+            const incomingVisible = surface.visible[(index - 1 + count) % count];
+            const outgoingVisible = surface.visible[index];
+
+            // A real vertical extrusion edge is visible whenever at least one
+            // incident side face is viewer-facing. This includes the crease
+            // between two visible faces; omitting those is what made the NR
+            // depth look incomplete compared with ChanhDai.
+            if (!incomingVisible && !outgoingVisible) return;
 
             const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
             if (connectorKeys.has(key)) return;
@@ -170,8 +167,9 @@ const depthStrokePath = (topShift: number) => {
 
 const TOP_STROKE_NORMAL = topStrokePath(0);
 const TOP_STROKE_PRESSED = topStrokePath(PRESS_DISTANCE);
-const DEPTH_STROKE_NORMAL = depthStrokePath(0);
-const DEPTH_STROKE_PRESSED = depthStrokePath(PRESS_DISTANCE);
+const BOTTOM_STROKE = bottomStrokePath();
+const CONNECTOR_STROKE_NORMAL = connectorStrokePath(0);
+const CONNECTOR_STROKE_PRESSED = connectorStrokePath(PRESS_DISTANCE);
 
 const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
@@ -181,12 +179,16 @@ const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
 
 const N = PLACEMENTS[0];
 const R = PLACEMENTS[1];
+const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
+const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
+
+// Match the reference ruler composition: the -30° rail runs through the lower
+// construction row instead of hovering above the mark; the two +30° rails
+// intersect real bottom vertices of the two masses.
 const GUIDE_PATHS = [
-    // Because N and R share flat Y=0, this -30° ruler is their real baseline.
-    guideThrough(project({ x: 0, y: 0 }, N), AXIS_NEGATIVE),
-    // Two +30° construction rails pass through actual exposed depth vertices.
-    guideThrough(shifted(project(N_OUTER[9], N), DEPTH), AXIS_POSITIVE),
-    guideThrough(shifted(project(R_OUTER[4], R), DEPTH), AXIS_POSITIVE),
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_NEGATIVE),
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_POSITIVE),
+    guideThrough(R_BOTTOM_ANCHOR, AXIS_POSITIVE),
 ];
 ---
 
@@ -195,7 +197,7 @@ const GUIDE_PATHS = [
         <svg
             class="modular-svg"
             data-nr-svg
-            viewBox="100 45 540 340"
+            viewBox="125 30 525 315"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
@@ -206,18 +208,10 @@ const GUIDE_PATHS = [
                 </pattern>
 
                 <path id="nr-top-stroke" data-nr-top-stroke d={TOP_STROKE_NORMAL} />
-                <path id="nr-depth-stroke" data-nr-depth-stroke d={DEPTH_STROKE_NORMAL} />
+                <path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
+                <path id="nr-connector-stroke" data-nr-connector-stroke d={CONNECTOR_STROKE_NORMAL} />
 
-                <mask id="nr-depth-visibility" maskUnits="userSpaceOnUse" x="80" y="25" width="580" height="380">
-                    <rect x="80" y="25" width="580" height="380" fill="white" />
-                    <g data-nr-mask-top class="modular-depth-occluder">
-                        {GLYPHS.map((glyph) => (
-                            <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />
-                        ))}
-                    </g>
-                </mask>
-
-                <radialGradient id="nr-gradient" data-nr-gradient cx="370" cy="220" r="190" gradientUnits="userSpaceOnUse">
+                <radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
                     <stop offset="0" class="modular-glow-start" />
                     <stop offset="1" class="modular-glow-end" />
                 </radialGradient>
@@ -233,6 +227,14 @@ const GUIDE_PATHS = [
                 ))}
             </g>
 
+            <!-- Depth linework is painted before the top faces. The opaque top
+                 surface therefore removes any segment that is physically behind
+                 it, while exposed vertical creases remain complete on the walls. -->
+            <use href="#nr-bottom-stroke" class="modular-stroke-base" />
+            <use href="#nr-bottom-stroke" class="modular-stroke-glow" />
+            <use href="#nr-connector-stroke" class="modular-stroke-base" />
+            <use href="#nr-connector-stroke" class="modular-stroke-glow" />
+
             <g data-nr-top class="modular-top">
                 <g class="modular-face-background">
                     {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
@@ -242,14 +244,10 @@ const GUIDE_PATHS = [
                 </g>
             </g>
 
-            <g mask="url(#nr-depth-visibility)">
-                <use href="#nr-depth-stroke" class="modular-stroke-base" />
-                <use href="#nr-depth-stroke" class="modular-stroke-glow" />
-            </g>
             <use href="#nr-top-stroke" class="modular-stroke-base" />
             <use href="#nr-top-stroke" class="modular-stroke-glow" />
 
-            <text class="modular-fig-label" x="118" y="365">FIG. B / NR MODULAR SYSTEM</text>
+            <text class="modular-fig-label" x="142" y="330">FIG. B / NR MODULAR SYSTEM</text>
         </svg>
     </button>
 </div>
@@ -311,15 +309,7 @@ const GUIDE_PATHS = [
 
     .modular-face-pattern { fill: url(#nr-pattern); }
 
-    .modular-depth-occluder {
-        fill: #000;
-        stroke: #000;
-        stroke-width: 1.4;
-        stroke-linejoin: miter;
-    }
-
-    .modular-top,
-    .modular-depth-occluder {
+    .modular-top {
         transition: transform 170ms cubic-bezier(.2,.8,.2,1);
     }
 
@@ -355,7 +345,7 @@ const GUIDE_PATHS = [
     }
 </style>
 
-<script define:vars={{ TOP_STROKE_NORMAL, TOP_STROKE_PRESSED, DEPTH_STROKE_NORMAL, DEPTH_STROKE_PRESSED, PRESS_DISTANCE }}>
+<script define:vars={{ TOP_STROKE_NORMAL, TOP_STROKE_PRESSED, CONNECTOR_STROKE_NORMAL, CONNECTOR_STROKE_PRESSED, PRESS_DISTANCE }}>
     const roots = document.querySelectorAll('[data-nr-stage]');
 
     roots.forEach((root) => {
@@ -366,9 +356,8 @@ const GUIDE_PATHS = [
         const svg = root.querySelector('[data-nr-svg]');
         const gradient = root.querySelector('[data-nr-gradient]');
         const top = root.querySelector('[data-nr-top]');
-        const maskTop = root.querySelector('[data-nr-mask-top]');
         const topStroke = root.querySelector('[data-nr-top-stroke]');
-        const depthStroke = root.querySelector('[data-nr-depth-stroke]');
+        const connectorStroke = root.querySelector('[data-nr-connector-stroke]');
         const walls = Array.from(root.querySelectorAll('[data-nr-wall]'));
 
         if (
@@ -376,15 +365,14 @@ const GUIDE_PATHS = [
             !(svg instanceof SVGSVGElement) ||
             !(gradient instanceof SVGRadialGradientElement) ||
             !(top instanceof SVGGElement) ||
-            !(maskTop instanceof SVGGElement) ||
             !(topStroke instanceof SVGPathElement) ||
-            !(depthStroke instanceof SVGPathElement)
+            !(connectorStroke instanceof SVGPathElement)
         ) return;
 
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        let targetX = 370;
-        let targetY = 220;
+        let targetX = 385;
+        let targetY = 190;
         let currentX = targetX;
         let currentY = targetY;
         let raf = 0;
@@ -418,11 +406,9 @@ const GUIDE_PATHS = [
         const setPressed = (nextPressed) => {
             if (pressed === nextPressed) return;
             pressed = nextPressed;
-            const translate = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
-            top.style.transform = translate;
-            maskTop.style.transform = translate;
+            top.style.transform = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
             topStroke.setAttribute('d', nextPressed ? TOP_STROKE_PRESSED : TOP_STROKE_NORMAL);
-            depthStroke.setAttribute('d', nextPressed ? DEPTH_STROKE_PRESSED : DEPTH_STROKE_NORMAL);
+            connectorStroke.setAttribute('d', nextPressed ? CONNECTOR_STROKE_PRESSED : CONNECTOR_STROKE_NORMAL);
             walls.forEach((wall) => {
                 if (!(wall instanceof SVGPathElement)) return;
                 const d = nextPressed ? wall.dataset.pressedD : wall.dataset.normalD;
