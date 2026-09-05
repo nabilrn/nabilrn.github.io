@@ -1,7 +1,7 @@
 ---
 type SkillItem = {
     label: string;
-    source: 'simple' | 'lobe';
+    source: 'simple' | 'lobe' | 'local';
     slug: string;
     color?: string;
     colorAsset?: boolean;
@@ -65,7 +65,7 @@ const tracks: SkillTrack[] = [
             { label: 'Cloudflare', source: 'simple', slug: 'cloudflare', color: '#F38020' },
             { label: 'Proxmox', source: 'simple', slug: 'proxmox', color: '#E57000' },
             { label: 'Linux', source: 'simple', slug: 'linux', color: '#FCC624' },
-            { label: 'Microsoft Azure', source: 'simple', slug: 'microsoftazure', color: '#0078D4' },
+            { label: 'Microsoft Azure', source: 'local', slug: '/icons/microsoft-azure.svg', color: '#0078D4' },
             { label: 'Google Cloud', source: 'simple', slug: 'googlecloud', color: '#4285F4' },
             { label: 'NGINX', source: 'simple', slug: 'nginx', color: '#009639' },
             { label: 'Debian', source: 'simple', slug: 'debian', color: '#A81D33' },
@@ -88,7 +88,10 @@ const tracks: SkillTrack[] = [
     },
 ];
 
-const monoUrl = (item: SkillItem) => item.source === 'lobe' ? lobeIconUrl(item.slug) : simpleIconUrl(item.slug);
+const monoUrl = (item: SkillItem) => {
+    if (item.source === 'local') return item.slug;
+    return item.source === 'lobe' ? lobeIconUrl(item.slug) : simpleIconUrl(item.slug);
+};
 const colorUrl = (item: SkillItem) => item.source === 'lobe' && item.colorAsset ? lobeIconUrl(item.slug, true) : null;
 const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH) / TARGET_SPEED)}s`;
 ---
