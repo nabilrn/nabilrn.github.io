@@ -1,0 +1,314 @@
+---
+import UiIcon from '../icons/UiIcon.astro';
+
+interface Props {
+    heading: string;
+}
+
+const { heading } = Astro.props;
+
+// Canonical work-history copy is condensed from the Master CV so the homepage
+// can stay dense while the full resume remains the detailed source of truth.
+const experienceItems = [
+    {
+        organization: 'Department of Information Systems, Universitas Andalas · NeoCentral',
+        role: 'Software Engineer · Full Stack, Mobile & Platform',
+        period: 'Aug 2025 — May 2026',
+        detail: '100+ users · 40+ REST endpoints · Docker CI/CD · 336 automated tests',
+    },
+    {
+        organization: 'Laboratory of IT Governance & Infrastructure (TKITI), Universitas Andalas',
+        role: 'Coordinator Assistant',
+        period: 'Mar 2025 — Mar 2026',
+        detail: 'Proxmox VE · bare-metal · LAN/rack bring-up · Cloudflare Zero Trust · led 12 assistants',
+    },
+    {
+        organization: 'Department of Information Systems, Universitas Andalas',
+        role: 'Teaching Assistant · Android Development Practicum',
+        period: 'Aug 2025 — Dec 2025',
+        detail: '15 sessions · 3 classes · 80+ students · Kotlin & Jetpack Compose debugging',
+    },
+    {
+        organization: 'UPT Perpustakaan Universitas Andalas · Library Analytics',
+        role: 'Software Engineer',
+        period: 'Aug 2025 — Nov 2025',
+        detail: 'Fastify · Redis · SSE · ~0.5s live updates · public lobby displays',
+    },
+    {
+        organization: 'Bank Nagari · Technology & Digitalization Division',
+        role: 'Programmer Intern · Full Stack / Backend',
+        period: 'Jan 2025 — Apr 2025',
+        detail: 'React · Node.js/Express · PostgreSQL · JWT rotation · SQL reporting · DOCX/PDF automation',
+    },
+    {
+        organization: 'Laboratory of Basic Computing, Universitas Andalas',
+        role: 'Research & Development Staff',
+        period: 'Aug 2024 — Mar 2025',
+        detail: '22 workstations · Linux hosting · aaPanel · Cloudflare Tunnel · server/hardware incident response',
+    },
+] as const;
+---
+
+<div class="experience-panel">
+    <header class="experience-header">
+        <div class="experience-heading">
+            <UiIcon name="briefcase" size={12} strokeWidth={1.5} />
+            <span>{heading}</span>
+        </div>
+
+        <div class="experience-actions">
+            <span class="experience-count">{String(experienceItems.length).padStart(2, '0')} roles</span>
+            <span class="resume-placeholder" title="Resume download tracking will be wired after the experience layout is approved">
+                <UiIcon name="download" size={11} strokeWidth={1.5} />
+                <span>Resume</span>
+            </span>
+        </div>
+    </header>
+
+    <div
+        class="experience-scroll"
+        role="region"
+        aria-label="Work experience history"
+        tabindex="0"
+    >
+        {experienceItems.map((item, index) => (
+            <article class="experience-entry">
+                <div class="experience-entry-head">
+                    <span class="experience-index">{String(index + 1).padStart(2, '0')}</span>
+                    <strong class="experience-organization">{item.organization}</strong>
+                    <time class="experience-period">{item.period}</time>
+                </div>
+                <div class="experience-role">{item.role}</div>
+                <div class="experience-detail">{item.detail}</div>
+            </article>
+        ))}
+    </div>
+</div>
+
+<style>
+    .experience-panel {
+        --experience-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .experience-header {
+        min-width: 0;
+        padding: 10px clamp(12px, 0.95vw, 17px) 9px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--experience-line);
+    }
+
+    .experience-heading,
+    .experience-actions,
+    .resume-placeholder {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .experience-heading {
+        flex: none;
+        gap: 6px;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 12px;
+        font-weight: 550;
+        line-height: 1.2;
+    }
+
+    .experience-actions {
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .experience-count,
+    .resume-placeholder {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 8.5px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .experience-count {
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+    }
+
+    .resume-placeholder {
+        gap: 4px;
+        cursor: default;
+    }
+
+    .experience-scroll {
+        min-width: 0;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--muted) 38%, transparent) transparent;
+        outline: none;
+    }
+
+    .experience-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .experience-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .experience-scroll::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--muted) 38%, transparent);
+    }
+
+    .experience-scroll:focus-visible {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 38%, transparent);
+    }
+
+    .experience-entry {
+        position: relative;
+        min-width: 0;
+        padding: 10px clamp(12px, 0.95vw, 17px) 11px;
+        border-bottom: 1px solid var(--experience-line);
+        background: transparent;
+        transition: background 140ms ease;
+    }
+
+    .experience-entry:last-child {
+        border-bottom: 0;
+    }
+
+    .experience-entry::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: transparent;
+        transition: background 140ms ease;
+    }
+
+    .experience-entry:hover {
+        background: color-mix(in srgb, var(--surface) 28%, transparent);
+    }
+
+    .experience-entry:hover::before {
+        background: color-mix(in srgb, var(--text) 56%, transparent);
+    }
+
+    .experience-entry-head {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 22px minmax(0, 1fr) auto;
+        align-items: baseline;
+        column-gap: 7px;
+    }
+
+    .experience-index,
+    .experience-period,
+    .experience-detail {
+        font-family: var(--font-mono);
+    }
+
+    .experience-index {
+        color: color-mix(in srgb, var(--muted) 70%, transparent);
+        font-size: 8px;
+        line-height: 1.2;
+        letter-spacing: 0.04em;
+    }
+
+    .experience-organization {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10.5px;
+        font-weight: 550;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .experience-period {
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .experience-role {
+        margin: 4px 0 0 29px;
+        color: var(--text-body);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        line-height: 1.25;
+    }
+
+    .experience-detail {
+        margin: 5px 0 0 29px;
+        overflow: hidden;
+        color: var(--muted);
+        font-size: 8px;
+        line-height: 1.35;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .experience-header {
+            padding-top: 8px;
+            padding-bottom: 7px;
+        }
+
+        .experience-entry {
+            padding-top: 8px;
+            padding-bottom: 9px;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .experience-header {
+            padding: 12px 14px 10px;
+        }
+
+        .experience-count {
+            display: none;
+        }
+
+        .experience-entry {
+            padding: 11px 14px 12px;
+        }
+
+        .experience-entry-head {
+            grid-template-columns: 22px minmax(0, 1fr);
+            row-gap: 4px;
+        }
+
+        .experience-period {
+            grid-column: 2;
+        }
+
+        .experience-role,
+        .experience-detail {
+            margin-left: 29px;
+        }
+
+        .experience-detail {
+            white-space: normal;
+        }
+    }
+</style>
