@@ -245,19 +245,22 @@ const experienceItems = home.experiences.items.slice(0, 2);
     }
 
     .home-redesign {
-        --board-gap: 14px;
+        --phi-major: 61.8034%;
+        --phi-minor: 38.1966%;
+        --phi-small: 23.6068%;
+        --phi-mid: 47.2136%;
+        --phi-side: 29.1796%;
         --major-stroke: 2px;
         --minor-stroke: 1px;
+        --sheet-line: color-mix(in oklab, var(--border) 64%, var(--bg));
 
-        /* One explicit desktop type scale. Each information level reuses one
-           size instead of independently scaling with viewport width. */
         --type-micro: 9px;
         --type-meta: 10px;
         --type-body: 12px;
         --type-item: 15px;
         --type-heading: 22px;
 
-        width: min(1720px, calc(100vw - 32px));
+        width: min(1920px, calc(100vw - 32px));
         min-height: 100vh;
         margin: 0 auto;
         background: var(--bg);
@@ -266,9 +269,14 @@ const experienceItems = home.experiences.items.slice(0, 2);
     }
 
     .portfolio-board {
+        position: relative;
         display: grid;
-        gap: var(--board-gap);
-        padding: var(--board-gap) 0;
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
+        border-inline: var(--minor-stroke) solid var(--sheet-line);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        background: var(--bg);
     }
 
     .top-layout,
@@ -276,15 +284,12 @@ const experienceItems = home.experiences.items.slice(0, 2);
         min-width: 0;
         min-height: 0;
         display: grid;
-        gap: var(--board-gap);
+        grid-template-columns: minmax(0, 1.618034fr) minmax(0, 1fr);
+        gap: 0;
     }
 
     .top-layout {
-        grid-template-columns: minmax(0, 59fr) minmax(0, 41fr);
-    }
-
-    .bottom-layout {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-bottom: var(--major-stroke) solid var(--border);
     }
 
     .identity-board,
@@ -292,15 +297,25 @@ const experienceItems = home.experiences.items.slice(0, 2);
     .index-region {
         min-width: 0;
         min-height: 0;
-        border: var(--major-stroke) solid var(--border);
         background: var(--bg);
         overflow: hidden;
     }
 
+    .identity-board,
+    .projects-region {
+        border-right: var(--major-stroke) solid var(--border);
+    }
+
     .identity-board {
         display: grid;
-        grid-template-columns: minmax(176px, 27%) minmax(0, 47%) minmax(0, 26%);
-        grid-template-rows: minmax(0, 42%) minmax(0, 29%) minmax(0, 29%);
+        grid-template-columns:
+            minmax(210px, var(--phi-small))
+            minmax(0, var(--phi-mid))
+            minmax(0, var(--phi-side));
+        grid-template-rows:
+            minmax(0, var(--phi-minor))
+            minmax(0, var(--phi-small))
+            minmax(0, var(--phi-minor));
     }
 
     .identity-profile {
@@ -311,7 +326,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-        border-right: var(--minor-stroke) solid var(--border);
+        border-right: var(--minor-stroke) solid var(--sheet-line);
         overflow: hidden;
     }
 
@@ -451,7 +466,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         grid-column: 2 / 4;
         grid-row: 1;
         padding: clamp(14px, 1.15vw, 19px);
-        border-bottom: var(--minor-stroke) solid var(--border);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .region-heading,
@@ -510,20 +525,20 @@ const experienceItems = home.experiences.items.slice(0, 2);
     .location-region {
         grid-column: 2;
         grid-row: 2;
-        border-right: var(--minor-stroke) solid var(--border);
-        border-bottom: var(--minor-stroke) solid var(--border);
+        border-right: var(--minor-stroke) solid var(--sheet-line);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .education-region {
         grid-column: 3;
         grid-row: 2;
-        border-bottom: var(--minor-stroke) solid var(--border);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .experience-region {
         grid-column: 2;
         grid-row: 3;
-        border-right: var(--minor-stroke) solid var(--border);
+        border-right: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .streak-region {
@@ -642,7 +657,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
     .index-heading {
         padding: 13px 20px;
-        border-bottom: var(--minor-stroke) solid var(--border);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .index-heading h2 {
@@ -673,7 +688,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         align-items: center;
         gap: 12px;
         padding: 10px 20px;
-        border-bottom: var(--minor-stroke) solid var(--border);
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
         background: transparent;
         transition: background 140ms ease;
     }
@@ -744,12 +759,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         }
 
         .portfolio-board {
-            min-height: 0;
-            /* After header, two outer paddings and the inter-row gap are
-               removed. The remaining height is split 3:2. At a 970px
-               viewport this is ~526px top / ~350px bottom; at 1024px it is
-               ~558px / ~372px. */
-            grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+            grid-template-rows: minmax(0, 1.618034fr) minmax(0, 1fr);
         }
 
         .top-layout,
@@ -763,10 +773,16 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
     @media (min-width: 1100px) and (max-height: 859px) {
         .home-redesign {
-            --board-gap: 10px;
             --type-heading: 20px;
             --type-item: 14px;
-            width: min(1720px, calc(100vw - 24px));
+            width: min(1920px, calc(100vw - 24px));
+        }
+
+        .identity-board {
+            grid-template-columns:
+                minmax(188px, var(--phi-small))
+                minmax(0, var(--phi-mid))
+                minmax(0, var(--phi-side));
         }
 
         .identity-profile {
@@ -819,6 +835,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
         .portfolio-board {
             grid-template-rows: auto auto;
+            border-top: var(--minor-stroke) solid var(--sheet-line);
         }
 
         .top-layout,
@@ -826,28 +843,41 @@ const experienceItems = home.experiences.items.slice(0, 2);
             grid-template-columns: 1fr;
         }
 
-        .identity-board {
-            min-height: 620px;
+        .top-layout {
+            border-bottom: var(--major-stroke) solid var(--border);
+        }
+
+        .identity-board,
+        .projects-region {
+            border-right: 0;
         }
 
         .nr-region {
             min-height: 460px;
+            border-top: var(--major-stroke) solid var(--border);
+        }
+
+        .identity-board {
+            min-height: 620px;
         }
 
         .index-region {
             min-height: 320px;
+        }
+
+        .blog-region {
+            border-top: var(--minor-stroke) solid var(--sheet-line);
         }
     }
 
     @media (max-width: 720px) {
         .home-redesign {
             width: 100%;
-            --board-gap: 10px;
             --major-stroke: 1px;
         }
 
         .portfolio-board {
-            padding-inline: 10px;
+            border-inline: 0;
         }
 
         .identity-board {
@@ -862,7 +892,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
             grid-row: 1;
             min-height: 360px;
             border-right: 0;
-            border-bottom: var(--minor-stroke) solid var(--border);
+            border-bottom: var(--minor-stroke) solid var(--sheet-line);
         }
 
         .contribution-region {
