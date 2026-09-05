@@ -6,21 +6,8 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
 
 <template data-education-template>
     <div class="education-panel">
-        <div class="education-heading">my education</div>
-
-        <div class="education-identity">
-            <div class="education-logo-wrap" aria-hidden="true">
-                <img class="education-logo" src={logoSrc} alt="" />
-            </div>
-
-            <div class="education-copy">
-                <strong class="education-school">Universitas Andalas</strong>
-                <div class="education-meta-line" aria-label="Bachelor of Information Systems, GPA 3.71 out of 4.00">
-                    <span class="education-major">B.InfoSys</span>
-                    <span class="education-separator" aria-hidden="true">·</span>
-                    <span class="education-gpa">GPA 3.71 / 4.00</span>
-                </div>
-            </div>
+        <header class="education-header">
+            <div class="education-heading">my education</div>
 
             <a
                 class="education-map-link"
@@ -40,10 +27,27 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
                 </span>
                 <span class="education-map-tooltip" role="tooltip">See on Google Maps</span>
             </a>
-        </div>
+        </header>
 
-        <div class="education-photo" aria-label="Universitas Andalas rectorate building">
-            <img src={campusSrc} alt="Universitas Andalas rectorate building" />
+        <div class="education-body">
+            <div class="education-identity">
+                <div class="education-logo-wrap" aria-hidden="true">
+                    <img class="education-logo" src={logoSrc} alt="" />
+                </div>
+
+                <div class="education-copy">
+                    <strong class="education-school">Universitas Andalas</strong>
+                    <div class="education-meta-line" aria-label="Bachelor of Information Systems, GPA 3.71 out of 4.00">
+                        <span class="education-major">B.InfoSys</span>
+                        <span class="education-separator" aria-hidden="true">·</span>
+                        <span class="education-gpa">GPA 3.71 / 4.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="education-photo" aria-label="Universitas Andalas rectorate building">
+                <img src={campusSrc} alt="Universitas Andalas rectorate building" />
+            </div>
         </div>
     </div>
 </template>
@@ -65,18 +69,29 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
     }
 
     .home-redesign .education-panel {
+        --education-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+
         width: 100%;
         height: 100%;
         min-width: 0;
         min-height: 0;
-        padding: 8px 12px;
         display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr);
-        row-gap: 4px;
+        grid-template-rows: auto minmax(0, 1fr);
         background: var(--bg);
     }
 
+    .home-redesign .education-header {
+        min-width: 0;
+        padding: 8px 12px 7px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--education-line);
+    }
+
     .home-redesign .education-heading {
+        flex: none;
         width: max-content;
         color: var(--muted);
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
@@ -88,105 +103,13 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
         user-select: none;
     }
 
-    .home-redesign .education-identity {
-        min-width: 0;
-        display: grid;
-        grid-template-columns: 27px minmax(0, 1fr) 17px;
-        align-items: start;
-        column-gap: 6px;
-    }
-
-    .home-redesign .education-logo-wrap {
-        width: 27px;
-        height: 32px;
-        display: grid;
-        place-items: center;
-        align-self: center;
-    }
-
-    .home-redesign .education-logo {
-        width: 25px;
-        max-height: 29px;
-        display: block;
-        object-fit: contain;
-        filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
-        opacity: 0.86;
-        transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
-    }
-
-    .home-redesign .education-logo-wrap:hover .education-logo {
-        filter: grayscale(0) saturate(1) contrast(1) brightness(1);
-        opacity: 1;
-        transform: translateY(-1px);
-    }
-
-    .home-redesign .education-copy {
-        min-width: 0;
-        min-height: 32px;
-        display: grid;
-        grid-template-rows: auto auto;
-        align-content: center;
-        row-gap: 3px;
-    }
-
-    .home-redesign .education-school {
-        min-width: 0;
-        overflow: hidden;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: clamp(13.75px, 1.07vw, 14.5px);
-        font-weight: 600;
-        line-height: 1.05;
-        letter-spacing: -0.025em;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-    }
-
-    .home-redesign .education-meta-line {
-        min-width: 0;
-        display: flex;
-        align-items: baseline;
-        gap: 5px;
-        overflow: hidden;
-        white-space: nowrap;
-        line-height: 1.12;
-    }
-
-    .home-redesign .education-major {
-        flex: none;
-        color: var(--text-body);
-        font-family: var(--font-sans);
-        font-size: 9.75px;
-        font-weight: 450;
-    }
-
-    .home-redesign .education-separator {
-        flex: none;
-        color: color-mix(in srgb, var(--muted) 84%, transparent);
-        font-family: var(--font-mono);
-        font-size: 9px;
-    }
-
-    .home-redesign .education-gpa {
-        min-width: 0;
-        overflow: hidden;
-        color: color-mix(in srgb, var(--text-body) 92%, var(--muted));
-        font-family: var(--font-mono);
-        font-size: 9.5px;
-        font-weight: 500;
-        letter-spacing: 0.002em;
-        text-overflow: ellipsis;
-    }
-
     .home-redesign .education-map-link {
         position: relative;
-        width: 17px;
-        height: 17px;
+        flex: none;
+        width: 18px;
+        height: 18px;
         display: grid;
         place-items: center;
-        align-self: start;
-        justify-self: end;
-        margin-top: 3px;
         color: color-mix(in srgb, var(--muted) 88%, transparent);
         transition: color 160ms ease, transform 160ms ease;
     }
@@ -267,10 +190,107 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
         transform: translate(0, -50%);
     }
 
+    .home-redesign .education-body {
+        min-width: 0;
+        min-height: 0;
+        padding: 8px 12px 8px;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        row-gap: 8px;
+    }
+
+    .home-redesign .education-identity {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 27px minmax(0, 1fr);
+        align-items: center;
+        column-gap: 7px;
+    }
+
+    .home-redesign .education-logo-wrap {
+        width: 27px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+    }
+
+    .home-redesign .education-logo {
+        width: 25px;
+        max-height: 29px;
+        display: block;
+        object-fit: contain;
+        filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
+        opacity: 0.86;
+        transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
+    }
+
+    .home-redesign .education-logo-wrap:hover .education-logo {
+        filter: grayscale(0) saturate(1) contrast(1) brightness(1);
+        opacity: 1;
+        transform: translateY(-1px);
+    }
+
+    .home-redesign .education-copy {
+        min-width: 0;
+        min-height: 32px;
+        display: grid;
+        grid-template-rows: auto auto;
+        align-content: center;
+        row-gap: 3px;
+    }
+
+    .home-redesign .education-school {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: clamp(13.75px, 1.07vw, 14.5px);
+        font-weight: 600;
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .home-redesign .education-meta-line {
+        min-width: 0;
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        overflow: hidden;
+        white-space: nowrap;
+        line-height: 1.12;
+    }
+
+    .home-redesign .education-major {
+        flex: none;
+        color: var(--text-body);
+        font-family: var(--font-sans);
+        font-size: 9.75px;
+        font-weight: 450;
+    }
+
+    .home-redesign .education-separator {
+        flex: none;
+        color: color-mix(in srgb, var(--muted) 84%, transparent);
+        font-family: var(--font-mono);
+        font-size: 9px;
+    }
+
+    .home-redesign .education-gpa {
+        min-width: 0;
+        overflow: hidden;
+        color: color-mix(in srgb, var(--text-body) 92%, var(--muted));
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        font-weight: 500;
+        letter-spacing: 0.002em;
+        text-overflow: ellipsis;
+    }
+
     .home-redesign .education-photo {
         min-width: 0;
         min-height: 0;
-        margin-top: 2px;
         margin-bottom: 5px;
         overflow: hidden;
         border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
@@ -283,7 +303,7 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
         min-height: 0;
         display: block;
         object-fit: cover;
-        object-position: center 44%;
+        object-position: center 42%;
         filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
         opacity: 0.86;
         transition: filter 320ms ease, opacity 320ms ease, transform 320ms ease;
@@ -292,23 +312,43 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
     .home-redesign .education-photo:hover img {
         filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
         opacity: 1;
-        transform: scale(1.006);
+        transform: scale(1.004);
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
-        .home-redesign .education-panel {
-            padding-top: 7px;
-            padding-bottom: 7px;
-            row-gap: 4px;
+        .home-redesign .education-header {
+            padding-top: 6px;
+            padding-bottom: 5px;
         }
 
         .home-redesign .education-heading {
             font-size: 14px;
         }
 
+        .home-redesign .education-map-link {
+            width: 17px;
+            height: 17px;
+        }
+
+        .home-redesign .education-map-pin-mono svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        .home-redesign .education-map-pin-color img {
+            width: 15px;
+            height: 15px;
+        }
+
+        .home-redesign .education-body {
+            padding-top: 7px;
+            padding-bottom: 7px;
+            row-gap: 7px;
+        }
+
         .home-redesign .education-identity {
-            grid-template-columns: 25px minmax(0, 1fr) 16px;
-            column-gap: 5px;
+            grid-template-columns: 25px minmax(0, 1fr);
+            column-gap: 6px;
         }
 
         .home-redesign .education-logo-wrap {
@@ -342,24 +382,7 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
             gap: 4px;
         }
 
-        .home-redesign .education-map-link {
-            width: 16px;
-            height: 16px;
-            margin-top: 3px;
-        }
-
-        .home-redesign .education-map-pin-mono svg {
-            width: 13px;
-            height: 13px;
-        }
-
-        .home-redesign .education-map-pin-color img {
-            width: 15px;
-            height: 15px;
-        }
-
         .home-redesign .education-photo {
-            margin-top: 2px;
             margin-bottom: 4px;
         }
     }
