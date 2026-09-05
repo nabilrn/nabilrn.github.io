@@ -66,14 +66,13 @@ const experienceItems = home.experiences.items.slice(0, 2);
                         <div class="region-secondary">UTC+7 · <span data-jakarta-time>--:--</span></div>
                     </div>
 
-                    <div class="education-region compact-region">
+                    <div class="streak-region compact-region">
                         <div class="micro-label icon-label">
-                            <UiIcon name="graduation-cap" size={12} strokeWidth={1.5} />
-                            <span>{education.heading}</span>
+                            <BrandIcon name="duolingo" size={11} />
+                            <span>Duolingo streak</span>
                         </div>
-                        <div class="region-primary">{education.institution}</div>
-                        <div class="region-secondary">{education.degree}</div>
-                        <div class="region-meta">{education.gpa} · {education.period}</div>
+                        <div class="streak-value">— <span>days</span></div>
+                        <div class="region-secondary">daily language practice</div>
                     </div>
 
                     <div class="experience-region compact-region">
@@ -97,13 +96,14 @@ const experienceItems = home.experiences.items.slice(0, 2);
                         </div>
                     </div>
 
-                    <div class="streak-region compact-region">
+                    <div class="education-region compact-region">
                         <div class="micro-label icon-label">
-                            <BrandIcon name="duolingo" size={11} />
-                            <span>Duolingo streak</span>
+                            <UiIcon name="graduation-cap" size={12} strokeWidth={1.5} />
+                            <span>{education.heading}</span>
                         </div>
-                        <div class="streak-value">— <span>days</span></div>
-                        <div class="region-secondary">daily language practice</div>
+                        <div class="region-primary">{education.institution}</div>
+                        <div class="region-secondary">{education.degree}</div>
+                        <div class="region-meta">{education.gpa} · {education.period}</div>
                     </div>
                 </section>
 
@@ -401,7 +401,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         border-bottom: var(--minor-stroke) solid var(--sheet-line);
     }
 
-    .education-region {
+    .streak-region {
         grid-column: 3;
         grid-row: 2;
         border-bottom: var(--minor-stroke) solid var(--sheet-line);
@@ -413,7 +413,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         border-right: var(--minor-stroke) solid var(--sheet-line);
     }
 
-    .streak-region {
+    .education-region {
         grid-column: 3;
         grid-row: 3;
     }
@@ -743,7 +743,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
             grid-row: 3;
         }
 
-        .education-region {
+        .streak-region {
             grid-column: 2;
             grid-row: 3;
         }
@@ -753,7 +753,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
             grid-row: 4;
         }
 
-        .streak-region {
+        .education-region {
             grid-column: 2;
             grid-row: 4;
         }
