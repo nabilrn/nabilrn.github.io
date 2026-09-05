@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
 import type { SiteLocale } from '../../data/siteContent';
+import EducationOverlay from './EducationOverlay.astro';
 import HandwrittenNote from './HandwrittenNote.astro';
 import RoleFlip from './RoleFlip.astro';
 import SkillWaterfall from './SkillWaterfall.astro';
@@ -37,6 +38,8 @@ const socialLinks = [
         <div class="avatar-wrap">
             <Image src={avatar} alt={avatarAlt} width={320} height={320} />
         </div>
+
+        <HandwrittenNote text="my activity" class="profile-activity-note" arrowVariant="shallow" />
     </div>
 
     <div class="identity-copy">
@@ -75,6 +78,8 @@ const socialLinks = [
     <div class="waterfall-wrap">
         <SkillWaterfall />
     </div>
+
+    <EducationOverlay />
 </div>
 
 <style>
@@ -84,6 +89,7 @@ const socialLinks = [
         --waterfall-height: clamp(190px, 22vh, 225px);
 
         position: relative;
+        z-index: 5;
         grid-column: 1;
         grid-row: 1 / 4;
         min-width: 0;
@@ -98,10 +104,12 @@ const socialLinks = [
 
     .avatar-stage {
         position: relative;
+        z-index: 6;
         width: calc(100% + (var(--profile-pad) * 2));
         margin: calc(var(--profile-pad) * -1) calc(var(--profile-pad) * -1) 0;
         padding: var(--profile-pad) var(--profile-pad) 14px;
         isolation: isolate;
+        overflow: visible;
     }
 
     .avatar-stage::before,
@@ -152,6 +160,27 @@ const socialLinks = [
         display: block;
         object-fit: cover;
         object-position: 50% 45%;
+    }
+
+    :global(.avatar-stage .profile-activity-note) {
+        z-index: 12;
+        top: 4px;
+        right: -8px;
+        --note-font-size: 13px;
+        --note-arrow-width: 34px;
+        --note-arrow-height: 17px;
+        --note-arrow-gap: 0px;
+        transform: rotate(-3deg);
+        transform-origin: center top;
+    }
+
+    :global(.avatar-stage .profile-activity-note .arrow-shallow) {
+        transform: scaleX(-1);
+        transform-origin: center;
+    }
+
+    :global(.home-redesign .contribution-annotation-layer) {
+        display: none !important;
     }
 
     .identity-copy {
@@ -334,6 +363,14 @@ const socialLinks = [
             width: 128px;
         }
 
+        :global(.avatar-stage .profile-activity-note) {
+            top: 2px;
+            right: -4px;
+            --note-font-size: 12.5px;
+            --note-arrow-width: 31px;
+            --note-arrow-height: 15px;
+        }
+
         .identity-name-row {
             padding-top: 8px;
             padding-bottom: 7px;
@@ -396,6 +433,7 @@ const socialLinks = [
             width: 136px;
         }
 
+        :global(.avatar-stage .profile-activity-note),
         .social-annotation-layer {
             display: none;
         }
