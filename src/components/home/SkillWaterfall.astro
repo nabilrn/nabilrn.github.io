@@ -1,112 +1,131 @@
 ---
 type SkillItem = {
     label: string;
-    slug?: string;
-    inline?: 'openai';
+    source: 'simple' | 'lobe';
+    slug: string;
+    color?: string;
+    colorAsset?: boolean;
+    scale?: number;
 };
 
 type SkillTrack = {
     label: string;
     direction: 'up' | 'down';
-    duration: string;
     items: SkillItem[];
 };
 
 const SIMPLE_ICONS_COMMIT = '7f18aaa676087b8240b6f4ff58a6720be282da59';
-const iconUrl = (slug: string) => `https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@${SIMPLE_ICONS_COMMIT}/icons/${slug}.svg`;
+const LOBE_ICONS_COMMIT = 'c450bacad7a78b13470ab78da2d4d034cbb0c880';
+const TARGET_SPEED = 14;
+const ICON_PITCH = 42;
+
+const simpleIconUrl = (slug: string) =>
+    `https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@${SIMPLE_ICONS_COMMIT}/icons/${slug}.svg`;
+const lobeIconUrl = (slug: string, color = false) =>
+    `https://cdn.jsdelivr.net/gh/lobehub/lobe-icons@${LOBE_ICONS_COMMIT}/packages/static-svg/icons/${slug}${color ? '-color' : ''}.svg`;
 
 const tracks: SkillTrack[] = [
     {
         label: 'Backend',
         direction: 'down',
-        duration: '26s',
         items: [
-            { label: 'Go', slug: 'go' },
-            { label: 'Node.js', slug: 'nodedotjs' },
-            { label: 'Express', slug: 'express' },
-            { label: 'Fastify', slug: 'fastify' },
-            { label: 'Hono', slug: 'hono' },
-            { label: 'PostgreSQL', slug: 'postgresql' },
-            { label: 'Redis', slug: 'redis' },
-            { label: 'Prisma', slug: 'prisma' },
+            { label: 'Go', source: 'simple', slug: 'go', color: '#00ADD8' },
+            { label: 'Node.js', source: 'simple', slug: 'nodedotjs', color: '#5FA04E' },
+            { label: 'Express', source: 'simple', slug: 'express', color: 'var(--text)' },
+            { label: 'Fastify', source: 'simple', slug: 'fastify', color: 'var(--text)' },
+            { label: 'Hono', source: 'simple', slug: 'hono', color: '#E36002' },
+            { label: 'PostgreSQL', source: 'simple', slug: 'postgresql', color: '#4169E1' },
+            { label: 'Redis', source: 'simple', slug: 'redis', color: '#FF4438' },
+            { label: 'Prisma', source: 'simple', slug: 'prisma', color: '#5A67D8', scale: 0.92 },
         ],
     },
     {
         label: 'Frontend and mobile',
         direction: 'up',
-        duration: '23s',
         items: [
-            { label: 'TypeScript', slug: 'typescript' },
-            { label: 'React', slug: 'react' },
-            { label: 'Next.js', slug: 'nextdotjs' },
-            { label: 'Svelte', slug: 'svelte' },
-            { label: 'Astro', slug: 'astro' },
-            { label: 'Flutter', slug: 'flutter' },
-            { label: 'Kotlin', slug: 'kotlin' },
-            { label: 'Android', slug: 'android' },
+            { label: 'TypeScript', source: 'simple', slug: 'typescript', color: '#3178C6' },
+            { label: 'React', source: 'simple', slug: 'react', color: '#61DAFB' },
+            { label: 'Next.js', source: 'simple', slug: 'nextdotjs', color: 'var(--text)' },
+            { label: 'Svelte', source: 'simple', slug: 'svelte', color: '#FF3E00' },
+            { label: 'Astro', source: 'simple', slug: 'astro', color: '#BC52EE' },
+            { label: 'Flutter', source: 'simple', slug: 'flutter', color: '#02569B', scale: 0.92 },
+            { label: 'Kotlin', source: 'simple', slug: 'kotlin', color: '#7F52FF' },
+            { label: 'Android', source: 'simple', slug: 'android', color: '#3DDC84' },
         ],
     },
     {
         label: 'Infrastructure',
         direction: 'down',
-        duration: '28s',
         items: [
-            { label: 'Docker', slug: 'docker' },
-            { label: 'GitHub Actions', slug: 'githubactions' },
-            { label: 'Caddy', slug: 'caddy' },
-            { label: 'Cloudflare', slug: 'cloudflare' },
-            { label: 'Proxmox', slug: 'proxmox' },
-            { label: 'Linux', slug: 'linux' },
-            { label: 'Microsoft Azure', slug: 'microsoftazure' },
-            { label: 'Google Cloud', slug: 'googlecloud' },
+            { label: 'Docker', source: 'simple', slug: 'docker', color: '#2496ED' },
+            { label: 'GitHub Actions', source: 'simple', slug: 'githubactions', color: '#2088FF' },
+            { label: 'Caddy', source: 'simple', slug: 'caddy', color: '#1F88C0' },
+            { label: 'Cloudflare', source: 'simple', slug: 'cloudflare', color: '#F38020' },
+            { label: 'Proxmox', source: 'simple', slug: 'proxmox', color: '#E57000' },
+            { label: 'Linux', source: 'simple', slug: 'linux', color: '#FCC624' },
+            { label: 'Microsoft Azure', source: 'simple', slug: 'microsoftazure', color: '#0078D4' },
+            { label: 'Google Cloud', source: 'simple', slug: 'googlecloud', color: '#4285F4' },
+            { label: 'NGINX', source: 'simple', slug: 'nginx', color: '#009639' },
+            { label: 'Debian', source: 'simple', slug: 'debian', color: '#A81D33' },
+            { label: 'Ubuntu', source: 'simple', slug: 'ubuntu', color: '#E95420' },
         ],
     },
     {
         label: 'AI tools',
         direction: 'up',
-        duration: '24s',
         items: [
-            { label: 'ChatGPT', inline: 'openai' },
-            { label: 'Codex', inline: 'openai' },
-            { label: 'Claude', slug: 'anthropic' },
-            { label: 'Claude Code', slug: 'anthropic' },
-            { label: 'Google Antigravity', slug: 'google' },
-            { label: 'OpenCode', slug: 'opencode' },
-            { label: 'Cursor', slug: 'cursor' },
-            { label: 'GitHub Copilot', slug: 'githubcopilot' },
+            { label: 'ChatGPT', source: 'lobe', slug: 'openai', color: 'var(--text)' },
+            { label: 'Codex', source: 'lobe', slug: 'codex', colorAsset: true },
+            { label: 'Claude', source: 'lobe', slug: 'claude', colorAsset: true },
+            { label: 'Claude Code', source: 'lobe', slug: 'claudecode', colorAsset: true, scale: 0.96 },
+            { label: 'Antigravity', source: 'lobe', slug: 'antigravity', colorAsset: true },
+            { label: 'OpenCode', source: 'lobe', slug: 'opencode', color: 'var(--text)' },
+            { label: 'Cursor', source: 'lobe', slug: 'cursor', color: 'var(--text)' },
+            { label: 'GitHub Copilot', source: 'lobe', slug: 'githubcopilot', color: 'var(--text)', scale: 1.04 },
         ],
     },
 ];
 
-const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z';
+const monoUrl = (item: SkillItem) => item.source === 'lobe' ? lobeIconUrl(item.slug) : simpleIconUrl(item.slug);
+const colorUrl = (item: SkillItem) => item.source === 'lobe' && item.colorAsset ? lobeIconUrl(item.slug, true) : null;
+const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH) / TARGET_SPEED)}s`;
 ---
 
 <div class="skill-waterfall" aria-label="Technology stack">
     {tracks.map((track) => (
         <div
             class:list={['skill-column', `is-${track.direction}`]}
-            style={`--track-duration:${track.duration}`}
+            style={`--track-duration:${durationFor(track.items.length)}`}
             aria-label={track.label}
         >
             <div class="skill-track">
                 {[0, 1].map(() => (
                     <div class="skill-sequence" aria-hidden="true">
-                        {track.items.map((item) => (
-                            <span class="skill-item" title={item.label}>
-                                {item.inline === 'openai' ? (
-                                    <svg class="skill-svg" viewBox="0 0 24 24" aria-hidden="true">
-                                        <path d={openAiPath} />
-                                    </svg>
-                                ) : (
-                                    <span
-                                        class="skill-mask"
-                                        style={`--skill-icon:url('${iconUrl(item.slug!)}')`}
-                                        aria-hidden="true"
-                                    />
-                                )}
-                                <span class="sr-only">{item.label}</span>
-                            </span>
-                        ))}
+                        {track.items.map((item) => {
+                            const coloredAsset = colorUrl(item);
+                            return (
+                                <span
+                                    class:list={['skill-item', coloredAsset && 'has-color-asset']}
+                                    data-skill-label={item.label}
+                                    style={`--skill-icon:url('${monoUrl(item)}');--brand-color:${item.color ?? 'var(--text)'};--icon-scale:${item.scale ?? 1}`}
+                                >
+                                    <span class="skill-mono" aria-hidden="true" />
+                                    {coloredAsset && (
+                                        <img
+                                            class="skill-color"
+                                            src={coloredAsset}
+                                            width="20"
+                                            height="20"
+                                            alt=""
+                                            loading="lazy"
+                                            decoding="async"
+                                            aria-hidden="true"
+                                        />
+                                    )}
+                                    <span class="sr-only">{item.label}</span>
+                                </span>
+                            );
+                        })}
                     </div>
                 ))}
             </div>
@@ -118,7 +137,6 @@ const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.04
     .skill-waterfall {
         --skill-size: 30px;
         --skill-gap: 12px;
-        --seam-fix: 6px;
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -140,7 +158,6 @@ const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.04
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: var(--skill-gap);
         will-change: transform;
         animation-duration: var(--track-duration);
         animation-timing-function: linear;
@@ -159,40 +176,60 @@ const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.04
         display: grid;
         justify-items: center;
         gap: var(--skill-gap);
+        padding-bottom: var(--skill-gap);
     }
 
     .skill-item {
+        position: relative;
         width: var(--skill-size);
         height: var(--skill-size);
         display: grid;
         place-items: center;
-        color: color-mix(in srgb, var(--muted) 82%, transparent);
-        transition: color 140ms ease, transform 140ms ease;
+        color: color-mix(in srgb, var(--muted) 80%, transparent);
+        cursor: default;
     }
 
-    .skill-item:hover {
-        color: var(--text);
-        transform: scale(1.08);
-    }
-
-    .skill-mask,
-    .skill-svg {
-        width: 18px;
-        height: 18px;
+    .skill-mono,
+    .skill-color {
+        grid-area: 1 / 1;
+        width: 19px;
+        height: 19px;
         display: block;
+        transform: scale(var(--icon-scale));
+        transform-origin: center;
+        transition: opacity 140ms ease, color 140ms ease, transform 140ms ease;
     }
 
-    .skill-mask {
+    .skill-mono {
+        color: currentColor;
         background: currentColor;
         -webkit-mask: var(--skill-icon) center / contain no-repeat;
         mask: var(--skill-icon) center / contain no-repeat;
     }
 
-    .skill-svg {
-        fill: currentColor;
+    .skill-color {
+        object-fit: contain;
+        opacity: 0;
     }
 
-    .skill-waterfall:hover .skill-track {
+    .skill-item:hover {
+        color: var(--brand-color);
+    }
+
+    .skill-item:hover .skill-mono {
+        transform: scale(calc(var(--icon-scale) * 1.08));
+    }
+
+    .skill-item.has-color-asset:hover .skill-mono {
+        opacity: 0;
+    }
+
+    .skill-item.has-color-asset:hover .skill-color {
+        opacity: 1;
+        transform: scale(calc(var(--icon-scale) * 1.08));
+    }
+
+    .skill-column:hover .skill-track {
         animation-play-state: paused;
     }
 
@@ -210,26 +247,50 @@ const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.04
 
     @keyframes waterfall-up {
         from { transform: translateY(0); }
-        to { transform: translateY(calc(-50% - var(--seam-fix))); }
+        to { transform: translateY(-50%); }
     }
 
     @keyframes waterfall-down {
-        from { transform: translateY(calc(-50% - var(--seam-fix))); }
+        from { transform: translateY(-50%); }
         to { transform: translateY(0); }
+    }
+
+    :global(.skill-floating-tooltip) {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, calc(-100% - 7px));
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    :global(.skill-floating-tooltip.is-visible) {
+        opacity: 1;
+        transform: translate(-50%, calc(-100% - 10px));
     }
 
     @media (max-height: 859px) {
         .skill-waterfall {
             --skill-size: 26px;
             --skill-gap: 8px;
-            --seam-fix: 4px;
             gap: 8px;
         }
 
-        .skill-mask,
-        .skill-svg {
-            width: 16px;
-            height: 16px;
+        .skill-mono,
+        .skill-color {
+            width: 17px;
+            height: 17px;
         }
     }
 
@@ -244,3 +305,46 @@ const openAiPath = 'M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.04
         }
     }
 </style>
+
+<script>
+    const tooltipClass = 'skill-floating-tooltip';
+    let tooltip = document.querySelector<HTMLElement>(`.${tooltipClass}`);
+
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = tooltipClass;
+        tooltip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tooltip);
+    }
+
+    const hideTooltip = () => tooltip?.classList.remove('is-visible');
+
+    document.querySelectorAll<HTMLElement>('[data-skill-label]').forEach((item) => {
+        if (item.dataset.tooltipReady === 'true') return;
+        item.dataset.tooltipReady = 'true';
+
+        item.addEventListener('pointerenter', () => {
+            if (!tooltip) return;
+            const label = item.dataset.skillLabel;
+            if (!label) return;
+
+            tooltip.textContent = label;
+            tooltip.style.left = '0px';
+            tooltip.style.top = '0px';
+            tooltip.classList.add('is-visible');
+
+            const rect = item.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const half = tooltipRect.width / 2;
+            const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
+            const top = Math.max(tooltipRect.height + 12, rect.top);
+
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        });
+
+        item.addEventListener('pointerleave', hideTooltip);
+    });
+
+    window.addEventListener('blur', hideTooltip);
+</script>

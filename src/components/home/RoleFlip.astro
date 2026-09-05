@@ -3,61 +3,67 @@ interface Props {
     roles: string[];
 }
 
-const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['Software Engineer'];
+const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['i use a cheap android phone.'];
 ---
 
 <span class="role-flip" data-role-flip data-roles={JSON.stringify(roles)} aria-live="polite">
     <span class="role-text" data-role-text>{roles[0]}</span>
-    <span class="role-cursor" aria-hidden="true"></span>
 </span>
 
 <style>
     .role-flip {
-        display: inline-flex;
-        align-items: center;
-        gap: 9px;
-        min-height: 24px;
+        display: block;
+        width: 100%;
+        min-height: 18px;
         overflow: hidden;
         color: var(--muted);
         font-family: var(--font-mono);
-        font-size: 13px;
-        line-height: 1;
+        font-size: 11px;
+        line-height: 1.45;
+        text-wrap: balance;
     }
 
     .role-text {
         display: inline-block;
+        max-width: 100%;
         will-change: transform, opacity, filter;
     }
 
     .role-text.is-leaving {
-        animation: role-leave 180ms ease-in forwards;
+        animation: role-leave 180ms ease-out forwards;
     }
 
     .role-text.is-entering {
-        animation: role-enter 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-    }
-
-    .role-cursor {
-        width: 18px;
-        height: 1px;
-        background: currentColor;
-        opacity: 0.7;
-        animation: role-cursor 1.15s steps(1, end) infinite;
+        color: transparent;
+        background: linear-gradient(
+            90deg,
+            var(--muted) 0%,
+            var(--muted) 34%,
+            var(--text) 50%,
+            var(--muted) 66%,
+            var(--muted) 100%
+        );
+        background-size: 220% 100%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        animation:
+            role-enter 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+            role-shimmer 1500ms ease-out both;
     }
 
     @keyframes role-leave {
         to {
             opacity: 0;
-            filter: blur(4px);
-            transform: translateY(8px);
+            filter: blur(1px);
+            transform: translateY(40%);
         }
     }
 
     @keyframes role-enter {
         from {
             opacity: 0;
-            filter: blur(5px);
-            transform: translateY(-9px);
+            filter: blur(1px);
+            transform: translateY(-20%);
         }
         to {
             opacity: 1;
@@ -66,15 +72,16 @@ const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['Software Engi
         }
     }
 
-    @keyframes role-cursor {
-        0%, 54% { opacity: 0.7; }
-        55%, 100% { opacity: 0; }
+    @keyframes role-shimmer {
+        from { background-position: 115% 0; }
+        to { background-position: -115% 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .role-text,
-        .role-cursor {
+        .role-text {
             animation: none !important;
+            color: var(--muted) !important;
+            background: none !important;
         }
     }
 </style>
@@ -100,6 +107,13 @@ const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['Software Engi
 
         let index = 0;
         let timer = 0;
+        let enterCleanup = 0;
+        let inView = true;
+
+        const stop = () => {
+            if (timer) window.clearInterval(timer);
+            timer = 0;
+        };
 
         const cycle = () => {
             text.classList.remove('is-entering');
@@ -110,11 +124,34 @@ const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['Software Engi
                 text.textContent = roles[index];
                 text.classList.remove('is-leaving');
                 text.classList.add('is-entering');
+
+                if (enterCleanup) window.clearTimeout(enterCleanup);
+                enterCleanup = window.setTimeout(() => {
+                    text.classList.remove('is-entering');
+                }, 1520);
             }, 185);
         };
 
-        timer = window.setInterval(cycle, 2800);
+        const syncPlayback = () => {
+            stop();
+            if (document.visibilityState !== 'visible' || !inView) return;
+            timer = window.setInterval(cycle, 3000);
+        };
 
-        window.addEventListener('pagehide', () => window.clearInterval(timer), { once: true });
+        const observer = new IntersectionObserver((entries) => {
+            inView = entries[0]?.isIntersecting ?? true;
+            syncPlayback();
+        }, { threshold: 0.15 });
+
+        observer.observe(root);
+        document.addEventListener('visibilitychange', syncPlayback);
+        syncPlayback();
+
+        window.addEventListener('pagehide', () => {
+            stop();
+            observer.disconnect();
+            document.removeEventListener('visibilitychange', syncPlayback);
+            if (enterCleanup) window.clearTimeout(enterCleanup);
+        }, { once: true });
     });
 </script>
