@@ -7,6 +7,8 @@ import GitHubContributionGrid from '../components/GitHubContributionGrid.astro';
 import HomeHeader from '../components/home/HomeHeader.astro';
 import NRMark from '../components/home/NRMark.astro';
 import RoleFlip from '../components/home/RoleFlip.astro';
+import BrandIcon from '../components/icons/BrandIcon.astro';
+import UiIcon from '../components/icons/UiIcon.astro';
 import { webProjects } from '../data/projects';
 import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
@@ -29,22 +31,22 @@ const rolesByLocale: Record<SiteLocale, string[]> = {
 };
 
 const socialLinks = [
-    { label: 'GitHub', href: 'https://github.com/nabilrn' },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nabilrizkinavisa2004' },
-    { label: 'X', href: 'https://x.com/NabilrizkiN' },
-    { label: 'Email', href: 'mailto:nabilrizkinavisa@gmail.com' },
-];
+    { label: 'GitHub', href: 'https://github.com/nabilrn', brand: 'github' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nabilrizkinavisa2004', brand: 'linkedin' },
+    { label: 'X', href: 'https://x.com/NabilrizkiN', brand: 'x' },
+    { label: 'Email', href: 'mailto:nabilrizkinavisa@gmail.com', ui: 'mail' },
+] as const;
 
 const stackItems = [
-    ['TS', 'TypeScript'],
-    ['GO', 'Go'],
-    ['KT', 'Kotlin'],
-    ['DK', 'Docker'],
-    ['PX', 'Proxmox'],
-    ['PG', 'PostgreSQL'],
-    ['RE', 'React'],
-    ['FL', 'Flutter'],
-    ['CF', 'Cloudflare'],
+    { icon: 'typescript', label: 'TypeScript' },
+    { icon: 'go', label: 'Go' },
+    { icon: 'kotlin', label: 'Kotlin' },
+    { icon: 'docker', label: 'Docker' },
+    { icon: 'proxmox', label: 'Proxmox' },
+    { icon: 'postgresql', label: 'PostgreSQL' },
+    { icon: 'react', label: 'React' },
+    { icon: 'flutter', label: 'Flutter' },
+    { icon: 'cloudflare', label: 'Cloudflare' },
 ] as const;
 
 const selectedProjects = webProjects.slice(0, 3);
@@ -75,7 +77,9 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
                         <div class="identity-name-row">
                             <h1 id="hero-name">{content.profile.name}</h1>
-                            <span class="verified-mark" aria-label="Verified">✓</span>
+                            <span class="verified-mark" aria-label="Verified">
+                                <UiIcon name="badge-check" size={17} strokeWidth={1.5} />
+                            </span>
                         </div>
 
                         <RoleFlip roles={rolesByLocale[locale]} />
@@ -83,7 +87,13 @@ const experienceItems = home.experiences.items.slice(0, 2);
                         <nav class="social-links" aria-label="Social links">
                             {socialLinks.map((item) => (
                                 <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
-                                    {item.label}<span aria-hidden="true">↗</span>
+                                    <span class="social-link-copy">
+                                        {'brand' in item
+                                            ? <BrandIcon name={item.brand} size={13} />
+                                            : <UiIcon name={item.ui} size={13} strokeWidth={1.7} />}
+                                        <span>{item.label}</span>
+                                    </span>
+                                    <UiIcon name="arrow-up-right" size={12} strokeWidth={1.5} />
                                 </a>
                             ))}
                         </nav>
@@ -91,8 +101,10 @@ const experienceItems = home.experiences.items.slice(0, 2);
                         <div class="stack-block">
                             <div class="micro-label">Tech stack</div>
                             <div class="stack-grid" role="list" aria-label="Primary technologies">
-                                {stackItems.map(([short, label]) => (
-                                    <span class="stack-token" role="listitem" title={label} aria-label={label}>{short}</span>
+                                {stackItems.map((item) => (
+                                    <span class="stack-token" role="listitem" title={item.label} aria-label={item.label}>
+                                        <BrandIcon name={item.icon} size={15} />
+                                    </span>
                                 ))}
                             </div>
                         </div>
@@ -100,20 +112,32 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
                     <div class="contribution-region">
                         <div class="region-heading">
-                            <span>{home.contributions.heading}</span>
-                            <a href="https://github.com/nabilrn" target="_blank" rel="noopener">GitHub ↗</a>
+                            <span class="heading-label">
+                                <BrandIcon name="github" size={13} />
+                                <span>{home.contributions.heading}</span>
+                            </span>
+                            <a href="https://github.com/nabilrn" target="_blank" rel="noopener">
+                                <span>GitHub</span>
+                                <UiIcon name="arrow-up-right" size={11} strokeWidth={1.5} />
+                            </a>
                         </div>
                         <GitHubContributionGrid username="nabilrn" locale={locale} />
                     </div>
 
                     <div class="location-region compact-region">
-                        <div class="micro-label">Location / timezone</div>
+                        <div class="micro-label icon-label">
+                            <UiIcon name="map-pin" size={11} strokeWidth={1.5} />
+                            <span>Location / timezone</span>
+                        </div>
                         <div class="region-primary">Indonesia</div>
                         <div class="region-secondary">UTC+7 · <span data-jakarta-time>--:--</span></div>
                     </div>
 
                     <div class="education-region compact-region">
-                        <div class="micro-label">{education.heading}</div>
+                        <div class="micro-label icon-label">
+                            <UiIcon name="graduation-cap" size={12} strokeWidth={1.5} />
+                            <span>{education.heading}</span>
+                        </div>
                         <div class="region-primary">{education.institution}</div>
                         <div class="region-secondary">{education.degree}</div>
                         <div class="region-meta">{education.gpa} · {education.period}</div>
@@ -121,8 +145,14 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
                     <div class="experience-region compact-region">
                         <div class="region-heading">
-                            <span>{home.experiences.heading}</span>
-                            <span class="resume-placeholder" title="Resume file will be wired after the layout is approved">Resume ↗</span>
+                            <span class="heading-label">
+                                <UiIcon name="briefcase" size={12} strokeWidth={1.5} />
+                                <span>{home.experiences.heading}</span>
+                            </span>
+                            <span class="resume-placeholder" title="Resume file will be wired after the layout is approved">
+                                <UiIcon name="download" size={11} strokeWidth={1.5} />
+                                <span>Resume</span>
+                            </span>
                         </div>
                         <div class="experience-list">
                             {experienceItems.map((item) => (
@@ -135,7 +165,10 @@ const experienceItems = home.experiences.items.slice(0, 2);
                     </div>
 
                     <div class="streak-region compact-region">
-                        <div class="micro-label">Duolingo streak</div>
+                        <div class="micro-label icon-label">
+                            <BrandIcon name="duolingo" size={11} />
+                            <span>Duolingo streak</span>
+                        </div>
                         <div class="streak-value">— <span>days</span></div>
                         <div class="region-secondary">daily language practice</div>
                     </div>
@@ -159,7 +192,10 @@ const experienceItems = home.experiences.items.slice(0, 2);
                             <span class="micro-label">Selected work</span>
                             <h2 id="projects-heading">{content.nav.projects}</h2>
                         </div>
-                        <a href={projectsPath}>View all ↗</a>
+                        <a href={projectsPath}>
+                            <span>View all</span>
+                            <UiIcon name="arrow-up-right" size={11} strokeWidth={1.5} />
+                        </a>
                     </header>
 
                     <div class="index-list">
@@ -170,7 +206,9 @@ const experienceItems = home.experiences.items.slice(0, 2);
                                     <strong>{project.name}</strong>
                                     <span>{project.stack.slice(0, 4).join(' · ')}</span>
                                 </span>
-                                <span class="index-arrow" aria-hidden="true">↗</span>
+                                <span class="index-arrow" aria-hidden="true">
+                                    <UiIcon name="arrow-up-right" size={13} strokeWidth={1.5} />
+                                </span>
                             </a>
                         ))}
                     </div>
@@ -182,7 +220,10 @@ const experienceItems = home.experiences.items.slice(0, 2);
                             <span class="micro-label">Writing</span>
                             <h2 id="blog-heading">{content.nav.blog}</h2>
                         </div>
-                        <a href={blogPath}>View all ↗</a>
+                        <a href={blogPath}>
+                            <span>View all</span>
+                            <UiIcon name="arrow-up-right" size={11} strokeWidth={1.5} />
+                        </a>
                     </header>
 
                     <div class="index-list">
@@ -193,7 +234,9 @@ const experienceItems = home.experiences.items.slice(0, 2);
                                     <strong>{post.data.title}</strong>
                                     <span>{post.data.pubDate.toLocaleDateString(locale === 'en' ? 'en-US' : locale === 'id' ? 'id-ID' : locale === 'cn' ? 'zh-CN' : locale === 'jp' ? 'ja-JP' : 'ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                 </span>
-                                <span class="index-arrow" aria-hidden="true">↗</span>
+                                <span class="index-arrow" aria-hidden="true">
+                                    <UiIcon name="arrow-up-right" size={13} strokeWidth={1.5} />
+                                </span>
                             </a>
                         ))}
                     </div>
@@ -373,17 +416,12 @@ const experienceItems = home.experiences.items.slice(0, 2);
     }
 
     .verified-mark {
-        width: 16px;
-        height: 16px;
+        width: 18px;
+        height: 18px;
         flex: none;
         display: grid;
         place-items: center;
-        border: 1px solid var(--text);
-        border-radius: 50%;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: var(--type-micro);
-        line-height: 1;
+        color: var(--muted);
     }
 
     :global(.identity-profile .role-flip) {
@@ -396,7 +434,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         width: 100%;
         margin-top: 16px;
         display: grid;
-        gap: 4px;
+        gap: 5px;
     }
 
     .social-links a {
@@ -409,6 +447,31 @@ const experienceItems = home.experiences.items.slice(0, 2);
         font-size: var(--type-body);
         line-height: 1.35;
         transition: color 140ms ease;
+    }
+
+    .social-link-copy,
+    .heading-label,
+    .icon-label,
+    .region-heading a,
+    .resume-placeholder,
+    .index-heading > a {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .social-link-copy {
+        gap: 7px;
+    }
+
+    .heading-label,
+    .icon-label {
+        gap: 6px;
+    }
+
+    .region-heading a,
+    .resume-placeholder,
+    .index-heading > a {
+        gap: 4px;
     }
 
     .social-links a:hover {
@@ -445,11 +508,16 @@ const experienceItems = home.experiences.items.slice(0, 2);
         place-items: center;
         border: 1px solid var(--border-strong);
         border-radius: 50%;
-        color: var(--text-body);
+        color: var(--muted);
         background: transparent;
-        font-family: var(--font-mono);
-        font-size: 8px;
         line-height: 1;
+        transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .stack-token:hover {
+        color: var(--text);
+        border-color: var(--muted);
+        background: color-mix(in srgb, var(--surface) 36%, transparent);
     }
 
     .contribution-region,
@@ -732,9 +800,9 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
     .index-arrow {
         justify-self: end;
+        display: grid;
+        place-items: center;
         color: var(--muted);
-        font-family: var(--font-sans);
-        font-size: var(--type-item);
         transition: color 140ms ease, transform 140ms ease;
     }
 
@@ -799,7 +867,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
         .social-links {
             margin-top: 10px;
-            gap: 2px;
+            gap: 3px;
         }
 
         .stack-block {
@@ -815,7 +883,6 @@ const experienceItems = home.experiences.items.slice(0, 2);
         .stack-token {
             width: 26px;
             height: 26px;
-            font-size: 7px;
         }
 
         .contribution-region,
