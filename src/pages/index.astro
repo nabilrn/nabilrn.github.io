@@ -1,12 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets';
-import profilePic from '../assets/profilepict.webp';
 import Page from '../components/Page.astro';
 import GitHubContributionGrid from '../components/GitHubContributionGrid.astro';
 import HomeHeader from '../components/home/HomeHeader.astro';
+import IdentityProfile from '../components/home/IdentityProfile.astro';
 import NRMark from '../components/home/NRMark.astro';
-import RoleFlip from '../components/home/RoleFlip.astro';
 import BrandIcon from '../components/icons/BrandIcon.astro';
 import UiIcon from '../components/icons/UiIcon.astro';
 import { webProjects } from '../data/projects';
@@ -21,33 +19,6 @@ const locale = normalizeLocale(Astro.props.locale);
 const pagePath = Astro.props.path ?? localizePath('/', locale);
 const content = getSiteContent(locale);
 const home = content.home;
-
-const rolesByLocale: Record<SiteLocale, string[]> = {
-    en: ['Software Engineer', 'IT Infrastructure Builder', 'Lifetime Learner'],
-    id: ['Software Engineer', 'IT Infrastructure Builder', 'Pembelajar seumur hidup'],
-    cn: ['Software Engineer', 'IT Infrastructure Builder', '终身学习者'],
-    jp: ['Software Engineer', 'IT Infrastructure Builder', '生涯学習者'],
-    ar: ['Software Engineer', 'IT Infrastructure Builder', 'متعلم مدى الحياة'],
-};
-
-const socialLinks = [
-    { label: 'GitHub', href: 'https://github.com/nabilrn', brand: 'github' },
-    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nabilrizkinavisa2004', brand: 'linkedin' },
-    { label: 'X', href: 'https://x.com/NabilrizkiN', brand: 'x' },
-    { label: 'Email', href: 'mailto:nabilrizkinavisa@gmail.com', ui: 'mail' },
-] as const;
-
-const stackItems = [
-    { icon: 'typescript', label: 'TypeScript' },
-    { icon: 'go', label: 'Go' },
-    { icon: 'kotlin', label: 'Kotlin' },
-    { icon: 'docker', label: 'Docker' },
-    { icon: 'proxmox', label: 'Proxmox' },
-    { icon: 'postgresql', label: 'PostgreSQL' },
-    { icon: 'react', label: 'React' },
-    { icon: 'flutter', label: 'Flutter' },
-    { icon: 'cloudflare', label: 'Cloudflare' },
-] as const;
 
 const selectedProjects = webProjects.slice(0, 3);
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
@@ -70,45 +41,7 @@ const experienceItems = home.experiences.items.slice(0, 2);
         <main class="portfolio-board">
             <div class="top-layout">
                 <section class="identity-board" aria-labelledby="hero-name">
-                    <div class="identity-profile">
-                        <div class="avatar-wrap">
-                            <Image src={profilePic} alt={content.profile.avatarAlt} width={118} height={118} />
-                        </div>
-
-                        <div class="identity-name-row">
-                            <h1 id="hero-name">{content.profile.name}</h1>
-                            <span class="verified-mark" aria-label="Verified">
-                                <UiIcon name="badge-check" size={17} strokeWidth={1.5} />
-                            </span>
-                        </div>
-
-                        <RoleFlip roles={rolesByLocale[locale]} />
-
-                        <nav class="social-links" aria-label="Social links">
-                            {socialLinks.map((item) => (
-                                <a href={item.href} target={item.href.startsWith('http') ? '_blank' : undefined} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
-                                    <span class="social-link-copy">
-                                        {'brand' in item
-                                            ? <BrandIcon name={item.brand} size={13} />
-                                            : <UiIcon name={item.ui} size={13} strokeWidth={1.7} />}
-                                        <span>{item.label}</span>
-                                    </span>
-                                    <UiIcon name="arrow-up-right" size={12} strokeWidth={1.5} />
-                                </a>
-                            ))}
-                        </nav>
-
-                        <div class="stack-block">
-                            <div class="micro-label">Tech stack</div>
-                            <div class="stack-grid" role="list" aria-label="Primary technologies">
-                                {stackItems.map((item) => (
-                                    <span class="stack-token" role="listitem" title={item.label} aria-label={item.label}>
-                                        <BrandIcon name={item.icon} size={15} />
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
+                    <IdentityProfile locale={locale} name={content.profile.name} avatarAlt={content.profile.avatarAlt} />
 
                     <div class="contribution-region">
                         <div class="region-heading">
@@ -352,136 +285,13 @@ const experienceItems = home.experiences.items.slice(0, 2);
     .identity-board {
         display: grid;
         grid-template-columns:
-            minmax(210px, var(--phi-small))
+            minmax(232px, var(--phi-small))
             minmax(0, var(--phi-mid))
             minmax(0, var(--phi-side));
         grid-template-rows:
             minmax(0, var(--phi-minor))
             minmax(0, var(--phi-small))
             minmax(0, var(--phi-minor));
-    }
-
-    .identity-profile {
-        grid-column: 1;
-        grid-row: 1 / 4;
-        min-width: 0;
-        padding: clamp(18px, 1.45vw, 26px);
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        border-right: var(--minor-stroke) solid var(--sheet-line);
-        overflow: hidden;
-    }
-
-    .avatar-wrap {
-        width: clamp(86px, 6.5vw, 112px);
-        aspect-ratio: 1;
-        flex: none;
-        overflow: hidden;
-        border: var(--minor-stroke) solid var(--border-strong);
-        border-radius: 50%;
-        background: var(--surface);
-    }
-
-    .avatar-wrap :global(img) {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-    }
-
-    .identity-name-row {
-        width: 100%;
-        margin-top: 16px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        min-width: 0;
-    }
-
-    .identity-name-row h1,
-    .index-heading h2 {
-        margin: 0;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: var(--type-heading);
-        font-weight: 600;
-        line-height: 1.08;
-        letter-spacing: -0.04em;
-    }
-
-    .identity-name-row h1 {
-        min-width: 0;
-        text-wrap: balance;
-    }
-
-    .verified-mark {
-        width: 18px;
-        height: 18px;
-        flex: none;
-        display: grid;
-        place-items: center;
-        color: var(--muted);
-    }
-
-    :global(.identity-profile .role-flip) {
-        margin-top: 8px;
-        font-family: var(--font-sans);
-        font-size: var(--type-body);
-    }
-
-    .social-links {
-        width: 100%;
-        margin-top: 16px;
-        display: grid;
-        gap: 5px;
-    }
-
-    .social-links a {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-        color: var(--muted);
-        font-family: var(--font-sans);
-        font-size: var(--type-body);
-        line-height: 1.35;
-        transition: color 140ms ease;
-    }
-
-    .social-link-copy,
-    .heading-label,
-    .icon-label,
-    .region-heading a,
-    .resume-placeholder,
-    .index-heading > a {
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .social-link-copy {
-        gap: 7px;
-    }
-
-    .heading-label,
-    .icon-label {
-        gap: 6px;
-    }
-
-    .region-heading a,
-    .resume-placeholder,
-    .index-heading > a {
-        gap: 4px;
-    }
-
-    .social-links a:hover {
-        color: var(--text);
-    }
-
-    .stack-block {
-        width: 100%;
-        margin-top: auto;
-        padding-top: 14px;
     }
 
     .micro-label {
@@ -492,32 +302,6 @@ const experienceItems = home.experiences.items.slice(0, 2);
         line-height: 1.2;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-    }
-
-    .stack-grid {
-        margin-top: 9px;
-        display: grid;
-        grid-template-columns: repeat(3, 30px);
-        gap: 8px;
-    }
-
-    .stack-token {
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--border-strong);
-        border-radius: 50%;
-        color: var(--muted);
-        background: transparent;
-        line-height: 1;
-        transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
-    }
-
-    .stack-token:hover {
-        color: var(--text);
-        border-color: var(--muted);
-        background: color-mix(in srgb, var(--surface) 36%, transparent);
     }
 
     .contribution-region,
@@ -543,6 +327,26 @@ const experienceItems = home.experiences.items.slice(0, 2);
         align-items: center;
         justify-content: space-between;
         gap: 14px;
+    }
+
+    .heading-label,
+    .icon-label,
+    .region-heading a,
+    .resume-placeholder,
+    .index-heading > a {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .heading-label,
+    .icon-label {
+        gap: 6px;
+    }
+
+    .region-heading a,
+    .resume-placeholder,
+    .index-heading > a {
+        gap: 4px;
     }
 
     .region-heading {
@@ -729,7 +533,13 @@ const experienceItems = home.experiences.items.slice(0, 2);
     }
 
     .index-heading h2 {
-        margin-top: 3px;
+        margin: 3px 0 0;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: var(--type-heading);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.04em;
     }
 
     .index-heading > a {
@@ -848,41 +658,9 @@ const experienceItems = home.experiences.items.slice(0, 2);
 
         .identity-board {
             grid-template-columns:
-                minmax(188px, var(--phi-small))
+                minmax(218px, var(--phi-small))
                 minmax(0, var(--phi-mid))
                 minmax(0, var(--phi-side));
-        }
-
-        .identity-profile {
-            padding: 14px;
-        }
-
-        .avatar-wrap {
-            width: 76px;
-        }
-
-        .identity-name-row {
-            margin-top: 10px;
-        }
-
-        .social-links {
-            margin-top: 10px;
-            gap: 3px;
-        }
-
-        .stack-block {
-            padding-top: 10px;
-        }
-
-        .stack-grid {
-            margin-top: 7px;
-            grid-template-columns: repeat(3, 26px);
-            gap: 6px;
-        }
-
-        .stack-token {
-            width: 26px;
-            height: 26px;
         }
 
         .contribution-region,
@@ -952,14 +730,6 @@ const experienceItems = home.experiences.items.slice(0, 2);
             min-height: auto;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto auto auto;
-        }
-
-        .identity-profile {
-            grid-column: 1 / 3;
-            grid-row: 1;
-            min-height: 360px;
-            border-right: 0;
-            border-bottom: var(--minor-stroke) solid var(--sheet-line);
         }
 
         .contribution-region {

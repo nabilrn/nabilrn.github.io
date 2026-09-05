@@ -1,0 +1,47 @@
+---
+interface Props {
+    text: string;
+    class?: string;
+    showArrow?: boolean;
+}
+
+const { text, class: className, showArrow = true } = Astro.props;
+---
+
+<div class:list={['handwritten-note', className]} aria-hidden="true">
+    <span>{text}</span>
+    {showArrow && (
+        <svg class="handwritten-arrow" viewBox="0 0 40 40" fill="none" stroke="currentColor" aria-hidden="true">
+            <path d="M34 4c1 15-5 26-21 30" />
+            <path d="m21 36-8-2 7-7" />
+        </svg>
+    )}
+</div>
+
+<style>
+    .handwritten-note {
+        pointer-events: none;
+        position: absolute;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 17px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0;
+        user-select: none;
+    }
+
+    .handwritten-arrow {
+        width: 30px;
+        height: 30px;
+        flex: none;
+        margin-top: 1px;
+        stroke-width: 1.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+</style>
