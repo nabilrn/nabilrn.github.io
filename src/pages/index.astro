@@ -1,7 +1,7 @@
 ---
 import Page from '../components/Page.astro';
 import HomeHeader from '../components/home/HomeHeader.astro';
-import NRModularMark from '../components/dev/NRModularMark.astro';
+import NRMark from '../components/home/NRMark.astro';
 import RoleFlip from '../components/home/RoleFlip.astro';
 import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
 
@@ -53,7 +53,7 @@ const introByLocale: Record<SiteLocale, string> = {
                 </div>
 
                 <div class="hero-visual">
-                    <NRModularMark />
+                    <NRMark />
                 </div>
             </section>
 
