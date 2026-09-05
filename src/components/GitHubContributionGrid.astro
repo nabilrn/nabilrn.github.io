@@ -95,7 +95,9 @@ const formatTooltipDate = (date: string) => {
 ---
 
 <figure class="contribution-panel" aria-labelledby="github-activity-caption">
-    <HandwrittenNote text="my activity" class="activity-note" />
+    <div class="contribution-annotation-layer" aria-hidden="true">
+        <HandwrittenNote text="my activity" class="activity-note" />
+    </div>
 
     {activities.length > 0 ? (
         <>
@@ -151,7 +153,7 @@ const formatTooltipDate = (date: string) => {
     /* Transitional parent integration while the home board still owns the old
        contribution-region shell. The graph itself is now the section title. */
     :global(.contribution-region) {
-        padding: clamp(10px, .8vw, 14px) clamp(12px, 1vw, 16px) !important;
+        padding: clamp(8px, .72vw, 12px) clamp(12px, 1vw, 16px) !important;
     }
 
     :global(.contribution-region > .region-heading) {
@@ -183,18 +185,25 @@ const formatTooltipDate = (date: string) => {
         overflow: visible;
     }
 
-    :global(.contribution-panel .activity-note) {
-        right: 2px;
-        top: -3px;
+    .contribution-annotation-layer {
+        position: absolute;
+        inset: 0;
         z-index: 4;
-        transform: scale(.82) rotate(-4deg);
+        pointer-events: none;
+        overflow: visible;
+    }
+
+    :global(.contribution-annotation-layer .activity-note) {
+        right: -2px;
+        top: -4px;
+        transform: scale(.8) rotate(-4deg);
         transform-origin: right top;
     }
 
     .contribution-calendar {
         width: max-content;
         max-width: 100%;
-        padding-top: 22px;
+        padding-top: 0;
         overflow: visible;
     }
 
@@ -268,7 +277,7 @@ const formatTooltipDate = (date: string) => {
 
     .graph-footer {
         width: 100%;
-        margin-top: 12px;
+        margin-top: 10px;
         display: flex;
         align-items: flex-end;
         justify-content: space-between;
@@ -349,25 +358,21 @@ const formatTooltipDate = (date: string) => {
 
     @media (min-width: 1100px) and (max-height: 859px) {
         :global(.contribution-region) {
-            padding-top: 7px !important;
-            padding-bottom: 7px !important;
+            padding-top: 6px !important;
+            padding-bottom: 6px !important;
         }
 
         .contribution-panel {
             --cell-size: clamp(6px, 1.42cqw, 10px);
         }
 
-        .contribution-calendar {
-            padding-top: 16px;
-        }
-
-        :global(.contribution-panel .activity-note) {
-            top: -8px;
-            transform: scale(.72) rotate(-4deg);
+        :global(.contribution-annotation-layer .activity-note) {
+            top: -7px;
+            transform: scale(.7) rotate(-4deg);
         }
 
         .graph-footer {
-            margin-top: 8px;
+            margin-top: 7px;
         }
 
         .graph-caption,
@@ -406,7 +411,7 @@ const formatTooltipDate = (date: string) => {
             font-size: 7px;
         }
 
-        :global(.contribution-panel .activity-note) {
+        .contribution-annotation-layer {
             display: none;
         }
     }
