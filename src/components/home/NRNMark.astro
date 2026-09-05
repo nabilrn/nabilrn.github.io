@@ -4,6 +4,7 @@ const VIEWBOX_Y = 45;
 const VIEWBOX_WIDTH = 825;
 const VIEWBOX_HEIGHT = 470;
 const PRESS_DISTANCE = 14;
+const FULL_DEPTH = 28;
 
 // Approved top-surface geometry from the final Figma NRN mark.
 const N_FRONT_PATH = 'M 0 84 L 28 70 L 162.39999389648438 137.1999969482422 L 140 14 L 168 0 L 336 84 L 308 98 L 173.60000610351562 30.799999237060547 L 196 154 L 168 168 L 0 84 Z';
@@ -13,22 +14,22 @@ const LEFT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966
 const RIGHT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 866.330566 275.151489)';
 const R_MATRIX = 'matrix(0.999965966 0.008251472 -0.008251472 0.999965966 332.126709 179.541138)';
 
-// Exact swept-solid boundaries exported from the approved Figma studies.
-// NORMAL = sweep 0..28px. PRESSED = sweep 14..28px with the bottom plane fixed.
-const N_SOLID_NORMAL = 'M336 84L335 84.5L336 85L335 85.5L336 86L335 86.5L336 87L335 87.5L336 88L335 88.5L336 89L335 89.5L336 90L335 90.5L336 91L335 91.5L336 92L335 92.5L336 93L335 93.5L336 94L335 94.5L336 95L335 95.5L336 96L335 96.5L336 97L335 97.5L336 98L335 98.5L336 99L335 99.5L336 100L335 100.5L336 101L335 101.5L336 102L335 102.5L336 103L335 103.5L336 104L335 104.5L336 105L335 105.5L336 106L335 106.5L336 107L335 107.5L336 108L335 108.5L336 109L335 109.5L336 110L335 110.5L336 111L335 111.5L336 112L308 126L179.184 61.5918L196 154L195.833 154.083L196 155L195.833 155.083L196 156L195.833 156.083L196 157L195.833 157.083L196 158L195.833 158.083L196 159L195.833 159.083L196 160L195.833 160.083L196 161L195.833 161.083L196 162L195.833 162.083L196 163L195.833 163.083L196 164L195.833 164.083L196 165L195.833 165.083L196 166L195.833 166.083L196 167L195.833 167.083L196 168L195.833 168.083L196 169L195.833 169.083L196 170L195.833 170.083L196 171L195.833 171.083L196 172L195.833 172.083L196 173L195.833 173.083L196 174L195.833 174.083L196 175L195.833 175.083L196 176L195.833 176.083L196 177L195.833 177.083L196 178L195.833 178.083L196 179L195.833 179.083L196 180L195.833 180.083L196 181L195.833 181.083L196 182L168 196L0 112L1 111.5L0 111L1 110.5L0 110L1 109.5L0 109L1 108.5L0 108L1 107.5L0 107L1 106.5L0 106L1 105.5L0 105L1 104.5L0 104L1 103.5L0 103L1 102.5L0 102L1 101.5L0 101L1 100.5L0 100L1 99.5L0 99L1 98.5L0 98L1 97.5L0 97L1 96.5L0 96L1 95.5L0 95L1 94.5L0 94L1 93.5L0 93L1 92.5L0 92L1 91.5L0 91L1 90.5L0 90L1 89.5L0 89L1 88.5L0 88L1 87.5L0 87L1 86.5L0 86L1 85.5L0 85L1 84.5L0 84L28 70L156.798 134.387L140 42L140.166 41.916L140 41L140.166 40.916L140 40L140.166 39.916L140 39L140.166 38.916L140 38L140.166 37.916L140 37L140.166 36.916L140 36L140.166 35.916L140 35L140.166 34.916L140 34L140.166 33.916L140 33L140.166 32.916L140 32L140.166 31.916L140 31L140.166 30.916L140 30L140.166 29.916L140 29L140.166 28.916L140 28L140.166 27.916L140 27L140.166 26.916L140 26L140.166 25.916L140 25L140.166 24.916L140 24L140.166 23.916L140 23L140.166 22.916L140 22L140.166 21.916L140 21L140.166 20.916L140 20L140.166 19.916L140 19L140.166 18.916L140 18L140.166 17.916L140 17L140.166 16.916L140 16L140.166 15.916L140 15L140.166 14.916L140 14L168 0L336 84Z';
-const N_SOLID_PRESSED = 'M336 84L335 84.5L336 85L335 85.5L336 86L335 86.5L336 87L335 87.5L336 88L335 88.5L336 89L335 89.5L336 90L335 90.5L336 91L335 91.5L336 92L335 92.5L336 93L335 93.5L336 94L335 94.5L336 95L335 95.5L336 96L335 96.5L336 97L335 97.5L336 98L308 112L176.39 46.1943L196 154L195.833 154.083L196 155L195.833 155.083L196 156L195.833 156.083L196 157L195.833 157.083L196 158L195.833 158.083L196 159L195.833 159.083L196 160L195.833 160.083L196 161L195.833 161.083L196 162L195.833 162.083L196 163L195.833 163.083L196 164L195.833 164.083L196 165L195.833 165.083L196 166L195.833 166.083L196 167L195.833 167.083L196 168L168 182L0 98L1 97.5L0 97L1 96.5L0 96L1 95.5L0 95L1 94.5L0 94L1 93.5L0 93L1 92.5L0 92L1 91.5L0 91L1 90.5L0 90L1 89.5L0 89L1 88.5L0 88L1 87.5L0 87L1 86.5L0 86L1 85.5L0 85L1 84.5L0 84L28 70L159.599 135.793L140 28L140.166 27.916L140 27L140.166 26.916L140 26L140.166 25.916L140 25L140.166 24.916L140 24L140.166 23.916L140 23L140.166 22.916L140 22L140.166 21.916L140 21L140.166 20.916L140 20L140.166 19.916L140 19L140.166 18.916L140 18L140.166 17.916L140 17L140.166 16.916L140 16L140.166 15.916L140 15L140.166 14.916L140 14L168 0L336 84Z';
-const R_SOLID_NORMAL = 'M240.369 36.1846C262.726 47.3629 273.584 58.7711 273.221 68.9004C273.233 69.2338 273.232 69.5658 273.221 69.8965C273.233 70.2325 273.233 70.5671 273.221 70.9004C273.233 71.2338 273.232 71.5658 273.221 71.8965C273.233 72.2309 273.232 72.5638 273.221 72.8955C273.233 73.2318 273.233 73.5668 273.221 73.9004C273.233 74.2338 273.232 74.5658 273.221 74.8965C273.233 75.2325 273.233 75.5671 273.221 75.9004C273.233 76.2338 273.232 76.5658 273.221 76.8965C273.233 77.2325 273.233 77.5671 273.221 77.9004C273.233 78.2351 273.233 78.5684 273.221 78.9004C273.233 79.2338 273.232 79.5658 273.221 79.8965C273.233 80.2325 273.233 80.5671 273.221 80.9004C273.233 81.2338 273.232 81.5658 273.221 81.8965C273.233 82.2325 273.233 82.5671 273.221 82.9004C273.233 83.2351 273.233 83.5684 273.221 83.9004C273.233 84.2338 273.232 84.5658 273.221 84.8965C273.233 85.2325 273.233 85.5671 273.221 85.9004C273.233 86.2338 273.232 86.5658 273.221 86.8965C273.233 87.2325 273.233 87.5671 273.221 87.9004C273.233 88.2351 273.233 88.5684 273.221 88.9004C273.233 89.2338 273.232 89.5658 273.221 89.8965C273.233 90.2325 273.233 90.5671 273.221 90.9004C273.233 91.2338 273.232 91.5658 273.221 91.8965C273.233 92.2325 273.233 92.5671 273.221 92.9004C273.233 93.2351 273.233 93.5684 273.221 93.9004C273.233 94.2338 273.232 94.5658 273.221 94.8965C273.233 95.2325 273.233 95.5671 273.221 95.9004C273.485 103.141 268.102 109.764 257.169 115.23C231.323 128.153 193.846 126.215 165.415 112L138.277 181.139L102.093 163.046L102.396 162.197L102.093 162.046L102.396 161.197L102.093 161.046L102.396 160.197L102.093 160.046L102.396 159.197L102.093 159.046L102.396 158.197L102.093 158.046L102.396 157.197L102.093 157.046L102.396 156.197L102.093 156.046L102.396 155.197L102.093 155.046L102.396 154.197L102.093 154.046L102.396 153.197L102.093 153.046L102.396 152.197L102.093 152.046L102.396 151.197L102.093 151.046L102.396 150.197L102.093 150.046L102.396 149.197L102.093 149.046L102.396 148.197L102.093 148.046L102.396 147.197L102.093 147.046L102.396 146.197L102.093 146.046L102.396 145.197L102.093 145.046L102.396 144.197L102.093 144.046L102.396 143.197L102.093 143.046L102.396 142.197L102.093 142.046L102.396 141.197L102.093 141.046L102.396 140.197L102.093 140.046L102.396 139.197L102.093 139.046L102.396 138.197L102.093 138.046L102.396 137.197L102.093 137.046L102.396 136.197L102.093 136.046L102.396 135.197L102.093 135.046L115.557 97.4082L99.5078 89.3848L27.1387 125.569L0 112L1 111.5L0 111L1 110.5L0 110L1 109.5L0 109L1 108.5L0 108L1 107.5L0 107L1 106.5L0 106L1 105.5L0 105L1 104.5L0 104L1 103.5L0 103L1 102.5L0 102L1 101.5L0 101L1 100.5L0 100L1 99.5L0 99L1 98.5L0 98L1 97.5L0 97L1 96.5L0 96L1 95.5L0 95L1 94.5L0 94L1 93.5L0 93L1 92.5L0 92L1 91.5L0 91L1 90.5L0 90L1 89.5L0 89L1 88.5L0 88L1 87.5L0 87L1 86.5L0 86L1 85.5L0 85L1 84.5L0 84L168 0L240.369 36.1846ZM163.692 57.292L180.923 65.9072C193.196 72.0439 204.26 75.5585 213.438 76.5645L169.292 54.4922L163.692 57.292Z';
-const R_SOLID_PRESSED = 'M240.369 36.1846C262.726 47.3629 273.584 58.7711 273.221 68.9004C273.233 69.2351 273.233 69.5684 273.221 69.9004C273.233 70.2338 273.232 70.5658 273.221 70.8965C273.233 71.2325 273.233 71.5671 273.221 71.9004C273.233 72.2334 273.232 72.5651 273.221 72.8955C273.233 73.2318 273.233 73.5668 273.221 73.9004C273.233 74.2351 273.233 74.5684 273.221 74.9004C273.233 75.2338 273.232 75.5658 273.221 75.8965C273.233 76.2325 273.233 76.5671 273.221 76.9004C273.233 77.2338 273.232 77.5658 273.221 77.8965C273.233 78.2325 273.233 78.5671 273.221 78.9004C273.233 79.2351 273.233 79.5684 273.221 79.9004C273.233 80.2338 273.232 80.5658 273.221 80.8965C273.233 81.2325 273.233 81.5671 273.221 81.9004C273.485 89.1414 268.102 95.7639 257.169 101.23C231.323 114.153 193.846 112.215 165.415 98L138.277 167.139L102.093 149.046L102.396 148.197L102.093 148.046L102.396 147.197L102.093 147.046L102.396 146.197L102.093 146.046L102.396 145.197L102.093 145.046L102.396 144.197L102.093 144.046L102.396 143.197L102.093 143.046L102.396 142.197L102.093 142.046L102.396 141.197L102.093 141.046L102.396 140.197L102.093 140.046L102.396 139.197L102.093 139.046L102.396 138.197L102.093 138.046L102.396 137.197L102.093 137.046L102.396 136.197L102.093 136.046L102.396 135.197L102.093 135.046L119.809 85.5342L99.5078 75.3848L27.1387 111.569L0 98L1 97.5L0 97L1 96.5L0 96L1 95.5L0 95L1 94.5L0 94L1 93.5L0 93L1 92.5L0 92L1 91.5L0 91L1 90.5L0 90L1 89.5L0 89L1 88.5L0 88L1 87.5L0 87L1 86.5L0 86L1 85.5L0 85L1 84.5L0 84L168 0L240.369 36.1846ZM149.692 50.292L180.923 65.9072C202.892 76.8918 220.985 79.4768 231.323 74.3076C231.465 74.2365 231.604 74.1634 231.74 74.0908C228.123 70.7388 222.404 67.0479 214.523 63.1074L169.292 40.4922L149.692 50.292Z';
+const LETTERS = [
+    { key: 'n-left', path: N_FRONT_PATH, transform: LEFT_N_MATRIX, fillRule: 'nonzero' },
+    { key: 'r-center', path: R_FRONT_PATH, transform: R_MATRIX, fillRule: 'evenodd' },
+    { key: 'n-right', path: N_FRONT_PATH, transform: RIGHT_N_MATRIX, fillRule: 'nonzero' },
+];
 
-// The exported swept solids are already projected into their local screen-space orientation.
-const LEFT_N_SOLID_X = 103.648878;
-const LEFT_N_SOLID_Y = 73.765242;
-const RIGHT_N_SOLID_X = LEFT_N_SOLID_X + 426;
-const RIGHT_N_SOLID_Y = LEFT_N_SOLID_Y + 200;
-const R_SOLID_X = 331.433585;
-const R_SOLID_Y = 180.927385;
+// Painter-style swept solids. Every successive front layer covers the hidden parts
+// of the layer behind it, so the browser performs the same visibility cleanup that
+// made the Figma sweep study read as one solid 3D button instead of wireframe blocks.
+const NORMAL_SWEEP_DEPTHS = Array.from({ length: FULL_DEPTH - 1 }, (_, index) => FULL_DEPTH - 1 - index); // 27..1
+const PRESSED_SWEEP_DEPTHS = Array.from(
+    { length: FULL_DEPTH - PRESS_DISTANCE - 1 },
+    (_, index) => FULL_DEPTH - 1 - index,
+); // 27..15
 
-// Keep the approved cross-hatch as one global field so the phase reads continuously N → R → N.
+// Keep the approved cross-hatch as one global field so its phase reads continuously N → R → N.
 const HATCH_DIRECTION = { x: 0.5885843638383417, y: 0.808435802426522 };
 const HATCH_NORMAL = { x: -0.808435802426522, y: 0.5885843638383417 };
 const HATCH_SPACING = 5.357116234906698;
@@ -80,6 +81,7 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
                     <path d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" clip-rule="evenodd" />
                     <path d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
                 </clipPath>
+
                 <radialGradient
                     id="nrn-radial-gradient"
                     data-nrn-gradient
@@ -99,45 +101,91 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
                 <path d="M 174 -24 L 948 422" />
             </g>
 
-            <!-- Keep guides from showing through the button body. The normal swept volume
-                 is a superset of the pressed volume, so it is a stable occlusion mask. -->
-            <g class="nrn-solid-occlusion" aria-hidden="true">
-                <path d={N_SOLID_NORMAL} transform={`translate(${LEFT_N_SOLID_X} ${LEFT_N_SOLID_Y})`} />
-                <path d={R_SOLID_NORMAL} transform={`translate(${R_SOLID_X} ${R_SOLID_Y})`} fill-rule="evenodd" />
-                <path d={N_SOLID_NORMAL} transform={`translate(${RIGHT_N_SOLID_X} ${RIGHT_N_SOLID_Y})`} />
-            </g>
-
-            <!-- Authored swept-solid normal state from Figma. -->
+            <!-- NORMAL swept solid: back outline first, then opaque frontward slices.
+                 Each slice masks hidden geometry from the slice behind it. -->
             <g data-solid-normal aria-hidden="true">
-                <g class="nrn-solid-base">
-                    <path d={N_SOLID_NORMAL} transform={`translate(${LEFT_N_SOLID_X} ${LEFT_N_SOLID_Y})`} />
-                    <path d={R_SOLID_NORMAL} transform={`translate(${R_SOLID_X} ${R_SOLID_Y})`} fill-rule="evenodd" />
-                    <path d={N_SOLID_NORMAL} transform={`translate(${RIGHT_N_SOLID_X} ${RIGHT_N_SOLID_Y})`} />
+                <g class="nrn-bottom-base">
+                    {LETTERS.map((letter) => (
+                        <g transform={letter.transform}>
+                            <path
+                                d={letter.path}
+                                transform={`translate(0 ${FULL_DEPTH})`}
+                                fill-rule={letter.fillRule}
+                            />
+                        </g>
+                    ))}
                 </g>
-                <g class="nrn-solid-glow">
-                    <path d={N_SOLID_NORMAL} transform={`translate(${LEFT_N_SOLID_X} ${LEFT_N_SOLID_Y})`} />
-                    <path d={R_SOLID_NORMAL} transform={`translate(${R_SOLID_X} ${R_SOLID_Y})`} fill-rule="evenodd" />
-                    <path d={N_SOLID_NORMAL} transform={`translate(${RIGHT_N_SOLID_X} ${RIGHT_N_SOLID_Y})`} />
+                <g class="nrn-bottom-glow">
+                    {LETTERS.map((letter) => (
+                        <g transform={letter.transform}>
+                            <path
+                                d={letter.path}
+                                transform={`translate(0 ${FULL_DEPTH})`}
+                                fill-rule={letter.fillRule}
+                            />
+                        </g>
+                    ))}
                 </g>
+
+                {NORMAL_SWEEP_DEPTHS.map((depth) => (
+                    <g class="nrn-sweep-depth" data-depth={depth}>
+                        {LETTERS.map((letter) => (
+                            <g transform={letter.transform}>
+                                <path
+                                    class="nrn-sweep-layer"
+                                    d={letter.path}
+                                    transform={`translate(0 ${depth})`}
+                                    fill-rule={letter.fillRule}
+                                />
+                            </g>
+                        ))}
+                    </g>
+                ))}
             </g>
 
-            <!-- Authored swept-solid pressed state from Figma. Bottom remains fixed;
-                 only 14px of physical depth remains. -->
+            <!-- PRESSED swept solid: same bottom plane, but only offsets 15..28 remain.
+                 This is the exact topological change produced by pressing 14px down. -->
             <g data-solid-pressed aria-hidden="true" opacity="0">
-                <g class="nrn-solid-base">
-                    <path d={N_SOLID_PRESSED} transform={`translate(${LEFT_N_SOLID_X} ${LEFT_N_SOLID_Y + PRESS_DISTANCE})`} />
-                    <path d={R_SOLID_PRESSED} transform={`translate(${R_SOLID_X} ${R_SOLID_Y + PRESS_DISTANCE})`} fill-rule="evenodd" />
-                    <path d={N_SOLID_PRESSED} transform={`translate(${RIGHT_N_SOLID_X} ${RIGHT_N_SOLID_Y + PRESS_DISTANCE})`} />
+                <g class="nrn-bottom-base">
+                    {LETTERS.map((letter) => (
+                        <g transform={letter.transform}>
+                            <path
+                                d={letter.path}
+                                transform={`translate(0 ${FULL_DEPTH})`}
+                                fill-rule={letter.fillRule}
+                            />
+                        </g>
+                    ))}
                 </g>
-                <g class="nrn-solid-glow">
-                    <path d={N_SOLID_PRESSED} transform={`translate(${LEFT_N_SOLID_X} ${LEFT_N_SOLID_Y + PRESS_DISTANCE})`} />
-                    <path d={R_SOLID_PRESSED} transform={`translate(${R_SOLID_X} ${R_SOLID_Y + PRESS_DISTANCE})`} fill-rule="evenodd" />
-                    <path d={N_SOLID_PRESSED} transform={`translate(${RIGHT_N_SOLID_X} ${RIGHT_N_SOLID_Y + PRESS_DISTANCE})`} />
+                <g class="nrn-bottom-glow">
+                    {LETTERS.map((letter) => (
+                        <g transform={letter.transform}>
+                            <path
+                                d={letter.path}
+                                transform={`translate(0 ${FULL_DEPTH})`}
+                                fill-rule={letter.fillRule}
+                            />
+                        </g>
+                    ))}
                 </g>
+
+                {PRESSED_SWEEP_DEPTHS.map((depth) => (
+                    <g class="nrn-sweep-depth" data-depth={depth}>
+                        {LETTERS.map((letter) => (
+                            <g transform={letter.transform}>
+                                <path
+                                    class="nrn-sweep-layer"
+                                    d={letter.path}
+                                    transform={`translate(0 ${depth})`}
+                                    fill-rule={letter.fillRule}
+                                />
+                            </g>
+                        ))}
+                    </g>
+                ))}
             </g>
 
-            <!-- Exact approved top surface. This is the only rigid part that translates
-                 continuously during the spring press. -->
+            <!-- Exact approved top surface. It is the rigid cap that moves continuously. -->
             <g data-nrn-surface>
                 <g class="nrn-front-fill" aria-hidden="true">
                     <path d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
@@ -189,7 +237,8 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         color: var(--text);
         background: var(--bg);
         --nrn-top-stroke: color-mix(in srgb, var(--text) 34%, var(--bg));
-        --nrn-solid-stroke: color-mix(in srgb, var(--text) 28%, var(--bg));
+        --nrn-bottom-stroke: color-mix(in srgb, var(--text) 27%, var(--bg));
+        --nrn-sweep-stroke: color-mix(in srgb, var(--text) 21%, var(--bg));
         --nrn-hatch: color-mix(in srgb, var(--text) 24%, var(--bg));
     }
 
@@ -228,14 +277,21 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         pointer-events: none;
     }
 
-    .nrn-solid-occlusion,
-    .nrn-front-fill {
+    .nrn-sweep-layer,
+    .nrn-front-fill path {
         fill: var(--bg);
-        stroke: none;
     }
 
-    .nrn-solid-base,
-    .nrn-solid-glow,
+    .nrn-sweep-layer {
+        stroke: var(--nrn-sweep-stroke);
+        stroke-width: 0.34;
+        stroke-opacity: 0.24;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+    }
+
+    .nrn-bottom-base,
+    .nrn-bottom-glow,
     .nrn-top-base,
     .nrn-top-glow,
     .nrn-global-hatch {
@@ -246,14 +302,14 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
         pointer-events: none;
     }
 
-    .nrn-solid-base {
-        stroke: var(--nrn-solid-stroke);
-        stroke-width: 1.3;
+    .nrn-bottom-base {
+        stroke: var(--nrn-bottom-stroke);
+        stroke-width: 1.15;
     }
 
-    .nrn-solid-glow {
+    .nrn-bottom-glow {
         stroke: url(#nrn-radial-gradient);
-        stroke-width: 1.3;
+        stroke-width: 1.15;
     }
 
     .nrn-top-base {
@@ -350,10 +406,6 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
 <script>
     type SpringState = { value: number; velocity: number };
 
-    const VIEW_X = 60;
-    const VIEW_Y = 45;
-    const VIEW_W = 825;
-    const VIEW_H = 470;
     const PRESS_DEPTH = 14;
 
     const springAdvance = (
@@ -395,8 +447,8 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-        const cursorX: SpringState = { value: VIEW_X + VIEW_W / 2, velocity: 0 };
-        const cursorY: SpringState = { value: VIEW_Y + VIEW_H / 2, velocity: 0 };
+        const cursorX: SpringState = { value: 472, velocity: 0 };
+        const cursorY: SpringState = { value: 280, velocity: 0 };
         const press: SpringState = { value: 0, velocity: 0 };
 
         let cursorTargetX = cursorX.value;
@@ -410,10 +462,14 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
 
         const onPointerMove = (event: PointerEvent) => {
             if (!finePointer.matches) return;
-            const rect = svg.getBoundingClientRect();
-            if (rect.width <= 0 || rect.height <= 0) return;
-            cursorTargetX = VIEW_X + ((event.clientX - rect.left) / rect.width) * VIEW_W;
-            cursorTargetY = VIEW_Y + ((event.clientY - rect.top) / rect.height) * VIEW_H;
+            const ctm = svg.getScreenCTM();
+            if (!ctm) return;
+            const point = svg.createSVGPoint();
+            point.x = event.clientX;
+            point.y = event.clientY;
+            const local = point.matrixTransform(ctm.inverse());
+            cursorTargetX = local.x;
+            cursorTargetY = local.y;
         };
 
         const playClick = () => {
@@ -433,7 +489,7 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
                 oscillator.start(now);
                 oscillator.stop(now + 0.08);
             } catch {
-                // Decorative only.
+                // Sound is decorative; interaction remains functional without it.
             }
         };
 
@@ -488,9 +544,7 @@ const GLOBAL_HATCH_PATH = hatchSegments.join(' ');
             surface.setAttribute('transform', `translate(0 ${value.toFixed(3)})`);
 
             const progress = clamp01(value / PRESS_DEPTH);
-            // Narrow crossfade between the two authored solid states. Endpoints remain
-            // pixel-identical to Figma; the top surface provides the continuous motion.
-            const pressedMix = smoothstep(0.28, 0.72, progress);
+            const pressedMix = smoothstep(0.34, 0.66, progress);
             normalSolid.setAttribute('opacity', (1 - pressedMix).toFixed(4));
             pressedSolid.setAttribute('opacity', pressedMix.toFixed(4));
         };
