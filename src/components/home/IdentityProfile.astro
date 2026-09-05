@@ -2,11 +2,10 @@
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
 import type { SiteLocale } from '../../data/siteContent';
-import BrandIcon from '../icons/BrandIcon.astro';
-import UiIcon from '../icons/UiIcon.astro';
 import HandwrittenNote from './HandwrittenNote.astro';
 import RoleFlip from './RoleFlip.astro';
 import SkillWaterfall from './SkillWaterfall.astro';
+import SocialBrandIcon from './SocialBrandIcon.astro';
 import VerifiedIcon from './VerifiedIcon.astro';
 
 interface Props {
@@ -29,7 +28,7 @@ const socialLinks = [
     { label: 'GitHub', href: 'https://github.com/nabilrn', brand: 'github' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nabilrizkinavisa2004', brand: 'linkedin' },
     { label: 'X', href: 'https://x.com/NabilrizkiN', brand: 'x' },
-    { label: 'Email', href: 'mailto:nabilrizkinavisa@gmail.com', ui: 'mail' },
+    { label: 'Gmail', href: 'mailto:nabilrizkinavisa@gmail.com', brand: 'gmail' },
 ] as const;
 ---
 
@@ -61,12 +60,10 @@ const socialLinks = [
                     href={item.href}
                     target={item.href.startsWith('http') ? '_blank' : undefined}
                     rel={item.href.startsWith('http') ? 'noopener' : undefined}
-                    title={item.label}
                     aria-label={item.label}
+                    data-tooltip={item.label}
                 >
-                    {'brand' in item
-                        ? <BrandIcon name={item.brand} size={16} />
-                        : <UiIcon name={item.ui} size={16} strokeWidth={1.7} />}
+                    <SocialBrandIcon name={item.brand} size={16} />
                 </a>
             ))}
         </nav>
@@ -190,20 +187,21 @@ const socialLinks = [
     }
 
     .identity-subtitle {
-        min-height: 34px;
-        padding: 7px var(--profile-pad) 8px;
+        min-height: 38px;
+        padding: 8px var(--profile-pad) 9px;
         display: flex;
         align-items: center;
     }
 
     :global(.identity-subtitle .role-flip) {
-        font-size: 10.5px;
+        font-size: 12px;
+        line-height: 1.35;
     }
 
     .social-block {
         position: relative;
         width: 100%;
-        margin-top: 36px;
+        margin-top: 34px;
     }
 
     .social-links {
@@ -214,6 +212,7 @@ const socialLinks = [
     }
 
     .social-links a {
+        position: relative;
         width: 32px;
         height: 32px;
         flex: none;
@@ -226,6 +225,42 @@ const socialLinks = [
         transition: color 140ms ease, border-color 140ms ease, background 140ms ease, transform 140ms ease;
     }
 
+    .social-links a::before,
+    .social-links a::after {
+        position: absolute;
+        left: 50%;
+        z-index: 10;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .social-links a::before {
+        content: attr(data-tooltip);
+        bottom: calc(100% + 9px);
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        transform: translate(-50%, 3px);
+    }
+
+    .social-links a::after {
+        content: '';
+        bottom: calc(100% + 5px);
+        width: 5px;
+        height: 5px;
+        border-right: 1px solid var(--border-strong);
+        border-bottom: 1px solid var(--border-strong);
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        transform: translate(-50%, 3px) rotate(45deg);
+    }
+
     .social-links a:hover,
     .social-links a:focus-visible {
         color: var(--text);
@@ -235,17 +270,35 @@ const socialLinks = [
         outline: none;
     }
 
+    .social-links a:hover::before,
+    .social-links a:hover::after,
+    .social-links a:focus-visible::before,
+    .social-links a:focus-visible::after {
+        opacity: 1;
+    }
+
+    .social-links a:hover::before,
+    .social-links a:focus-visible::before {
+        transform: translate(-50%, 0);
+    }
+
+    .social-links a:hover::after,
+    .social-links a:focus-visible::after {
+        transform: translate(-50%, 0) rotate(45deg);
+    }
+
     :global(.social-block .social-note) {
         right: 8px;
-        top: -32px;
+        top: -31px;
         transform: rotate(-5deg);
     }
 
     .waterfall-wrap {
         width: 100%;
+        height: clamp(190px, 22vh, 225px);
         min-height: 0;
-        flex: 1;
-        margin-top: 16px;
+        flex: none;
+        margin-top: 14px;
         overflow: hidden;
     }
 
@@ -272,17 +325,18 @@ const socialLinks = [
         }
 
         .identity-subtitle {
-            min-height: 28px;
-            padding-top: 5px;
-            padding-bottom: 6px;
+            min-height: 32px;
+            padding-top: 6px;
+            padding-bottom: 7px;
         }
 
         :global(.identity-subtitle .role-flip) {
-            font-size: 9.5px;
+            font-size: 11px;
+            line-height: 1.3;
         }
 
         .social-block {
-            margin-top: 30px;
+            margin-top: 29px;
         }
 
         .social-links {
@@ -302,7 +356,8 @@ const socialLinks = [
         }
 
         .waterfall-wrap {
-            margin-top: 11px;
+            height: clamp(138px, 19vh, 158px);
+            margin-top: 10px;
         }
     }
 
@@ -321,7 +376,7 @@ const socialLinks = [
         }
 
         .waterfall-wrap {
-            min-height: 300px;
+            height: 300px;
         }
     }
 </style>
