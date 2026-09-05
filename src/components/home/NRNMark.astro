@@ -44,7 +44,10 @@ const R_CONNECTOR_TOPS: Point[] = [
     { x: 496.843346, y: 264.9032 },
     { x: 469.135302, y: 333.815372 },
     { x: 433.101213, y: 315.425111 },
-    { x: 588.567394, y: 268.89096 },
+    // Visible outer cap of the straight R arm.
+    { x: 358.459158, y: 277.330979 },
+    // Do not add a connector on the convex bowl tip: that is a smooth silhouette,
+    // not a visible hard edge, so a vertical line there reads as an internal seam.
 ];
 
 const RIGHT_N_CONNECTOR_TOPS = LEFT_N_CONNECTOR_TOPS.map(({ x, y }) => ({ x: x + 426, y: y + 200 }));
