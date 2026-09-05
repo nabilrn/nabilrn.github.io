@@ -1,6 +1,8 @@
 ---
 import SiteSearch from '../SiteSearch.astro';
 import ThemeToggle from '../ThemeToggle.astro';
+import GitHubStars from './GitHubStars.astro';
+import NRLogo from './NRLogo.astro';
 import {
     getSiteContent,
     localeMeta,
@@ -17,26 +19,38 @@ interface Props {
 const locale = normalizeLocale(Astro.props.locale);
 const content = getSiteContent(locale);
 const homePath = localizePath('/', locale);
-const projectsPath = localizePath('/projects/', locale);
 const blogPath = localizePath('/blog/', locale);
 ---
 
 <header class="home-header">
     <div class="home-header-inner">
-        <a href={homePath} class="home-brand" aria-label={content.nav.home}>
-            <span class="home-brand-mark" aria-hidden="true">NR</span>
-            <span>nabilrn</span>
+        <a href={homePath} class="home-brand" aria-label={`${content.profile.name} — ${content.nav.home}`}>
+            <NRLogo class="home-brand-logo" width={44} height={24} />
         </a>
 
+        <div class="home-spacer" aria-hidden="true"></div>
+
         <nav class="home-nav" aria-label={content.nav.ariaPageNavigation}>
-            <a href={homePath} class="home-nav-link is-active">{content.nav.overview}</a>
-            <a href={projectsPath} class="home-nav-link">{content.nav.projects}</a>
+            <a href={homePath} class="home-nav-link is-active" aria-current="page">{content.nav.overview}</a>
             <a href={blogPath} class="home-nav-link">{content.nav.blog}</a>
         </nav>
 
         <div class="home-actions">
+            <span class="header-separator desktop-separator" aria-hidden="true"></span>
+
+            <div class="home-search">
+                <SiteSearch locale={locale} />
+            </div>
+
+            <span class="header-separator desktop-separator" aria-hidden="true"></span>
+
+            <GitHubStars repo="nabilrn/nabilrn.github.io" />
+
+            <span class="header-separator" aria-hidden="true"></span>
+
             <ThemeToggle locale={locale} />
-            <SiteSearch locale={locale} />
+
+            <span class="header-separator" aria-hidden="true"></span>
 
             <details class="home-language">
                 <summary aria-label={content.nav.ariaLanguageNavigation}>{locale.toUpperCase()}</summary>
@@ -63,60 +77,81 @@ const blogPath = localizePath('/blog/', locale);
         width: 100%;
         height: 52px;
         background: var(--bg);
-        border: 2px solid var(--border);
     }
 
     .home-header-inner {
+        position: relative;
         width: 100%;
         height: 100%;
         margin: 0;
         padding: 0 clamp(14px, 1.5vw, 24px);
-        display: grid;
-        grid-template-columns: minmax(160px, 1fr) auto minmax(160px, 1fr);
+        display: flex;
         align-items: center;
+        gap: clamp(12px, 1.2vw, 20px);
+        border-inline: 1px solid var(--sheet-line, var(--border));
+    }
+
+    .home-header-inner::before,
+    .home-header-inner::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        width: 100vw;
+        height: 1px;
+        transform: translateX(-50%);
+        background: var(--sheet-line, var(--border));
+        pointer-events: none;
+    }
+
+    .home-header-inner::before {
+        top: 0;
+    }
+
+    .home-header-inner::after {
+        bottom: 0;
     }
 
     .home-brand {
         display: inline-flex;
         width: max-content;
+        flex: none;
         align-items: center;
-        gap: 9px;
         color: var(--text);
-        font-family: var(--font-sans);
-        font-size: 15px;
-        font-weight: 600;
-        letter-spacing: -0.03em;
+        transition: color 140ms ease, opacity 140ms ease;
     }
 
-    .home-brand-mark {
-        width: 24px;
+    .home-brand:hover {
+        opacity: 0.76;
+    }
+
+    .home-brand-logo {
+        display: block;
+        width: 44px;
         height: 24px;
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--border-strong);
-        color: var(--muted);
-        font-family: var(--font-mono);
-        font-size: 8px;
-        font-weight: 500;
-        line-height: 1;
-        letter-spacing: -0.03em;
+    }
+
+    .home-spacer {
+        flex: 1 1 auto;
+        min-width: 16px;
     }
 
     .home-nav {
         display: flex;
-        align-items: stretch;
-        align-self: stretch;
-        gap: 28px;
+        align-items: center;
+        gap: clamp(16px, 1.6vw, 26px);
+        flex: none;
     }
 
     .home-nav-link {
-        position: relative;
         display: inline-flex;
         align-items: center;
+        min-height: 30px;
         color: var(--muted);
         font-family: var(--font-sans);
-        font-size: 11px;
+        font-size: 12px;
+        font-weight: 500;
         line-height: 1;
+        letter-spacing: 0.015em;
         transition: color 140ms ease;
     }
 
@@ -125,21 +160,23 @@ const blogPath = localizePath('/blog/', locale);
         color: var(--text);
     }
 
-    .home-nav-link.is-active::after {
-        content: '';
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -2px;
-        height: 2px;
-        background: var(--text);
-    }
-
     .home-actions {
         display: flex;
-        justify-content: flex-end;
+        flex: none;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
+    }
+
+    .header-separator {
+        width: 1px;
+        height: 20px;
+        flex: none;
+        background: var(--sheet-line, var(--border));
+    }
+
+    .home-search {
+        display: flex;
+        align-items: center;
     }
 
     .home-language {
@@ -147,12 +184,13 @@ const blogPath = localizePath('/blog/', locale);
     }
 
     .home-language summary {
-        width: 30px;
-        height: 26px;
+        min-width: 28px;
+        height: 30px;
+        padding: 0 4px;
         display: grid;
         place-items: center;
         list-style: none;
-        border: 1px solid var(--border-strong);
+        border: 0;
         border-radius: 0;
         color: var(--muted);
         background: transparent;
@@ -160,7 +198,7 @@ const blogPath = localizePath('/blog/', locale);
         font-family: var(--font-mono);
         font-size: 9px;
         line-height: 1;
-        transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+        transition: color 140ms ease;
     }
 
     .home-language summary::-webkit-details-marker {
@@ -170,13 +208,12 @@ const blogPath = localizePath('/blog/', locale);
     .home-language summary:hover,
     .home-language[open] summary {
         color: var(--text);
-        border-color: var(--muted);
-        background: var(--surface);
+        background: transparent;
     }
 
     .home-language-menu {
         position: absolute;
-        top: calc(100% + 7px);
+        top: calc(100% + 8px);
         right: 0;
         width: 170px;
         padding: 4px;
@@ -206,57 +243,104 @@ const blogPath = localizePath('/blog/', locale);
         background: var(--surface-2);
     }
 
-    :global(.home-header .theme-toggle),
     :global(.home-header .site-search-trigger) {
-        width: 26px;
-        min-width: 26px;
-        height: 26px;
-        min-height: 26px;
+        width: auto;
+        min-width: 0;
+        height: 30px;
+        min-height: 30px;
+        padding: 0 4px;
+        justify-content: center;
+        gap: 6px;
+        border: 0;
         border-radius: 0;
         background: transparent;
-        border-color: var(--border-strong);
-    }
-
-    :global(.home-header .theme-toggle svg) {
-        width: 12px;
-        height: 12px;
-        stroke-width: 1.6;
-    }
-
-    :global(.home-header .site-search-trigger) {
-        padding: 0;
-        justify-content: center;
+        color: var(--muted);
         font-family: var(--font-sans);
+        transition: color 140ms ease;
     }
 
-    :global(.home-header .site-search-trigger > span),
-    :global(.home-header .site-search-trigger > kbd) {
+    :global(.home-header .site-search-trigger:hover) {
+        background: transparent;
+        border-color: transparent;
+        color: var(--text);
+    }
+
+    :global(.home-header .site-search-trigger > span) {
         display: none;
     }
 
+    :global(.home-header .site-search-trigger > kbd) {
+        display: inline-flex;
+        align-items: center;
+        min-height: 18px;
+        padding: 1px 4px;
+        border: 1px solid var(--border-strong);
+        border-radius: 3px;
+        background: var(--surface);
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 500;
+        line-height: 1;
+        box-shadow: none;
+    }
+
     :global(.home-header .site-search-trigger svg) {
-        width: 12px;
-        height: 12px;
+        width: 13px;
+        height: 13px;
+    }
+
+    :global(.home-header .theme-toggle) {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+        min-height: 30px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--muted);
+    }
+
+    :global(.home-header .theme-toggle:hover) {
+        border-color: transparent;
+        background: transparent;
+        color: var(--text);
+    }
+
+    :global(.home-header .theme-toggle svg) {
+        width: 14px;
+        height: 14px;
+        stroke-width: 1.6;
     }
 
     @media (max-width: 760px) {
         .home-header {
             height: 48px;
-            border-right: 0;
-            border-left: 0;
         }
 
         .home-header-inner {
-            grid-template-columns: 1fr auto;
             padding: 0 12px;
+            gap: 8px;
+            border-inline: 0;
         }
 
-        .home-nav {
+        .home-brand-logo {
+            width: 40px;
+            height: 22px;
+        }
+
+        .home-nav,
+        .home-search,
+        .desktop-separator {
             display: none;
         }
 
-        .home-brand {
-            font-size: 14px;
+        .home-spacer {
+            min-width: 0;
+        }
+
+        .home-actions {
+            gap: 5px;
         }
     }
 </style>
