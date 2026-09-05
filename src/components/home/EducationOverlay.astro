@@ -24,69 +24,118 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 </template>
 
 <style is:global>
+    /* Treat the institution name, degree and GPA as one identity block.
+       The crest is centered against the whole three-line block rather than
+       against the title line alone. */
     .home-redesign .identity-board .education-region {
         position: relative;
         isolation: isolate;
+        display: grid !important;
+        grid-template-columns: 26px minmax(0, 1fr) 27px !important;
+        grid-template-rows: auto auto auto auto minmax(0, 1fr) !important;
+        column-gap: 8px !important;
+        row-gap: 1px !important;
+        align-content: start !important;
+        justify-content: stretch !important;
         padding: 8px 12px 8px !important;
-        gap: 2px !important;
+        background: var(--bg);
         overflow: hidden;
     }
 
+    .home-redesign .education-region > * {
+        min-width: 0;
+    }
+
     .home-redesign .education-region .icon-label {
-        margin: 0 0 3px !important;
+        grid-column: 1 / 4;
+        grid-row: 1;
+        margin: 0 0 4px !important;
+        gap: 0 !important;
+        color: color-mix(in srgb, var(--muted) 86%, transparent);
+        font-size: 8.5px;
+        line-height: 1;
+        letter-spacing: 0.09em;
+    }
+
+    .home-redesign .education-region .icon-label > svg {
+        display: none;
+    }
+
+    /* Disable the transitional crest that was attached only to the title row. */
+    .home-redesign .education-region .region-primary::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    /* The crest belongs to the entire identity group. */
+    .home-redesign .education-region::before {
+        content: '';
+        grid-column: 1;
+        grid-row: 2 / 5;
+        align-self: center;
+        justify-self: center;
+        width: 24px;
+        height: 30px;
+        background-image: url('https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 24px auto;
+        filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
+        opacity: 0.82;
+        transition: filter 280ms ease, opacity 280ms ease, transform 280ms ease;
+    }
+
+    .home-redesign .education-region .region-primary,
+    .home-redesign .education-region .region-secondary,
+    .home-redesign .education-region .region-meta {
+        grid-column: 2;
+        margin: 0 !important;
+        padding: 0 !important;
+        min-width: 0;
     }
 
     .home-redesign .education-region .region-primary {
-        min-height: 28px;
-        margin: 0 !important;
-        padding: 0 34px 0 0 !important;
-        display: grid !important;
-        grid-template-columns: 26px minmax(0, 1fr) !important;
-        align-items: center !important;
-        column-gap: 8px !important;
+        grid-row: 2;
+        align-self: end;
         color: var(--text);
         font-family: var(--font-sans);
         font-size: clamp(13px, 1.03vw, 15px);
         font-weight: 600;
-        line-height: 1.1;
+        line-height: 1.08;
         letter-spacing: -0.025em;
         white-space: nowrap;
-    }
-
-    .home-redesign .education-region .region-primary::before {
-        width: 24px !important;
-        height: 24px !important;
-        align-self: center !important;
-        justify-self: center !important;
-        margin: 0 !important;
-        background-position: center !important;
-        background-size: 22px auto !important;
-        opacity: 0.82 !important;
-    }
-
-    .home-redesign .education-region .region-secondary,
-    .home-redesign .education-region .region-meta {
-        margin: 0 !important;
-        padding-left: 34px !important;
-        padding-right: 34px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .home-redesign .education-region .region-secondary {
+        grid-row: 3;
         color: var(--text-body);
+        font-family: var(--font-sans);
         font-size: 9.5px;
         line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .home-redesign .education-region .region-meta {
+        grid-row: 4;
         min-height: 10px;
+        color: transparent;
+        font-size: 0;
+        line-height: 1;
     }
 
     .home-redesign .education-region .region-meta::before {
         content: 'GPA 3.71 / 4.00' !important;
+        position: static !important;
+        display: block !important;
         color: var(--muted);
         font-family: var(--font-mono);
         font-size: 8.5px;
         line-height: 1.15;
+        letter-spacing: 0.005em;
     }
 
     .home-redesign .education-region .region-meta::after {
@@ -94,16 +143,28 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
         display: none !important;
     }
 
+    /* Keep the campus image as the visual anchor and reclaim the old location row. */
     .home-redesign .education-region::after {
         top: clamp(82px, 10.5vh, 92px) !important;
         bottom: 8px !important;
     }
 
+    .home-redesign .education-region:hover::before,
+    .home-redesign .education-region:focus-within::before {
+        filter: grayscale(0) saturate(1) contrast(1) brightness(1);
+        opacity: 1;
+        transform: translateY(-1px);
+    }
+
     .home-redesign .education-map-link {
-        position: absolute !important;
+        grid-column: 3;
+        grid-row: 2 / 5;
+        position: relative !important;
         z-index: 7 !important;
-        right: 12px !important;
-        top: 24px !important;
+        align-self: center;
+        justify-self: end;
+        right: auto !important;
+        top: auto !important;
         width: 27px !important;
         height: 27px !important;
         min-width: 0 !important;
@@ -199,28 +260,29 @@ const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20
 
     @media (min-width: 1100px) and (max-height: 859px) {
         .home-redesign .identity-board .education-region {
+            grid-template-columns: 24px minmax(0, 1fr) 25px !important;
+            column-gap: 7px !important;
             padding-top: 7px !important;
         }
 
+        .home-redesign .education-region::before {
+            width: 22px;
+            height: 28px;
+            background-size: 22px auto;
+        }
+
         .home-redesign .education-map-link {
-            top: 22px !important;
             width: 25px !important;
             height: 25px !important;
         }
 
         .home-redesign .education-region .region-primary {
-            min-height: 26px;
             font-size: 13px;
-        }
-
-        .home-redesign .education-region .region-primary::before {
-            width: 22px !important;
-            height: 22px !important;
-            background-size: 21px auto !important;
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
+        .home-redesign .education-region::before,
         .home-redesign .education-map-link,
         .home-redesign .education-map-pin,
         .home-redesign .education-map-tooltip {
