@@ -48,8 +48,7 @@ const experienceItems = [
 <div class="experience-panel">
     <header class="experience-header">
         <div class="experience-heading">
-            <UiIcon name="briefcase" size={12} strokeWidth={1.5} />
-            <span>{heading}</span>
+            <span>my {heading.toLowerCase()}</span>
         </div>
 
         <a
@@ -85,12 +84,15 @@ const experienceItems = [
             ))}
         </div>
     </div>
+
+    <div class="experience-scroll-hint" aria-hidden="true">scroll through ↓</div>
 </div>
 
 <style>
     .experience-panel {
         --experience-line: color-mix(in oklab, var(--border) 64%, var(--bg));
         --timeline-line: color-mix(in srgb, var(--muted) 30%, transparent);
+        position: relative;
         width: 100%;
         height: 100%;
         min-width: 0;
@@ -101,7 +103,7 @@ const experienceItems = [
 
     .experience-header {
         min-width: 0;
-        padding: 9px clamp(12px, 0.95vw, 17px) 8px;
+        padding: 8px clamp(12px, 0.95vw, 17px) 7px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -118,12 +120,13 @@ const experienceItems = [
 
     .experience-heading {
         flex: none;
-        gap: 6px;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: 12px;
-        font-weight: 550;
-        line-height: 1.2;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.5deg);
+        transform-origin: left center;
     }
 
     .resume-cta {
@@ -198,6 +201,11 @@ const experienceItems = [
         outline: none;
     }
 
+    .experience-panel:hover .experience-scroll,
+    .experience-panel:focus-within .experience-scroll {
+        scrollbar-color: color-mix(in srgb, var(--muted) 58%, transparent) transparent;
+    }
+
     .experience-scroll::-webkit-scrollbar {
         width: 4px;
     }
@@ -211,8 +219,38 @@ const experienceItems = [
         background: color-mix(in srgb, var(--muted) 34%, transparent);
     }
 
+    .experience-panel:hover .experience-scroll::-webkit-scrollbar-thumb,
+    .experience-panel:focus-within .experience-scroll::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--muted) 58%, transparent);
+    }
+
     .experience-scroll:focus-visible {
         box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent);
+    }
+
+    .experience-scroll-hint {
+        position: absolute;
+        z-index: 5;
+        right: 12px;
+        bottom: 7px;
+        padding: 7px 2px 1px 18px;
+        background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 94%, transparent) 32%);
+        color: color-mix(in srgb, var(--muted) 86%, transparent);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    .experience-panel:hover .experience-scroll-hint,
+    .experience-panel:focus-within .experience-scroll-hint {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     .experience-timeline {
@@ -317,12 +355,20 @@ const experienceItems = [
         .resume-cta::after {
             animation: none;
         }
+
+        .experience-scroll-hint {
+            transition: none;
+        }
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
         .experience-header {
-            padding-top: 7px;
-            padding-bottom: 6px;
+            padding-top: 6px;
+            padding-bottom: 5px;
+        }
+
+        .experience-heading {
+            font-size: 14px;
         }
 
         .experience-entry {
@@ -334,6 +380,14 @@ const experienceItems = [
     @media (max-width: 720px) {
         .experience-header {
             padding: 11px 14px 9px;
+        }
+
+        .experience-heading {
+            font-size: 15px;
+        }
+
+        .experience-scroll-hint {
+            display: none;
         }
 
         .experience-timeline::before {
@@ -352,177 +406,6 @@ const experienceItems = [
 
         .experience-period {
             justify-self: start;
-        }
-    }
-</style>
-
-<style is:global>
-    /* Education still lives inline in index.astro; keep this pass purely
-       geometric so the section can be visually locked before extracting it. */
-    .home-redesign .identity-board .education-region {
-        position: relative;
-        isolation: isolate;
-        display: grid !important;
-        grid-template-rows: auto auto auto auto minmax(0, 1fr);
-        align-content: start;
-        justify-content: stretch !important;
-        gap: 2px;
-        padding: 8px 12px 28px !important;
-        background: var(--bg);
-        overflow: hidden;
-    }
-
-    .home-redesign .education-region > * {
-        position: relative;
-        z-index: 2;
-        min-width: 0;
-    }
-
-    .home-redesign .education-region .icon-label {
-        gap: 0;
-        margin: 0 0 2px;
-        color: color-mix(in srgb, var(--muted) 86%, transparent);
-        font-size: 8.5px;
-        line-height: 1;
-        letter-spacing: 0.09em;
-    }
-
-    .home-redesign .education-region .icon-label > svg {
-        display: none;
-    }
-
-    .home-redesign .education-region .region-primary {
-        margin: 0 !important;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: clamp(13px, 1.03vw, 15px);
-        font-weight: 600;
-        line-height: 1.1;
-        letter-spacing: -0.025em;
-        white-space: nowrap;
-    }
-
-    .home-redesign .education-region .region-primary::before {
-        content: '';
-        flex: none;
-        width: 24px;
-        height: 28px;
-        background-image: url('https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html');
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-        filter: grayscale(1) saturate(0) contrast(1.05) brightness(1.08);
-        opacity: 0.78;
-        transition: filter 280ms ease, opacity 280ms ease, transform 280ms ease;
-    }
-
-    .home-redesign .education-region .region-secondary {
-        margin: 0 !important;
-        padding-left: 32px;
-        color: var(--text-body);
-        font-family: var(--font-sans);
-        font-size: 9.5px;
-        line-height: 1.2;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-    }
-
-    .home-redesign .education-region .region-meta {
-        position: static !important;
-        min-height: 10px;
-        margin: 0 !important;
-        padding-left: 32px;
-        color: transparent;
-        font-size: 0;
-        line-height: 1;
-    }
-
-    .home-redesign .education-region .region-meta::before {
-        content: 'GPA 3.71 / 4.00';
-        position: static;
-        display: block;
-        color: var(--muted);
-        font-family: var(--font-mono);
-        font-size: 8.5px;
-        line-height: 1.15;
-        letter-spacing: 0.005em;
-    }
-
-    .home-redesign .education-region::after {
-        content: '';
-        position: absolute;
-        z-index: 1;
-        left: 12px;
-        right: 12px;
-        top: clamp(82px, 10.5vh, 96px);
-        bottom: 28px;
-        border-block: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-        background-color: var(--surface);
-        background-image: url('https://www.unand.ac.id/images/gedung%20rektorat.jpg');
-        background-repeat: no-repeat;
-        background-position: center 46%;
-        background-size: cover;
-        filter: grayscale(1) saturate(0.15) contrast(1.05) brightness(0.72);
-        opacity: 0.84;
-        pointer-events: none;
-        transition: filter 320ms ease, opacity 320ms ease;
-    }
-
-    .home-redesign .education-region .region-meta::after {
-        content: '⌖  Limau Manis · Padang, Indonesia';
-        position: absolute;
-        z-index: 3;
-        left: 12px;
-        bottom: 9px;
-        color: var(--muted);
-        font-family: var(--font-mono);
-        font-size: 8px;
-        line-height: 1.2;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        pointer-events: none;
-    }
-
-    .home-redesign .education-region .region-primary:hover::before {
-        filter: grayscale(0) saturate(1) contrast(1) brightness(1);
-        opacity: 1;
-        transform: translateY(-1px);
-    }
-
-    .home-redesign .education-region:hover::after {
-        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
-        opacity: 1;
-    }
-
-    @media (min-width: 1100px) and (max-height: 859px) {
-        .home-redesign .identity-board .education-region {
-            gap: 1px;
-            padding-top: 7px !important;
-        }
-
-        .home-redesign .education-region .region-primary {
-            font-size: 13px;
-        }
-
-        .home-redesign .education-region .region-primary::before {
-            width: 23px;
-            height: 27px;
-        }
-
-        .home-redesign .education-region .region-secondary,
-        .home-redesign .education-region .region-meta {
-            padding-left: 31px;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .home-redesign .education-region .region-primary::before,
-        .home-redesign .education-region::after {
-            transition: none;
         }
     }
 </style>
