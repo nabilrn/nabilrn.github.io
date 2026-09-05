@@ -75,13 +75,10 @@ const R_SIDE_FACES: SideFace[] = [
 const ALL_SIDE_FACES = [...LEFT_N_SIDE_FACES, ...R_SIDE_FACES, ...RIGHT_N_SIDE_FACES];
 
 const CONNECTORS: Connector[] = [
-    // Exact visible N corner edges from the approved Figma prototype.
     { top: { x: 132, y: 170 }, bottom: { x: 132, y: 197 } },
     { top: { x: 271, y: 242 }, bottom: { x: 271, y: 269 } },
     { top: { x: 558, y: 370 }, bottom: { x: 558, y: 397 } },
     { top: { x: 697, y: 442 }, bottom: { x: 697, y: 469 } },
-
-    // R exposed corners. These stay visible while the depth compresses.
     { top: { x: 331.433585, y: 263.538279 }, bottom: { x: 331.433585, y: 291.538279 } },
     { top: { x: 433.101213, y: 315.425111 }, bottom: { x: 433.101213, y: 343.425111 } },
     { top: { x: 469.135302, y: 333.815372 }, bottom: { x: 469.135302, y: 361.815372 } },
@@ -112,13 +109,7 @@ const connectorPath = (connector: Connector, press = 0) =>
 ---
 
 <div class="nrn-stage" data-nrn-stage>
-    <button
-        class="nrn-mark"
-        type="button"
-        data-nrn-mark
-        aria-label="Press the interactive NRN mark"
-        aria-pressed="false"
-    >
+    <button class="nrn-mark" type="button" data-nrn-mark aria-label="Press the interactive NRN mark" aria-pressed="false">
         <svg
             class="nrn-svg"
             data-nrn-svg
@@ -135,15 +126,7 @@ const connectorPath = (connector: Connector, press = 0) =>
                     <path d={R_FRONT_PATH} transform={R_MATRIX} fill-rule="evenodd" clip-rule="evenodd" />
                     <path d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
                 </clipPath>
-
-                <radialGradient
-                    id="nrn-radial-gradient"
-                    data-nrn-gradient
-                    cx="472"
-                    cy="280"
-                    r="300"
-                    gradientUnits="userSpaceOnUse"
-                >
+                <radialGradient id="nrn-radial-gradient" data-nrn-gradient cx="472" cy="280" r="300" gradientUnits="userSpaceOnUse">
                     <stop offset="0" class="nrn-glow-start" />
                     <stop offset="1" class="nrn-glow-end" />
                 </radialGradient>
@@ -155,37 +138,11 @@ const connectorPath = (connector: Connector, press = 0) =>
                 <path d="M 174 -24 L 948 422" />
             </g>
 
-            <g class="nrn-side-layer" aria-hidden="true">
+            <!-- Fill the extrusion first. No outline here: front surfaces would otherwise cover
+                 the long lower edges and make the bars look open. -->
+            <g class="nrn-side-fill-layer" aria-hidden="true">
                 {ALL_SIDE_FACES.map((face) => (
-                    <>
-                        <path
-                            class="nrn-side-face nrn-side-face-base"
-                            d={sideFacePath(face)}
-                            data-side-face={JSON.stringify(face)}
-                        />
-                        <path
-                            class="nrn-side-face nrn-side-face-glow"
-                            d={sideFacePath(face)}
-                            data-side-face={JSON.stringify(face)}
-                        />
-                    </>
-                ))}
-            </g>
-
-            <g class="nrn-connector-layer" aria-hidden="true">
-                {CONNECTORS.map((connector) => (
-                    <>
-                        <path
-                            class="nrn-connector nrn-connector-base"
-                            d={connectorPath(connector)}
-                            data-connector={JSON.stringify(connector)}
-                        />
-                        <path
-                            class="nrn-connector nrn-connector-glow"
-                            d={connectorPath(connector)}
-                            data-connector={JSON.stringify(connector)}
-                        />
-                    </>
+                    <path class="nrn-side-fill" d={sideFacePath(face)} data-side-face={JSON.stringify(face)} />
                 ))}
             </g>
 
@@ -196,12 +153,7 @@ const connectorPath = (connector: Connector, press = 0) =>
                     <path d={N_FRONT_PATH} transform={RIGHT_N_MATRIX} />
                 </g>
 
-                <path
-                    class="nrn-global-hatch"
-                    d={GLOBAL_HATCH_PATH}
-                    clip-path="url(#nrn-surface-clip)"
-                    aria-hidden="true"
-                />
+                <path class="nrn-global-hatch" d={GLOBAL_HATCH_PATH} clip-path="url(#nrn-surface-clip)" aria-hidden="true" />
 
                 <g class="nrn-front-strokes" aria-hidden="true">
                     <path class="nrn-front-stroke" d={N_FRONT_PATH} transform={LEFT_N_MATRIX} />
@@ -213,6 +165,27 @@ const connectorPath = (connector: Connector, press = 0) =>
                 </g>
             </g>
 
+            <!-- Critical ordering fix: draw the complete side-face outlines AFTER the top
+                 surfaces. This keeps the long bottom edge of every N/R/N bar visible at rest
+                 and while the mark is pressed. -->
+            <g class="nrn-side-outline-layer" aria-hidden="true">
+                {ALL_SIDE_FACES.map((face) => (
+                    <>
+                        <path class="nrn-side-outline nrn-side-outline-base" d={sideFacePath(face)} data-side-face={JSON.stringify(face)} />
+                        <path class="nrn-side-outline nrn-side-outline-glow" d={sideFacePath(face)} data-side-face={JSON.stringify(face)} />
+                    </>
+                ))}
+            </g>
+
+            <g class="nrn-connector-layer" aria-hidden="true">
+                {CONNECTORS.map((connector) => (
+                    <>
+                        <path class="nrn-connector nrn-connector-base" d={connectorPath(connector)} data-connector={JSON.stringify(connector)} />
+                        <path class="nrn-connector nrn-connector-glow" d={connectorPath(connector)} data-connector={JSON.stringify(connector)} />
+                    </>
+                ))}
+            </g>
+
             <text class="nrn-fig-label" x="78" y="495">FIG. 01 / NRN SYSTEM</text>
         </svg>
     </button>
@@ -222,10 +195,7 @@ const connectorPath = (connector: Connector, press = 0) =>
             <path d="M49 6C37 8 28 14 23 23C18 31 19 39 24 45" />
             <path d="M17 39L24 46L31 39" />
         </svg>
-        <span>
-            follows your cursor
-            <small>click the mark</small>
-        </span>
+        <span>follows your cursor<small>click the mark</small></span>
     </div>
 </div>
 
@@ -277,77 +247,56 @@ const connectorPath = (connector: Connector, press = 0) =>
         pointer-events: none;
     }
 
-    .nrn-front-fill path {
+    .nrn-front-fill path,
+    .nrn-side-fill {
         fill: var(--bg);
         stroke: none;
     }
 
-    .nrn-side-face,
-    .nrn-connector,
     .nrn-front-stroke,
     .nrn-front-glow,
+    .nrn-side-outline,
+    .nrn-connector,
     .nrn-global-hatch {
+        fill: none;
         stroke-linejoin: round;
         stroke-linecap: round;
         vector-effect: non-scaling-stroke;
     }
 
-    .nrn-side-face-base {
-        fill: var(--bg);
-        stroke: var(--nrn-side-stroke);
-        stroke-width: 1.35;
-    }
-
-    .nrn-side-face-glow {
-        fill: none;
-        stroke: url(#nrn-radial-gradient);
-        stroke-width: 1.35;
-        pointer-events: none;
-    }
-
-    .nrn-connector-base {
-        fill: none;
-        stroke: var(--nrn-side-stroke);
-        stroke-width: 1.35;
-    }
-
-    .nrn-connector-glow {
-        fill: none;
-        stroke: url(#nrn-radial-gradient);
-        stroke-width: 1.35;
-        pointer-events: none;
-    }
-
     .nrn-front-stroke {
-        fill: none;
         stroke: var(--nrn-front-stroke);
         stroke-width: 1.5;
     }
 
     .nrn-front-glow {
-        fill: none;
         stroke: url(#nrn-radial-gradient);
         stroke-width: 1.5;
         pointer-events: none;
     }
 
+    .nrn-side-outline-base,
+    .nrn-connector-base {
+        stroke: var(--nrn-side-stroke);
+        stroke-width: 1.35;
+    }
+
+    .nrn-side-outline-glow,
+    .nrn-connector-glow {
+        stroke: url(#nrn-radial-gradient);
+        stroke-width: 1.35;
+        pointer-events: none;
+    }
+
     .nrn-global-hatch {
-        fill: none;
         stroke: var(--nrn-hatch);
         stroke-width: 0.55;
         opacity: 0.66;
         pointer-events: none;
     }
 
-    .nrn-glow-start {
-        stop-color: var(--text);
-        stop-opacity: 1;
-    }
-
-    .nrn-glow-end {
-        stop-color: color-mix(in srgb, var(--text) 40%, var(--bg));
-        stop-opacity: 0;
-    }
+    .nrn-glow-start { stop-color: var(--text); stop-opacity: 1; }
+    .nrn-glow-end { stop-color: color-mix(in srgb, var(--text) 40%, var(--bg)); stop-opacity: 0; }
 
     .nrn-fig-label {
         fill: color-mix(in srgb, var(--muted) 50%, var(--bg));
@@ -375,17 +324,8 @@ const connectorPath = (connector: Connector, press = 0) =>
         user-select: none;
     }
 
-    .nrn-note span {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .nrn-note small {
-        margin-top: 2px;
-        font: inherit;
-        opacity: 0.76;
-    }
-
+    .nrn-note span { display: flex; flex-direction: column; }
+    .nrn-note small { margin-top: 2px; font: inherit; opacity: 0.76; }
     .nrn-note svg {
         width: 50px;
         height: 50px;
@@ -400,17 +340,11 @@ const connectorPath = (connector: Connector, press = 0) =>
     }
 
     @media (max-width: 720px) {
-        .nrn-note {
-            top: auto;
-            right: 3%;
-            bottom: 8%;
-        }
+        .nrn-note { top: auto; right: 3%; bottom: 8%; }
     }
 
     @media (hover: none) {
-        .nrn-note {
-            display: none;
-        }
+        .nrn-note { display: none; }
     }
 </style>
 
@@ -429,21 +363,13 @@ const connectorPath = (connector: Connector, press = 0) =>
     const EXTRUSION_DEPTH = 28;
     const PRESS_DEPTH = 14;
 
-    const springAdvance = (
-        state: SpringState,
-        target: number,
-        stiffness: number,
-        damping: number,
-        mass: number,
-        dt: number,
-    ) => {
+    const springAdvance = (state: SpringState, target: number, stiffness: number, damping: number, mass: number, dt: number) => {
         const substep = 1 / 240;
         const steps = Math.max(1, Math.ceil(dt / substep));
         const h = dt / steps;
         for (let index = 0; index < steps; index += 1) {
             const force = -stiffness * (state.value - target) - damping * state.velocity;
-            const acceleration = force / mass;
-            state.velocity += acceleration * h;
+            state.velocity += (force / mass) * h;
             state.value += state.velocity * h;
         }
     };
@@ -477,18 +403,16 @@ const connectorPath = (connector: Connector, press = 0) =>
         const mark = root.querySelector<HTMLButtonElement>('[data-nrn-mark]');
         const surface = root.querySelector<SVGGElement>('[data-nrn-surface]');
         const gradient = root.querySelector<SVGRadialGradientElement>('[data-nrn-gradient]');
+        if (!mark || !surface || !gradient) return;
 
         const sidePaths = Array.from(root.querySelectorAll<SVGPathElement>('[data-side-face]')).map((element) => ({
             element,
             face: JSON.parse(element.dataset.sideFace ?? '{}') as SideFace,
         }));
-
         const connectorPaths = Array.from(root.querySelectorAll<SVGPathElement>('[data-connector]')).map((element) => ({
             element,
             connector: JSON.parse(element.dataset.connector ?? '{}') as Connector,
         }));
-
-        if (!mark || !surface || !gradient) return;
 
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
@@ -527,7 +451,7 @@ const connectorPath = (connector: Connector, press = 0) =>
                 oscillator.start(now);
                 oscillator.stop(now + 0.08);
             } catch {
-                // Sound is optional.
+                // Audio is optional.
             }
         };
 
@@ -570,12 +494,9 @@ const connectorPath = (connector: Connector, press = 0) =>
         });
         mark.addEventListener('blur', () => release(false));
 
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                inView = entry?.isIntersecting ?? true;
-            },
-            { rootMargin: '80px', threshold: 0.01 },
-        );
+        const observer = new IntersectionObserver(([entry]) => {
+            inView = entry?.isIntersecting ?? true;
+        }, { rootMargin: '80px', threshold: 0.01 });
         observer.observe(root);
 
         const renderPress = (value: number) => {
@@ -608,21 +529,16 @@ const connectorPath = (connector: Connector, press = 0) =>
                 gradient.setAttribute('cy', cursorY.value.toFixed(2));
                 renderPress(press.value);
             }
-
             raf = requestAnimationFrame(tick);
         };
 
         renderPress(0);
         raf = requestAnimationFrame(tick);
-        window.addEventListener(
-            'pagehide',
-            () => {
-                cancelAnimationFrame(raf);
-                observer.disconnect();
-                window.removeEventListener('pointermove', onPointerMove);
-            },
-            { once: true },
-        );
+        window.addEventListener('pagehide', () => {
+            cancelAnimationFrame(raf);
+            observer.disconnect();
+            window.removeEventListener('pointermove', onPointerMove);
+        }, { once: true });
     };
 
     document.querySelectorAll<HTMLElement>('[data-nrn-stage]').forEach(springLoop);
