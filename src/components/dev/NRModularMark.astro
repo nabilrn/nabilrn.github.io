@@ -1,6 +1,6 @@
 ---
 type Point = { x: number; y: number };
-type Placement = { kind: 'n' | 'r'; oy: number };
+type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
 type Surface = { points: Point[]; visible: boolean[] };
 type WallState = { normal: string; pressed: string };
 
@@ -9,16 +9,25 @@ const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
 const DEPTH = 16;
 const PRESS_DISTANCE = 8;
-const ORIGIN = { x: 560, y: 100 };
 
-// Two independent geometric masses only: N lower-left, R upper-right.
-// The gap is intentional so neither glyph has to occlude the other.
+// Canonical plane orientation taken from the ChanhDai construction, not from
+// eyeballing the screenshot:
+//   flat +X (letter left -> right) => screen upper-right  (-30°)
+//   flat +Y (letter top  -> bottom) => screen lower-right  (+30°)
+// This is why C sits lower-left and D sits upper-right while both glyphs remain
+// upright on the same isometric plane.
+const ORIGIN = { x: 175, y: 210 };
+
+// Build the monogram exactly like a flat NR wordmark first: N then R on the
+// same baseline. Increasing ox moves the next glyph along the -30° screen axis,
+// exactly as increasing flat X does in the ChanhDai mark.
 const PLACEMENTS: Placement[] = [
-    { kind: 'n', oy: 13 },
-    { kind: 'r', oy: 0 },
+    { kind: 'n', ox: 0, oy: 0 },
+    { kind: 'r', ox: 7.5, oy: 0 },
 ];
 
-// Simple union silhouette: two stems connected by one constant-width diagonal.
+// Simple modular N. Keep one non-self-intersecting outer contour so the top
+// face, visible walls, and hidden-line mask all describe the same solid.
 const N_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -58,11 +67,15 @@ const R_HOLE: Point[] = [
     { x: 1.4, y: 3.1 },
 ];
 
+// Same affine isometric basis as the reference mark. Do not swap this back to
+// (x - y, x + y): that rotates the actual letterforms even if their positions
+// still happen to form a lower-left -> upper-right composition.
 const project = (point: Point, placement: Placement): Point => {
+    const x = point.x + placement.ox;
     const y = point.y + placement.oy;
     return {
-        x: ORIGIN.x + (point.x - y) * ISO_X,
-        y: ORIGIN.y + (point.x + y) * ISO_Y,
+        x: ORIGIN.x + (x + y) * ISO_X,
+        y: ORIGIN.y + (y - x) * ISO_Y,
     };
 };
 
@@ -86,14 +99,15 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-// A downward screen-space extrusion exposes only one orientation family on an
-// outer contour. Inner counters reverse that facing rule.
+// With screen-space extrusion pointing straight down, only the downward-facing
+// silhouette family is exposed. For these consistently wound outer contours,
+// that is dx < 0. Hole/counter walls reverse the rule.
 const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projected(shape, placement);
     const visible = points.map((a, index) => {
         const b = points[(index + 1) % points.length];
         const dx = b.x - a.x;
-        return inner ? dx > 0.1 : dx <= 0.1;
+        return inner ? dx > 0.1 : dx < -0.1;
     });
     return { points, visible };
 };
@@ -119,8 +133,10 @@ const WALLS: WallState[] = SURFACES.flatMap((surface) =>
     }),
 );
 
-// Hidden-line rendering is deliberately split. Top contours are always front-most.
-// Bottom silhouette and depth connectors are separately masked by the top faces.
+// Hidden-line rendering is deliberately split. Top contours are front-most.
+// Exposed depth edges are a separate geometry set and are then occluded by the
+// actual top-face silhouettes. A mathematically valid edge behind a top face is
+// therefore not visible to the viewer.
 const topStrokePath = (topShift: number) =>
     PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
 
@@ -166,8 +182,9 @@ const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
 const N = PLACEMENTS[0];
 const R = PLACEMENTS[1];
 const GUIDE_PATHS = [
-    // Main baseline passes through the actual origin vertices of both masses.
+    // Because N and R share flat Y=0, this -30° ruler is their real baseline.
     guideThrough(project({ x: 0, y: 0 }, N), AXIS_NEGATIVE),
+    // Two +30° construction rails pass through actual exposed depth vertices.
     guideThrough(shifted(project(N_OUTER[9], N), DEPTH), AXIS_POSITIVE),
     guideThrough(shifted(project(R_OUTER[4], R), DEPTH), AXIS_POSITIVE),
 ];
@@ -178,7 +195,7 @@ const GUIDE_PATHS = [
         <svg
             class="modular-svg"
             data-nr-svg
-            viewBox="130 65 560 365"
+            viewBox="100 45 540 340"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             aria-hidden="true"
@@ -191,8 +208,8 @@ const GUIDE_PATHS = [
                 <path id="nr-top-stroke" data-nr-top-stroke d={TOP_STROKE_NORMAL} />
                 <path id="nr-depth-stroke" data-nr-depth-stroke d={DEPTH_STROKE_NORMAL} />
 
-                <mask id="nr-depth-visibility" maskUnits="userSpaceOnUse" x="110" y="45" width="600" height="405">
-                    <rect x="110" y="45" width="600" height="405" fill="white" />
+                <mask id="nr-depth-visibility" maskUnits="userSpaceOnUse" x="80" y="25" width="580" height="380">
+                    <rect x="80" y="25" width="580" height="380" fill="white" />
                     <g data-nr-mask-top class="modular-depth-occluder">
                         {GLYPHS.map((glyph) => (
                             <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />
@@ -200,7 +217,7 @@ const GUIDE_PATHS = [
                     </g>
                 </mask>
 
-                <radialGradient id="nr-gradient" data-nr-gradient cx="430" cy="245" r="190" gradientUnits="userSpaceOnUse">
+                <radialGradient id="nr-gradient" data-nr-gradient cx="370" cy="220" r="190" gradientUnits="userSpaceOnUse">
                     <stop offset="0" class="modular-glow-start" />
                     <stop offset="1" class="modular-glow-end" />
                 </radialGradient>
@@ -232,7 +249,7 @@ const GUIDE_PATHS = [
             <use href="#nr-top-stroke" class="modular-stroke-base" />
             <use href="#nr-top-stroke" class="modular-stroke-glow" />
 
-            <text class="modular-fig-label" x="148" y="414">FIG. B / NR MODULAR SYSTEM</text>
+            <text class="modular-fig-label" x="118" y="365">FIG. B / NR MODULAR SYSTEM</text>
         </svg>
     </button>
 </div>
@@ -366,8 +383,8 @@ const GUIDE_PATHS = [
 
         const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        let targetX = 430;
-        let targetY = 245;
+        let targetX = 370;
+        let targetY = 220;
         let currentX = targetX;
         let currentY = targetY;
         let raf = 0;
