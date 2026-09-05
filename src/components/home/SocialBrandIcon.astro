@@ -1,0 +1,92 @@
+---
+import BrandIcon from '../icons/BrandIcon.astro';
+
+type SocialBrand = 'github' | 'linkedin' | 'x' | 'gmail';
+
+interface Props {
+    name: SocialBrand;
+    size?: number;
+    class?: string;
+}
+
+const { name, size = 16, class: className } = Astro.props;
+
+const simplePaths = {
+    gmail: 'M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z',
+} as const;
+---
+
+<span class:list={['social-brand-icon', className]} data-brand={name} style={`--social-icon-size:${size}px`}>
+    <span class="social-brand-mono" aria-hidden="true">
+        {name === 'gmail'
+            ? (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d={simplePaths.gmail} />
+                </svg>
+            )
+            : <BrandIcon name={name} size={size} />}
+    </span>
+
+    <span class="social-brand-color" aria-hidden="true">
+        {name === 'github' && <BrandIcon name="github" size={size} />}
+        {name === 'linkedin' && <BrandIcon name="linkedin" size={size} />}
+        {name === 'x' && <BrandIcon name="x" size={size} />}
+        {name === 'gmail' && (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d={simplePaths.gmail} />
+            </svg>
+        )}
+    </span>
+</span>
+
+<style>
+    .social-brand-icon {
+        position: relative;
+        width: var(--social-icon-size);
+        height: var(--social-icon-size);
+        display: grid;
+        place-items: center;
+    }
+
+    .social-brand-mono,
+    .social-brand-color {
+        grid-area: 1 / 1;
+        display: grid;
+        place-items: center;
+        line-height: 0;
+        transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .social-brand-mono {
+        opacity: 1;
+    }
+
+    .social-brand-color {
+        opacity: 0;
+    }
+
+    [data-brand='linkedin'] .social-brand-color {
+        color: #0a66c2;
+    }
+
+    [data-brand='gmail'] .social-brand-color {
+        color: #ea4335;
+    }
+
+    [data-brand='github'] .social-brand-color,
+    [data-brand='x'] .social-brand-color {
+        color: var(--text);
+    }
+
+    :global(.social-links a:hover) .social-brand-mono,
+    :global(.social-links a:focus-visible) .social-brand-mono {
+        opacity: 0;
+        transform: scale(.94);
+    }
+
+    :global(.social-links a:hover) .social-brand-color,
+    :global(.social-links a:focus-visible) .social-brand-color {
+        opacity: 1;
+        transform: scale(1.04);
+    }
+</style>
