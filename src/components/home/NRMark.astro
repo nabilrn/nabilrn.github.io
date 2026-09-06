@@ -24,6 +24,8 @@ const VIEWBOX = { x: 125, y: 30, width: 525, height: 315 };
 const AUDIO_SRC = '/audio/2_23_AM.mp3';
 const TRACK_TITLE = '2:23 AM';
 const TRACK_ARTIST = 'Sharou';
+const TRACK_ARTIST_JP = 'しゃろう';
+const TRACK_ARTIST_URL = 'https://www.youtube.com/c/Sharou';
 const HUD_BARS = Array.from({ length: 18 }, (_, index) => index);
 
 // Keep the bottom datum stable while reclaiming the unused space above the mark.
@@ -219,14 +221,18 @@ const CONNECTOR_POINTS = connectorPoints();
 
 const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
+const AXIS_HORIZONTAL = { x: 1, y: 0 };
 const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
     `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
     `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
 
 const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
 const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
+const TOP_DATUM_Y = Math.min(...SURFACES.flatMap((surface) => surface.points.map((point) => point.y))) - 10;
+const TOP_DATUM_ANCHOR = { x: VIEWBOX.x + VIEWBOX.width / 2, y: TOP_DATUM_Y };
 
 const GUIDE_PATHS = [
+    guideThrough(TOP_DATUM_ANCHOR, AXIS_HORIZONTAL),
     guideThrough(N_BOTTOM_ANCHOR, AXIS_NEGATIVE),
     guideThrough(N_BOTTOM_ANCHOR, AXIS_POSITIVE),
     guideThrough(R_BOTTOM_ANCHOR, AXIS_POSITIVE),
@@ -277,7 +283,10 @@ const GUIDE_PATHS = [
                 </radialGradient>
             </defs>
 
-            <g class="nr-guides" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+            <g class="nr-guides nr-guides-base" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+                {GUIDE_PATHS.map((path) => <path d={path} />)}
+            </g>
+            <g class="nr-guides nr-guides-glow" stroke-width="0.8" stroke-dasharray="4 2" aria-hidden="true">
                 {GUIDE_PATHS.map((path) => <path d={path} />)}
             </g>
 
@@ -328,8 +337,6 @@ const GUIDE_PATHS = [
                 <use href="#nr-top-stroke" class="nr-stroke-base" />
                 <use href="#nr-top-stroke" class="nr-stroke-glow" />
             </g>
-
-            <text class="nr-fig-label" data-nr-fig-label x="142" y="330">FIG. 01 / NR SYSTEM · MUSIC OFF</text>
         </svg>
     </button>
 
@@ -360,6 +367,18 @@ const GUIDE_PATHS = [
             <span data-nr-progress></span>
         </div>
     </div>
+
+    <a
+        class="nr-song-credit"
+        href={TRACK_ARTIST_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open ${TRACK_ARTIST_JP} ${TRACK_ARTIST}'s YouTube channel`}
+    >
+        <span>song by</span>
+        <strong>{TRACK_ARTIST_JP} / {TRACK_ARTIST}</strong>
+        <span aria-hidden="true">↗</span>
+    </a>
 
     <audio data-nr-audio src={AUDIO_SRC} preload="metadata" aria-hidden="true"></audio>
 </div>
@@ -414,9 +433,17 @@ const GUIDE_PATHS = [
 
     .nr-guides {
         fill: none;
-        stroke: var(--nr-line);
-        opacity: .8;
         pointer-events: none;
+    }
+
+    .nr-guides-base {
+        stroke: var(--nr-line);
+        opacity: .54;
+    }
+
+    .nr-guides-glow {
+        stroke: url(#nr-gradient);
+        opacity: .18;
     }
 
     .nr-walls,
@@ -459,15 +486,6 @@ const GUIDE_PATHS = [
     .nr-glow-end {
         stop-color: #52525b;
         stop-opacity: 0;
-    }
-
-    .nr-fig-label {
-        fill: color-mix(in srgb, var(--muted) 48%, var(--bg));
-        font-family: var(--font-mono);
-        font-size: 9px;
-        font-weight: 500;
-        letter-spacing: .05em;
-        user-select: none;
     }
 
     .nr-annotation {
@@ -572,7 +590,7 @@ const GUIDE_PATHS = [
 
     .nr-hud-wave {
         height: 19px;
-        margin: 5px 0 4px;
+        margin: 4px 0 2px;
         display: flex;
         align-items: end;
         gap: 2px;
@@ -591,11 +609,9 @@ const GUIDE_PATHS = [
     }
 
     .nr-hud-progress {
-        position: absolute;
-        right: 9px;
-        bottom: 4px;
-        left: 9px;
+        position: relative;
         height: 1px;
+        margin-top: 3px;
         overflow: hidden;
         background: color-mix(in srgb, var(--border) 60%, transparent);
     }
@@ -607,6 +623,44 @@ const GUIDE_PATHS = [
         background: color-mix(in srgb, var(--text) 62%, var(--bg));
         transform: scaleX(0);
         transform-origin: left center;
+    }
+
+    .nr-song-credit {
+        position: absolute;
+        right: clamp(16px, 1.5vw, 24px);
+        bottom: clamp(14px, 1.2vw, 20px);
+        z-index: 5;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        color: color-mix(in srgb, var(--muted) 62%, var(--bg));
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: .04em;
+        text-decoration: none;
+        transition: color 180ms ease, transform 180ms ease;
+    }
+
+    .nr-song-credit strong {
+        color: color-mix(in srgb, var(--text) 56%, var(--bg));
+        font-weight: 500;
+        transition: color 180ms ease;
+    }
+
+    .nr-song-credit:hover,
+    .nr-song-credit:focus-visible {
+        color: color-mix(in srgb, var(--text) 72%, var(--bg));
+        transform: translateY(-1px);
+    }
+
+    .nr-song-credit:hover strong,
+    .nr-song-credit:focus-visible strong {
+        color: var(--text);
+    }
+
+    .nr-song-credit:focus-visible {
+        outline: 1px solid color-mix(in srgb, var(--text) 38%, transparent);
+        outline-offset: 4px;
     }
 
     .nr-stage[data-music-state="playing"] {
@@ -646,6 +700,11 @@ const GUIDE_PATHS = [
             top: 70px;
             right: 16px;
         }
+
+        .nr-song-credit {
+            right: 14px;
+            bottom: 12px;
+        }
     }
 
     @media (max-width: 1099px) {
@@ -655,6 +714,12 @@ const GUIDE_PATHS = [
             transform-origin: left top;
             scale: .88;
         }
+
+        .nr-song-credit {
+            right: 12px;
+            bottom: 10px;
+            font-size: 7px;
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -662,7 +727,8 @@ const GUIDE_PATHS = [
         .nr-face-pattern,
         .nr-stroke-base,
         .nr-music-hud,
-        .nr-hud-wave i {
+        .nr-hud-wave i,
+        .nr-song-credit {
             transition: none;
         }
     }
