@@ -129,9 +129,9 @@ const N = PLACEMENTS[0];
 const R = PLACEMENTS[1];
 
 const SURFACES: Surface[] = [
-    // N needs the diagonal side faces (2 and 6) to read as a solid extrusion,
-    // but their lower edges sit behind the foreground mass and must stay hidden.
-    makeSurface(N_OUTER, N, [2, 5, 6, 8, 9], [5, 8, 9], [0, 3, 5, 6, 8, 9]),
+    // Both diagonal lower silhouettes belong to the visible N extrusion. Keep
+    // wall, bottom and connector topology explicit so the shape closes cleanly.
+    makeSurface(N_OUTER, N, [2, 5, 6, 8, 9], [2, 5, 6, 8, 9], [0, 3, 5, 6, 8, 9]),
     // R keeps its current exposed silhouette while using the same separated
     // visibility model so future hidden-line cleanup cannot delete whole faces.
     makeSurface(R_OUTER, R, [5, 7, 8, 10, 11], [5, 7, 8, 10, 11], [0, 5, 7, 8, 10, 11]),
