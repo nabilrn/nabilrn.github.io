@@ -409,57 +409,46 @@ const socialLinks = [
 
     :global(.location-place[data-profile-link='maps']) {
         position: relative;
-        text-decoration: none;
-        transition: color 150ms ease, transform 150ms ease;
     }
 
-    :global(.location-place[data-profile-link='maps']:hover),
-    :global(.location-place[data-profile-link='maps']:focus-visible) {
-        color: var(--text);
-        transform: translateY(-1px);
+    :global(.profile-hit-link) {
+        position: absolute;
+        inset: -4px -6px;
+        z-index: 6;
+        border-radius: 4px;
+        text-decoration: none;
         outline: none;
     }
 
-    :global(.location-map-icon) {
-        position: relative;
-        width: 12px;
-        height: 12px;
-        flex: none;
-        display: grid;
-        place-items: center;
-    }
-
-    :global(.location-map-icon > *) {
-        grid-area: 1 / 1;
-    }
-
     :global(.location-map-brand) {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        z-index: 4;
         width: 12px;
         height: 12px;
         display: block;
         object-fit: contain;
         opacity: 0;
-        transform: scale(.86);
+        transform: translateY(-50%) scale(.86);
+        pointer-events: none;
         transition: opacity 150ms ease, transform 150ms ease;
     }
 
-    :global(.location-map-mono) {
-        display: grid;
-        place-items: center;
-        opacity: 1;
+    :global(.location-place[data-profile-link='maps'] > :first-child) {
         transition: opacity 150ms ease, transform 150ms ease;
     }
 
-    :global(.location-place[data-profile-link='maps']:hover .location-map-mono),
-    :global(.location-place[data-profile-link='maps']:focus-visible .location-map-mono) {
+    :global(.location-place[data-profile-link='maps']:hover > :first-child),
+    :global(.location-place[data-profile-link='maps']:focus-within > :first-child) {
         opacity: 0;
         transform: scale(.86);
     }
 
     :global(.location-place[data-profile-link='maps']:hover .location-map-brand),
-    :global(.location-place[data-profile-link='maps']:focus-visible .location-map-brand) {
+    :global(.location-place[data-profile-link='maps']:focus-within .location-map-brand) {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(-50%) scale(1);
     }
 
     :global(.profile-link-tooltip) {
@@ -485,28 +474,29 @@ const socialLinks = [
     }
 
     :global(.location-place[data-profile-link='maps']:hover .profile-link-tooltip),
-    :global(.location-place[data-profile-link='maps']:focus-visible .profile-link-tooltip) {
+    :global(.location-place[data-profile-link='maps']:focus-within .profile-link-tooltip) {
         opacity: 1;
         transform: translateY(0);
     }
 
+    :global(.location-place[data-profile-link='maps']:focus-within),
+    :global(.streak-region[data-profile-link='duolingo']:focus-within) {
+        outline: 1px solid color-mix(in srgb, var(--text) 22%, var(--border));
+        outline-offset: -2px;
+    }
+
     :global(.streak-region[data-profile-link='duolingo']) {
+        position: relative;
         cursor: pointer !important;
-        text-decoration: none;
-        outline: none;
     }
 
-    :global(.streak-region[data-profile-link='duolingo']:focus-visible) {
-        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 22%, var(--border));
-    }
-
-    :global(.streak-region[data-profile-link='duolingo']:focus-visible .duo-identity),
-    :global(.streak-region[data-profile-link='duolingo']:focus-visible .duo-identity span) {
+    :global(.streak-region[data-profile-link='duolingo']:focus-within .duo-identity),
+    :global(.streak-region[data-profile-link='duolingo']:focus-within .duo-identity span) {
         color: #58cc02;
     }
 
-    :global(.streak-region[data-profile-link='duolingo']:focus-visible .streak-value),
-    :global(.streak-region[data-profile-link='duolingo']:focus-visible .streak-flame) {
+    :global(.streak-region[data-profile-link='duolingo']:focus-within .streak-value),
+    :global(.streak-region[data-profile-link='duolingo']:focus-within .streak-flame) {
         color: #f49000;
     }
 
@@ -617,58 +607,44 @@ const socialLinks = [
     const DUOLINGO_PROFILE_URL = 'https://www.duolingo.com/profile/bilcikiwir?via=share_profile_link';
 
     const locationPlace = document.querySelector<HTMLElement>('.location-place');
-    if (locationPlace && locationPlace.tagName !== 'A') {
-        const link = document.createElement('a');
-        link.className = locationPlace.className;
-        link.href = PADANG_MAPS_URL;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.dataset.profileLink = 'maps';
-        link.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+    if (locationPlace && !locationPlace.querySelector('.profile-hit-link')) {
+        locationPlace.dataset.profileLink = 'maps';
 
-        while (locationPlace.firstChild) link.append(locationPlace.firstChild);
+        const hitLink = document.createElement('a');
+        hitLink.className = 'profile-hit-link';
+        hitLink.href = PADANG_MAPS_URL;
+        hitLink.target = '_blank';
+        hitLink.rel = 'noopener';
+        hitLink.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+        locationPlace.append(hitLink);
 
-        const originalIcon = link.firstElementChild;
-        if (originalIcon) {
-            const iconWrap = document.createElement('span');
-            iconWrap.className = 'location-map-icon';
-            const monoWrap = document.createElement('span');
-            monoWrap.className = 'location-map-mono';
-            monoWrap.append(originalIcon);
-            iconWrap.append(monoWrap);
-
-            const mapsIcon = document.createElement('img');
-            mapsIcon.className = 'location-map-brand';
-            mapsIcon.src = 'https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico';
-            mapsIcon.alt = '';
-            mapsIcon.setAttribute('aria-hidden', 'true');
-            iconWrap.append(mapsIcon);
-            link.prepend(iconWrap);
-        }
+        const mapsIcon = document.createElement('img');
+        mapsIcon.className = 'location-map-brand';
+        mapsIcon.src = 'https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico';
+        mapsIcon.alt = '';
+        mapsIcon.setAttribute('aria-hidden', 'true');
+        locationPlace.append(mapsIcon);
 
         const tooltip = document.createElement('span');
         tooltip.className = 'profile-link-tooltip';
         tooltip.textContent = 'See Padang on Google Maps';
         tooltip.setAttribute('role', 'tooltip');
-        link.append(tooltip);
-
-        locationPlace.replaceWith(link);
+        locationPlace.append(tooltip);
     }
 
     const streakRegion = document.querySelector<HTMLElement>('.streak-region');
-    if (streakRegion && streakRegion.tagName !== 'A') {
-        const link = document.createElement('a');
-        link.className = streakRegion.className;
-        link.href = DUOLINGO_PROFILE_URL;
-        link.target = '_blank';
-        link.rel = 'noopener';
-        link.dataset.profileLink = 'duolingo';
-        link.setAttribute(
+    if (streakRegion && !streakRegion.querySelector('.profile-hit-link')) {
+        streakRegion.dataset.profileLink = 'duolingo';
+
+        const hitLink = document.createElement('a');
+        hitLink.className = 'profile-hit-link';
+        hitLink.href = DUOLINGO_PROFILE_URL;
+        hitLink.target = '_blank';
+        hitLink.rel = 'noopener';
+        hitLink.setAttribute(
             'aria-label',
             `${streakRegion.getAttribute('aria-label') ?? 'Duolingo streak'}, open @bilcikiwir profile`,
         );
-
-        while (streakRegion.firstChild) link.append(streakRegion.firstChild);
-        streakRegion.replaceWith(link);
+        streakRegion.append(hitLink);
     }
 </script>
