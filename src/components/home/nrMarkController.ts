@@ -1,78 +1,79 @@
 export {};
 
-type YouTubePlayer = {
-    playVideo: () => void;
-    pauseVideo: () => void;
+type SpotifyPlaybackEvent = {
+    data: {
+        playingURI?: string;
+        isPaused?: boolean;
+        isBuffering?: boolean;
+        duration?: number;
+        position?: number;
+    };
 };
 
-type YouTubePlayerEvent = {
-    data: number;
+type SpotifyEmbedController = {
+    play: () => void;
+    pause: () => void;
+    resume: () => void;
+    togglePlay: () => void;
+    addListener: (
+        event: 'ready' | 'playback_started' | 'playback_update',
+        callback: (event: SpotifyPlaybackEvent) => void,
+    ) => void;
 };
 
-type YouTubeApi = {
-    Player: new (
+type SpotifyIframeApi = {
+    createController: (
         element: HTMLElement,
         options: {
-            width: number;
-            height: number;
-            videoId: string;
-            playerVars: Record<string, number>;
-            events: {
-                onReady: () => void;
-                onStateChange: (event: YouTubePlayerEvent) => void;
-                onError: () => void;
-                onAutoplayBlocked?: () => void;
-            };
+            uri?: string;
+            url?: string;
+            width?: number | string;
+            height?: number | string;
         },
-    ) => YouTubePlayer;
-    PlayerState: {
-        PLAYING: number;
-        PAUSED: number;
-        ENDED: number;
-    };
+        callback: (controller: SpotifyEmbedController) => void,
+    ) => void;
 };
 
 declare global {
     interface Window {
-        YT?: YouTubeApi;
-        onYouTubeIframeAPIReady?: () => void;
-        __nrYouTubeApiPromise?: Promise<YouTubeApi>;
+        onSpotifyIframeApiReady?: (api: SpotifyIframeApi) => void;
+        __nrSpotifyApiPromise?: Promise<SpotifyIframeApi>;
     }
 }
+
+const SPOTIFY_API_SRC = 'https://open.spotify.com/embed/iframe-api/v1';
 
 const numberFromDataset = (root: HTMLElement, key: string, fallback: number) => {
     const value = Number(root.dataset[key]);
     return Number.isFinite(value) ? value : fallback;
 };
 
-const loadYouTubeApi = (): Promise<YouTubeApi> => {
-    if (window.YT?.Player) return Promise.resolve(window.YT);
-    if (window.__nrYouTubeApiPromise) return window.__nrYouTubeApiPromise;
+const loadSpotifyApi = (): Promise<SpotifyIframeApi> => {
+    if (window.__nrSpotifyApiPromise) return window.__nrSpotifyApiPromise;
 
-    window.__nrYouTubeApiPromise = new Promise<YouTubeApi>((resolve, reject) => {
-        const previousReady = window.onYouTubeIframeAPIReady;
-        const timeout = window.setTimeout(() => reject(new Error('YouTube IFrame API timed out')), 10000);
+    window.__nrSpotifyApiPromise = new Promise<SpotifyIframeApi>((resolve, reject) => {
+        const previousReady = window.onSpotifyIframeApiReady;
+        const timeout = window.setTimeout(() => reject(new Error('Spotify IFrame API timed out')), 10000);
 
-        window.onYouTubeIframeAPIReady = () => {
+        window.onSpotifyIframeApiReady = (api) => {
             window.clearTimeout(timeout);
-            if (typeof previousReady === 'function') previousReady();
-            if (window.YT?.Player) resolve(window.YT);
-            else reject(new Error('YouTube IFrame API unavailable'));
+            if (typeof previousReady === 'function') previousReady(api);
+            resolve(api);
         };
 
-        if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+        if (!document.querySelector(`script[src="${SPOTIFY_API_SRC}"]`)) {
             const script = document.createElement('script');
-            script.src = 'https://www.youtube.com/iframe_api';
+            script.src = SPOTIFY_API_SRC;
             script.async = true;
             script.onerror = () => {
                 window.clearTimeout(timeout);
-                reject(new Error('Failed to load YouTube IFrame API'));
+                reject(new Error('Failed to load Spotify IFrame API'));
             };
-            document.head.appendChild(script);
+            document.body.appendChild(script);
         }
     });
 
-    return window.__nrYouTubeApiPromise;
+    return window.__nrSpotifyApiPromise;
 };
 
 const initNrMark = (root: HTMLElement) => {
@@ -80,16 +81,14 @@ const initNrMark = (root: HTMLElement) => {
     root.dataset.nrReady = 'true';
 
     const button = root.querySelector<HTMLButtonElement>('[data-nr-button]');
-    const svg = root.querySelector<SVGSVGElement>('[data-nr-svg]');
     const gradient = root.querySelector<SVGRadialGradientElement>('[data-nr-gradient]');
     const top = root.querySelector<SVGGElement>('[data-nr-top]');
     const figLabel = root.querySelector<SVGTextElement>('[data-nr-fig-label]');
     const playerMount = root.querySelector<HTMLElement>('[data-nr-player]');
-    const playerStatus = root.querySelector<HTMLElement>('[data-nr-player-status]');
     const walls = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-wall]'));
     const connectors = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-connector]'));
 
-    if (!button || !svg || !gradient || !top || !figLabel || !playerMount) return;
+    if (!button || !gradient || !top || !figLabel || !playerMount) return;
 
     const depth = numberFromDataset(root, 'depth', 28);
     const latchDistance = numberFromDataset(root, 'latchDistance', 8);
@@ -101,7 +100,8 @@ const initNrMark = (root: HTMLElement) => {
         height: numberFromDataset(root, 'viewboxHeight', 315),
     };
 
-    const videoId = root.dataset.videoId ?? '';
+    const trackUri = root.dataset.trackUri ?? '';
+    const trackUrl = root.dataset.trackUrl ?? '';
     const trackTitle = root.dataset.trackTitle ?? 'favorite song';
     const trackArtist = root.dataset.trackArtist ?? '';
 
@@ -120,9 +120,9 @@ const initNrMark = (root: HTMLElement) => {
     let shiftRaf = 0;
     let lastShiftTime = 0;
 
-    let player: YouTubePlayer | null = null;
+    let player: SpotifyEmbedController | null = null;
     let playerReady = false;
-    let playerPromise: Promise<YouTubePlayer | null> | null = null;
+    let playerPromise: Promise<SpotifyEmbedController | null> | null = null;
     let wantsPlay = false;
     let isPlaying = false;
     let pointerHeld = false;
@@ -222,14 +222,6 @@ const initNrMark = (root: HTMLElement) => {
                 : state === 'loading'
                     ? 'FIG. 01 / NR SYSTEM · LOADING'
                     : 'FIG. 01 / NR SYSTEM · MUSIC OFF';
-
-        if (playerStatus) {
-            playerStatus.textContent =
-                state === 'playing' ? 'now playing' :
-                state === 'loading' ? 'loading track' :
-                state === 'error' ? 'playback unavailable' :
-                'favorite track';
-        }
     };
 
     const paintGradient = () => {
@@ -256,60 +248,58 @@ const initNrMark = (root: HTMLElement) => {
         if (!gradientRaf) gradientRaf = requestAnimationFrame(paintGradient);
     };
 
+    const applyPlayingState = (playing: boolean) => {
+        isPlaying = playing;
+        wantsPlay = playing;
+        updateMusicState(playing ? 'playing' : 'idle');
+        if (!pointerHeld) setShiftTarget(playing ? latchDistance : 0);
+    };
+
     const ensurePlayer = () => {
         if (playerPromise) return playerPromise;
 
         updateMusicState('loading');
-        root.dataset.playerLoaded = 'true';
 
-        playerPromise = loadYouTubeApi()
-            .then((YT) => new Promise<YouTubePlayer>((resolve, reject) => {
-                player = new YT.Player(playerMount, {
-                    width: 200,
-                    height: 200,
-                    videoId,
-                    playerVars: {
-                        controls: 1,
-                        playsinline: 1,
-                        rel: 0,
+        playerPromise = loadSpotifyApi()
+            .then((api) => new Promise<SpotifyEmbedController>((resolve) => {
+                api.createController(
+                    playerMount,
+                    {
+                        width: 220,
+                        height: 152,
+                        uri: trackUri || undefined,
+                        url: trackUri ? undefined : trackUrl || undefined,
                     },
-                    events: {
-                        onReady: () => {
+                    (controller) => {
+                        player = controller;
+                        root.dataset.playerLoaded = 'true';
+
+                        controller.addListener('ready', () => {
                             playerReady = true;
-                            resolve(player as YouTubePlayer);
-                            if (wantsPlay) player?.playVideo();
-                        },
-                        onStateChange: (event) => {
-                            if (event.data === YT.PlayerState.PLAYING) {
-                                isPlaying = true;
-                                wantsPlay = true;
-                                updateMusicState('playing');
-                                if (!pointerHeld) setShiftTarget(latchDistance);
+                            resolve(controller);
+                            updateMusicState(isPlaying ? 'playing' : 'idle');
+                            if (wantsPlay && !isPlaying) controller.resume();
+                        });
+
+                        controller.addListener('playback_started', () => {
+                            applyPlayingState(true);
+                        });
+
+                        controller.addListener('playback_update', (event) => {
+                            const paused = event.data?.isPaused;
+                            if (paused === false) {
+                                applyPlayingState(true);
                                 return;
                             }
 
-                            if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-                                isPlaying = false;
-                                wantsPlay = false;
-                                updateMusicState('idle');
-                                if (!pointerHeld) setShiftTarget(0);
+                            // Spotify can emit an initial paused snapshot while a requested
+                            // first play is still starting. Do not cancel that user intent.
+                            if (paused === true && (isPlaying || !wantsPlay)) {
+                                applyPlayingState(false);
                             }
-                        },
-                        onError: () => {
-                            isPlaying = false;
-                            wantsPlay = false;
-                            updateMusicState('error');
-                            if (!pointerHeld) setShiftTarget(0);
-                            reject(new Error('YouTube playback error'));
-                        },
-                        onAutoplayBlocked: () => {
-                            isPlaying = false;
-                            wantsPlay = false;
-                            updateMusicState('idle');
-                            if (!pointerHeld) setShiftTarget(0);
-                        },
+                        });
                     },
-                });
+                );
             }))
             .catch(() => {
                 isPlaying = false;
@@ -325,14 +315,14 @@ const initNrMark = (root: HTMLElement) => {
     const togglePlayback = async () => {
         if (isPlaying && player && playerReady) {
             wantsPlay = false;
-            player.pauseVideo();
+            player.pause();
             return;
         }
 
         wantsPlay = true;
         const readyPlayer = await ensurePlayer();
         if (readyPlayer && playerReady && wantsPlay && !isPlaying) {
-            readyPlayer.playVideo();
+            readyPlayer.resume();
         }
     };
 
@@ -370,6 +360,7 @@ const initNrMark = (root: HTMLElement) => {
 
     applyShift(0);
     updateMusicState('idle');
+    void ensurePlayer();
 };
 
 document.querySelectorAll<HTMLElement>('[data-nr-stage]').forEach(initNrMark);
