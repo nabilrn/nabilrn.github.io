@@ -9,7 +9,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
     <div class="project-carousel-panel">
         <header class="project-carousel-header">
             <div class="project-carousel-heading">my projects</div>
-            <span class="project-carousel-status" aria-hidden="true">auto scroll →</span>
         </header>
 
         <div class="project-carousel-viewport" role="region" aria-label="Selected projects carousel">
@@ -50,7 +49,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
         padding: 8px clamp(12px, 0.95vw, 17px) 7px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
         gap: 12px;
         border-bottom: 1px solid var(--project-carousel-line);
     }
@@ -66,17 +64,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
         transform: rotate(-1.35deg);
         transform-origin: left center;
         user-select: none;
-    }
-
-    .home-redesign .project-carousel-status {
-        flex: none;
-        color: color-mix(in srgb, var(--muted) 78%, transparent);
-        font-family: var(--font-mono);
-        font-size: 8px;
-        font-weight: 450;
-        line-height: 1;
-        letter-spacing: 0.025em;
-        white-space: nowrap;
     }
 
     .home-redesign .project-carousel-viewport {
@@ -110,11 +97,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
     .home-redesign .project-carousel-panel:hover .project-carousel-track,
     .home-redesign .project-carousel-panel:focus-within .project-carousel-track {
         animation-play-state: paused;
-    }
-
-    .home-redesign .project-carousel-panel:hover .project-carousel-status,
-    .home-redesign .project-carousel-panel:focus-within .project-carousel-status {
-        color: var(--text);
     }
 
     @keyframes home-project-carousel {
@@ -160,10 +142,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
         .home-redesign .project-carousel-group--duplicate {
             display: none;
         }
-
-        .home-redesign .project-carousel-status {
-            display: none;
-        }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -178,10 +156,6 @@ const durationSeconds = Math.max(44, webProjects.length * 5.8);
         }
 
         .home-redesign .project-carousel-group--duplicate {
-            display: none;
-        }
-
-        .home-redesign .project-carousel-status {
             display: none;
         }
     }
