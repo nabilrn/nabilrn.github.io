@@ -1,0 +1,197 @@
+---
+import { webProjects } from '../../data/projects';
+import ProjectCard from './ProjectCard.astro';
+
+const durationSeconds = Math.max(44, webProjects.length * 5.8);
+---
+
+<template data-project-carousel-template>
+    <div class="project-carousel-panel">
+        <header class="project-carousel-header">
+            <div class="project-carousel-heading">my projects</div>
+            <span class="project-carousel-status" aria-hidden="true">auto scroll →</span>
+        </header>
+
+        <div class="project-carousel-viewport" role="region" aria-label="Selected projects carousel">
+            <div class="project-carousel-track" style={`--project-carousel-duration: ${durationSeconds}s`}>
+                <div class="project-carousel-group">
+                    {webProjects.map((project) => <ProjectCard project={project} />)}
+                </div>
+                <div class="project-carousel-group project-carousel-group--duplicate" aria-hidden="true">
+                    {webProjects.map((project) => <ProjectCard project={project} duplicate />)}
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style is:global>
+    .home-redesign .projects-region {
+        overflow: hidden;
+    }
+
+    .home-redesign .project-carousel-panel {
+        --project-carousel-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: 36px minmax(0, 1fr);
+        background: var(--bg);
+        overflow: hidden;
+    }
+
+    .home-redesign .project-carousel-header {
+        box-sizing: border-box;
+        min-width: 0;
+        height: 36px;
+        padding: 8px clamp(12px, 0.95vw, 17px) 7px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--project-carousel-line);
+    }
+
+    .home-redesign .project-carousel-heading {
+        flex: none;
+        width: max-content;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.35deg);
+        transform-origin: left center;
+        user-select: none;
+    }
+
+    .home-redesign .project-carousel-status {
+        flex: none;
+        color: color-mix(in srgb, var(--muted) 78%, transparent);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        font-weight: 450;
+        line-height: 1;
+        letter-spacing: 0.025em;
+        white-space: nowrap;
+    }
+
+    .home-redesign .project-carousel-viewport {
+        min-width: 0;
+        min-height: 0;
+        padding: 10px 0;
+        overflow: hidden;
+        outline: none;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    }
+
+    .home-redesign .project-carousel-track {
+        width: max-content;
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        will-change: transform;
+        animation: home-project-carousel var(--project-carousel-duration, 58s) linear infinite;
+    }
+
+    .home-redesign .project-carousel-group {
+        height: 100%;
+        min-height: 0;
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        padding-right: 10px;
+    }
+
+    .home-redesign .project-carousel-panel:hover .project-carousel-track,
+    .home-redesign .project-carousel-panel:focus-within .project-carousel-track {
+        animation-play-state: paused;
+    }
+
+    .home-redesign .project-carousel-panel:hover .project-carousel-status,
+    .home-redesign .project-carousel-panel:focus-within .project-carousel-status {
+        color: var(--text);
+    }
+
+    @keyframes home-project-carousel {
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(-50%, 0, 0); }
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .home-redesign .project-carousel-panel {
+            grid-template-rows: 32px minmax(0, 1fr);
+        }
+
+        .home-redesign .project-carousel-header {
+            height: 32px;
+            padding-top: 6px;
+            padding-bottom: 5px;
+        }
+
+        .home-redesign .project-carousel-heading {
+            font-size: 14px;
+        }
+
+        .home-redesign .project-carousel-viewport {
+            padding-top: 8px;
+            padding-bottom: 8px;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .home-redesign .project-carousel-viewport {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 12px;
+            scrollbar-width: thin;
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .home-redesign .project-carousel-track {
+            animation: none;
+        }
+
+        .home-redesign .project-carousel-group--duplicate {
+            display: none;
+        }
+
+        .home-redesign .project-carousel-status {
+            display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-redesign .project-carousel-viewport {
+            overflow-x: auto;
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .home-redesign .project-carousel-track {
+            animation: none;
+        }
+
+        .home-redesign .project-carousel-group--duplicate {
+            display: none;
+        }
+
+        .home-redesign .project-carousel-status {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    const template = document.querySelector<HTMLTemplateElement>('[data-project-carousel-template]');
+    const region = document.querySelector<HTMLElement>('.projects-region');
+
+    if (template && region && !region.querySelector('.project-carousel-panel')) {
+        region.replaceChildren(template.content.cloneNode(true));
+    }
+</script>
