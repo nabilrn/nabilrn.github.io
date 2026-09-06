@@ -91,4 +91,34 @@ const simplePaths = {
         opacity: 1;
         transform: scale(1.04);
     }
+
+    :global(.avatar-contact)::after {
+        content: 'Send me an email';
+        position: absolute;
+        z-index: 40;
+        right: 0;
+        bottom: calc(100% + 8px);
+        width: max-content;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 450;
+        line-height: 1.2;
+        letter-spacing: 0;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    :global(.avatar-contact:hover)::after,
+    :global(.avatar-contact:focus-visible)::after {
+        opacity: 1;
+        transform: translateY(0);
+    }
 </style>
