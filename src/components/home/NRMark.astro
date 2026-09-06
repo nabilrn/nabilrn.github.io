@@ -3,6 +3,7 @@ import HandwrittenNote from './HandwrittenNote.astro';
 
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
+type SvgFillRule = 'evenodd' | 'nonzero';
 type BottomSegment = { edge: number; from: number; to: number };
 type Surface = {
     points: Point[];
@@ -106,7 +107,7 @@ const glyphPath = (placement: Placement) => {
 const GLYPHS = PLACEMENTS.map((placement) => ({
     placement,
     path: glyphPath(placement),
-    fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
+    fillRule: (placement.kind === 'r' ? 'evenodd' : 'nonzero') as SvgFillRule,
 }));
 
 // This mark is fixed, so wall, lower-silhouette and connector visibility are
