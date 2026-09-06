@@ -3,7 +3,7 @@ import HandwrittenNote from './HandwrittenNote.astro';
 
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
-type Surface = { points: Point[]; visible: boolean[] };
+type Surface = { points: Point[]; visible: boolean[]; connectorVisible: boolean[]; inner: boolean };
 type Wall = { a: Point; b: Point };
 
 const ISO_STEP = 26;
@@ -15,8 +15,9 @@ const LATCH_DISTANCE = 8;
 const PRESS_DISTANCE = 14;
 
 const VIEWBOX = { x: 125, y: 30, width: 525, height: 315 };
-const YOUTUBE_VIDEO_ID = 'K8kjo96CJmg';
-const TRACK_TITLE = 'Karanokokoro';
+const SPOTIFY_TRACK_URI = 'spotify:track:2oo7wjTWwZjL5ggojMGGnK';
+const SPOTIFY_TRACK_URL = 'https://open.spotify.com/track/2oo7wjTWwZjL5ggojMGGnK';
+const TRACK_TITLE = 'Karanokokoro -NARUTO Opening Ver.-';
 const TRACK_ARTIST = 'Anly';
 
 // Keep the bottom datum stable while reclaiming the unused space above the mark.
@@ -41,6 +42,8 @@ const N_OUTER: Point[] = [
     { x: 0, y: 7 },
 ];
 
+// The diagonal leg now joins the stem directly. The old 1.8 -> 1.4 horizontal
+// micro-segment produced a visible notch after isometric projection.
 const R_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -51,7 +54,6 @@ const R_OUTER: Point[] = [
     { x: 3.1, y: 4.4 },
     { x: 5.2, y: 7 },
     { x: 3.4, y: 7 },
-    { x: 1.8, y: 4.5 },
     { x: 1.4, y: 4.5 },
     { x: 1.4, y: 7 },
     { x: 0, y: 7 },
@@ -95,8 +97,20 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
+const vertexCross = (shape: Point[], index: number) => {
+    const previous = shape[(index - 1 + shape.length) % shape.length];
+    const current = shape[index];
+    const next = shape[(index + 1) % shape.length];
+    const incoming = { x: current.x - previous.x, y: current.y - previous.y };
+    const outgoing = { x: next.x - current.x, y: next.y - current.y };
+    return incoming.x * outgoing.y - incoming.y * outgoing.x;
+};
+
 // Downward screen-space extrusion: outer contour faces with dx < 0 face the
-// viewer. Counter walls reverse that facing rule.
+// viewer. Counter walls reverse that facing rule. Connector visibility is more
+// selective than face visibility: outer concave vertices are hidden by the solid,
+// and the counter only exposes the two silhouette transitions. This removes the
+// wireframe-like creases that a human viewer could not actually see.
 const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
     const points = projected(shape, placement);
     const visible = points.map((a, index) => {
@@ -104,7 +118,16 @@ const makeSurface = (shape: Point[], placement: Placement, inner = false): Surfa
         const dx = b.x - a.x;
         return inner ? dx > 0.1 : dx < -0.1;
     });
-    return { points, visible };
+
+    const connectorVisible = points.map((_, index) => {
+        const incomingVisible = visible[(index - 1 + visible.length) % visible.length];
+        const outgoingVisible = visible[index];
+        if (!incomingVisible && !outgoingVisible) return false;
+        if (inner) return incomingVisible !== outgoingVisible;
+        return vertexCross(shape, index) > 0.001;
+    });
+
+    return { points, visible, connectorVisible, inner };
 };
 
 const SURFACES: Surface[] = PLACEMENTS.flatMap((placement) => {
@@ -145,12 +168,8 @@ const connectorPoints = () => {
     const keys = new Set<string>();
 
     for (const surface of SURFACES) {
-        const count = surface.points.length;
         surface.points.forEach((point, index) => {
-            const incomingVisible = surface.visible[(index - 1 + count) % count];
-            const outgoingVisible = surface.visible[index];
-            if (!incomingVisible && !outgoingVisible) return;
-
+            if (!surface.connectorVisible[index]) return;
             const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
             if (keys.has(key)) return;
             keys.add(key);
@@ -190,7 +209,8 @@ const GUIDE_PATHS = [
     class="nr-stage"
     data-nr-stage
     data-music-state="idle"
-    data-video-id={YOUTUBE_VIDEO_ID}
+    data-track-uri={SPOTIFY_TRACK_URI}
+    data-track-url={SPOTIFY_TRACK_URL}
     data-track-title={TRACK_TITLE}
     data-track-artist={TRACK_ARTIST}
     data-depth={DEPTH}
@@ -288,15 +308,10 @@ const GUIDE_PATHS = [
     </button>
 
     <div class="nr-annotation" aria-hidden="true">
-        <HandwrittenNote text="play my favorite song" class="nr-music-note" arrowVariant="curve" />
+        <HandwrittenNote text="click to play song" class="nr-music-note" arrowVariant="curve" />
     </div>
 
-    <div class="nr-player-shell" data-nr-player-shell>
-        <div class="nr-player-heading">
-            <span data-nr-player-status>favorite track</span>
-            <strong>{TRACK_TITLE}</strong>
-            <span>{TRACK_ARTIST}</span>
-        </div>
+    <div class="nr-player-shell" data-nr-player-shell aria-label={`${TRACK_TITLE} by ${TRACK_ARTIST} on Spotify`}>
         <div class="nr-player" data-nr-player></div>
     </div>
 </div>
@@ -409,28 +424,28 @@ const GUIDE_PATHS = [
 
     .nr-annotation {
         position: absolute;
+        top: clamp(74px, 8vw, 108px);
         right: clamp(18px, 1.8vw, 30px);
-        bottom: clamp(16px, 1.6vw, 26px);
         z-index: 3;
-        width: 176px;
-        height: 72px;
+        width: 164px;
+        height: 74px;
         pointer-events: none;
         transition: opacity 180ms ease, transform 220ms ease;
     }
 
     :global(.nr-annotation .nr-music-note) {
+        top: 0;
         right: 0;
-        bottom: 0;
         --note-font-size: 14px;
-        --note-arrow-width: 30px;
-        --note-arrow-height: 30px;
+        --note-arrow-width: 34px;
+        --note-arrow-height: 34px;
         --note-arrow-gap: -2px;
         transform: rotate(-4deg);
-        transform-origin: right bottom;
+        transform-origin: right top;
     }
 
     :global(.nr-annotation .nr-music-note .arrow-curve) {
-        transform: rotate(64deg) scaleX(-1);
+        transform: rotate(8deg);
         transform-origin: center;
     }
 
@@ -441,16 +456,14 @@ const GUIDE_PATHS = [
 
     .nr-player-shell {
         position: absolute;
-        right: clamp(14px, 1.2vw, 22px);
-        bottom: clamp(14px, 1.2vw, 22px);
+        top: clamp(14px, 1.2vw, 22px);
+        left: clamp(14px, 1.2vw, 22px);
         z-index: 5;
-        width: 200px;
-        height: 244px;
-        padding-top: 44px;
-        box-sizing: border-box;
+        width: 220px;
+        height: 152px;
         opacity: 0;
         visibility: hidden;
-        transform: translateY(8px);
+        transform: translateY(-6px);
         transition:
             opacity 220ms ease,
             transform 260ms cubic-bezier(.2,.8,.2,1),
@@ -458,58 +471,16 @@ const GUIDE_PATHS = [
         pointer-events: none;
     }
 
-    .nr-player-heading {
-        position: absolute;
-        inset: 0 0 auto;
-        height: 44px;
-        padding: 5px 7px 6px;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        grid-template-rows: auto auto;
-        gap: 1px 8px;
-        border: 1px solid var(--sheet-line, var(--border));
-        border-bottom: 0;
-        background: color-mix(in srgb, var(--bg) 94%, transparent);
-        backdrop-filter: blur(6px);
-        font-family: var(--font-mono);
-    }
-
-    .nr-player-heading > span:first-child {
-        grid-column: 1 / -1;
-        color: var(--muted);
-        font-size: 8px;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .nr-player-heading strong {
-        min-width: 0;
-        overflow: hidden;
-        color: var(--text);
-        font-size: 9px;
-        font-weight: 600;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .nr-player-heading > span:last-child {
-        color: var(--muted);
-        font-size: 8px;
-        white-space: nowrap;
-    }
-
     .nr-player {
-        width: 200px;
-        height: 200px;
-        border: 1px solid var(--sheet-line, var(--border));
-        background: #000;
+        width: 220px;
+        height: 152px;
         overflow: hidden;
     }
 
     .nr-player :global(iframe) {
         display: block;
-        width: 200px !important;
-        height: 200px !important;
+        width: 220px !important;
+        height: 152px !important;
         border: 0;
     }
 
@@ -530,18 +501,31 @@ const GUIDE_PATHS = [
         opacity: 1;
     }
 
-    .nr-stage[data-music-state="playing"] .nr-annotation,
-    .nr-stage[data-player-loaded="true"] .nr-annotation {
+    .nr-stage[data-music-state="playing"] .nr-annotation {
         opacity: 0;
         transform: translateY(4px);
     }
 
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .nr-player-shell {
+            top: 12px;
+            left: 12px;
+            transform-origin: left top;
+            scale: .9;
+        }
+
+        .nr-annotation {
+            top: 70px;
+            right: 16px;
+        }
+    }
+
     @media (max-width: 1099px) {
         .nr-player-shell {
-            right: 10px;
-            bottom: 10px;
-            transform-origin: right bottom;
-            scale: .88;
+            top: 10px;
+            left: 10px;
+            transform-origin: left top;
+            scale: .86;
         }
     }
 
