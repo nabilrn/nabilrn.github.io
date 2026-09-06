@@ -228,7 +228,9 @@ const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
 
 const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
 const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
-const TOP_DATUM_Y = Math.min(...SURFACES.flatMap((surface) => surface.points.map((point) => point.y))) - 10;
+// The upper editorial ruler is the resting cap datum itself, matching the
+// reference: it touches the highest NR construction point instead of floating above it.
+const TOP_DATUM_Y = Math.min(...SURFACES.flatMap((surface) => surface.points.map((point) => point.y)));
 const TOP_DATUM_ANCHOR = { x: VIEWBOX.x + VIEWBOX.width / 2, y: TOP_DATUM_Y };
 
 const GUIDE_PATHS = [
@@ -286,7 +288,7 @@ const GUIDE_PATHS = [
             <g class="nr-guides nr-guides-base" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
                 {GUIDE_PATHS.map((path) => <path d={path} />)}
             </g>
-            <g class="nr-guides nr-guides-glow" stroke-width="0.8" stroke-dasharray="4 2" aria-hidden="true">
+            <g class="nr-guides nr-guides-glow" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
                 {GUIDE_PATHS.map((path) => <path d={path} />)}
             </g>
 
@@ -438,12 +440,12 @@ const GUIDE_PATHS = [
 
     .nr-guides-base {
         stroke: var(--nr-line);
-        opacity: .54;
+        opacity: .58;
     }
 
     .nr-guides-glow {
         stroke: url(#nr-gradient);
-        opacity: .18;
+        opacity: .34;
     }
 
     .nr-walls,
