@@ -23,7 +23,15 @@ import ProjectCard from './ProjectCard.astro';
 </template>
 
 <style is:global>
+    /* projects-region still carries the legacy .index-region grid from index.astro.
+       That grid has two rows (auto + 1fr), but after the overlay mounts there is
+       only one child. Force this region to one deterministic row so the carousel
+       panel owns the full section height instead of collapsing into the auto row. */
     .home-redesign .projects-region {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr);
         overflow: hidden;
     }
 
