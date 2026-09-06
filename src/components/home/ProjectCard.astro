@@ -36,7 +36,7 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
     </a>
 
     <div class="project-tech-stack" aria-label={`${project.name} technology stack`}>
-        {visibleStack.map((item) => <ProjectTechIcon name={item} />)}
+        {visibleStack.map((item) => <ProjectTechIcon name={item} duplicate={duplicate} />)}
     </div>
 
     <div class="project-info">
