@@ -28,8 +28,9 @@ const initNrMark = (root: HTMLElement) => {
     const bars = Array.from(root.querySelectorAll<HTMLElement>('[data-nr-bar]'));
     const walls = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-wall]'));
     const connectors = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-connector]'));
+    const bottomStroke = root.querySelector<SVGPathElement>('#nr-bottom-stroke');
 
-    if (!button || !gradient || !top || !figLabel || !audio) return;
+    if (!button || !gradient || !top || !figLabel || !audio || !bottomStroke) return;
 
     const depth = numberFromDataset(root, 'depth', 28);
     const latchDistance = numberFromDataset(root, 'latchDistance', 8);
@@ -67,6 +68,74 @@ const initNrMark = (root: HTMLElement) => {
     let visualizerRaf = 0;
 
     const fixed = (value: number) => value.toFixed(3);
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+
+    type BottomPoint = { x: number; y: number };
+    type BottomLine = { a: BottomPoint; b: BottomPoint };
+
+    const bottomNumbers = (bottomStroke.getAttribute('d') ?? '')
+        .match(/-?\d+(?:\.\d+)?/g)
+        ?.map(Number) ?? [];
+    const bottomLines: BottomLine[] = [];
+    for (let index = 0; index + 3 < bottomNumbers.length; index += 4) {
+        bottomLines.push({
+            a: { x: bottomNumbers[index], y: bottomNumbers[index + 1] },
+            b: { x: bottomNumbers[index + 2], y: bottomNumbers[index + 3] },
+        });
+    }
+
+    // N's first and third lower segments are clipped in the resting geometry.
+    // Reconstruct their complete source edges once, then move the clipping
+    // boundary with the mechanical shift. Otherwise the fixed resting clip
+    // leaves a visible gap when the top plate latches down to MUSIC ON.
+    const edge2InitialT = 0.6647897556988466;
+    const edge6InitialT = 0.5549904640813739;
+    const edge2TPerShift = -0.02374249127495879;
+    const edge6TPerShift = 0.01589319771137951;
+
+    const edge2Line = bottomLines[0];
+    const edge6Line = bottomLines[2];
+    const edge2FullStart = edge2Line
+        ? {
+            x: (edge2Line.a.x - edge2InitialT * edge2Line.b.x) / (1 - edge2InitialT),
+            y: (edge2Line.a.y - edge2InitialT * edge2Line.b.y) / (1 - edge2InitialT),
+        }
+        : null;
+    const edge6FullEnd = edge6Line
+        ? {
+            x: (edge6Line.b.x - (1 - edge6InitialT) * edge6Line.a.x) / edge6InitialT,
+            y: (edge6Line.b.y - (1 - edge6InitialT) * edge6Line.a.y) / edge6InitialT,
+        }
+        : null;
+
+    const mixPoint = (a: BottomPoint, b: BottomPoint, t: number): BottomPoint => ({
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+    });
+
+    const updateBottomStroke = (nextShift: number) => {
+        if (!edge2Line || !edge6Line || !edge2FullStart || !edge6FullEnd) return;
+
+        const dynamicLines = bottomLines.map((line) => ({
+            a: { ...line.a },
+            b: { ...line.b },
+        }));
+
+        const edge2T = clamp01(edge2InitialT + edge2TPerShift * nextShift);
+        const edge6T = clamp01(edge6InitialT + edge6TPerShift * nextShift);
+
+        dynamicLines[0].a = mixPoint(edge2FullStart, edge2Line.b, edge2T);
+        dynamicLines[0].b = { ...edge2Line.b };
+        dynamicLines[2].a = { ...edge6Line.a };
+        dynamicLines[2].b = mixPoint(edge6Line.a, edge6FullEnd, edge6T);
+
+        bottomStroke.setAttribute(
+            'd',
+            dynamicLines
+                .map((line) => `M ${fixed(line.a.x)} ${fixed(line.a.y)} L ${fixed(line.b.x)} ${fixed(line.b.y)}`)
+                .join(' '),
+        );
+    };
 
     const applyShift = (nextShift: number) => {
         top.style.transform = `translateY(${nextShift.toFixed(3)}px)`;
@@ -96,6 +165,8 @@ const initNrMark = (root: HTMLElement) => {
                 `M ${fixed(x)} ${fixed(y + nextShift)} L ${fixed(x)} ${fixed(y + depth)}`,
             );
         });
+
+        updateBottomStroke(nextShift);
     };
 
     const settleShift = () => {
