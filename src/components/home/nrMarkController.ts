@@ -1,79 +1,16 @@
 export {};
 
-type SpotifyPlaybackEvent = {
-    data: {
-        playingURI?: string;
-        isPaused?: boolean;
-        isBuffering?: boolean;
-        duration?: number;
-        position?: number;
-    };
-};
-
-type SpotifyEmbedController = {
-    play: () => void;
-    pause: () => void;
-    resume: () => void;
-    togglePlay: () => void;
-    addListener: (
-        event: 'ready' | 'playback_started' | 'playback_update',
-        callback: (event: SpotifyPlaybackEvent) => void,
-    ) => void;
-};
-
-type SpotifyIframeApi = {
-    createController: (
-        element: HTMLElement,
-        options: {
-            uri?: string;
-            url?: string;
-            width?: number | string;
-            height?: number | string;
-        },
-        callback: (controller: SpotifyEmbedController) => void,
-    ) => void;
-};
-
-declare global {
-    interface Window {
-        onSpotifyIframeApiReady?: (api: SpotifyIframeApi) => void;
-        __nrSpotifyApiPromise?: Promise<SpotifyIframeApi>;
-    }
-}
-
-const SPOTIFY_API_SRC = 'https://open.spotify.com/embed/iframe-api/v1';
-
 const numberFromDataset = (root: HTMLElement, key: string, fallback: number) => {
     const value = Number(root.dataset[key]);
     return Number.isFinite(value) ? value : fallback;
 };
 
-const loadSpotifyApi = (): Promise<SpotifyIframeApi> => {
-    if (window.__nrSpotifyApiPromise) return window.__nrSpotifyApiPromise;
-
-    window.__nrSpotifyApiPromise = new Promise<SpotifyIframeApi>((resolve, reject) => {
-        const previousReady = window.onSpotifyIframeApiReady;
-        const timeout = window.setTimeout(() => reject(new Error('Spotify IFrame API timed out')), 10000);
-
-        window.onSpotifyIframeApiReady = (api) => {
-            window.clearTimeout(timeout);
-            if (typeof previousReady === 'function') previousReady(api);
-            resolve(api);
-        };
-
-        if (!document.querySelector(`script[src="${SPOTIFY_API_SRC}"]`)) {
-            const script = document.createElement('script');
-            script.src = SPOTIFY_API_SRC;
-            script.async = true;
-            script.onerror = () => {
-                window.clearTimeout(timeout);
-                reject(new Error('Failed to load Spotify IFrame API'));
-            };
-            document.body.appendChild(script);
-        }
-    });
-
-    return window.__nrSpotifyApiPromise;
+const formatTime = (seconds: number) => {
+    if (!Number.isFinite(seconds) || seconds < 0) return '00:00';
+    const whole = Math.floor(seconds);
+    const minutes = Math.floor(whole / 60);
+    const remainder = whole % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
 };
 
 const initNrMark = (root: HTMLElement) => {
@@ -84,11 +21,15 @@ const initNrMark = (root: HTMLElement) => {
     const gradient = root.querySelector<SVGRadialGradientElement>('[data-nr-gradient]');
     const top = root.querySelector<SVGGElement>('[data-nr-top]');
     const figLabel = root.querySelector<SVGTextElement>('[data-nr-fig-label]');
-    const playerMount = root.querySelector<HTMLElement>('[data-nr-player]');
+    const audio = root.querySelector<HTMLAudioElement>('[data-nr-audio]');
+    const timeLabel = root.querySelector<HTMLElement>('[data-nr-time]');
+    const hudState = root.querySelector<HTMLElement>('[data-nr-hud-state]');
+    const progress = root.querySelector<HTMLElement>('[data-nr-progress]');
+    const bars = Array.from(root.querySelectorAll<HTMLElement>('[data-nr-bar]'));
     const walls = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-wall]'));
     const connectors = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-connector]'));
 
-    if (!button || !gradient || !top || !figLabel || !playerMount) return;
+    if (!button || !gradient || !top || !figLabel || !audio) return;
 
     const depth = numberFromDataset(root, 'depth', 28);
     const latchDistance = numberFromDataset(root, 'latchDistance', 8);
@@ -100,8 +41,6 @@ const initNrMark = (root: HTMLElement) => {
         height: numberFromDataset(root, 'viewboxHeight', 315),
     };
 
-    const trackUri = root.dataset.trackUri ?? '';
-    const trackUrl = root.dataset.trackUrl ?? '';
     const trackTitle = root.dataset.trackTitle ?? 'favorite song';
     const trackArtist = root.dataset.trackArtist ?? '';
 
@@ -120,12 +59,12 @@ const initNrMark = (root: HTMLElement) => {
     let shiftRaf = 0;
     let lastShiftTime = 0;
 
-    let player: SpotifyEmbedController | null = null;
-    let playerReady = false;
-    let playerPromise: Promise<SpotifyEmbedController | null> | null = null;
-    let wantsPlay = false;
     let isPlaying = false;
     let pointerHeld = false;
+    let audioContext: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let frequencyData: Uint8Array<ArrayBuffer> | null = null;
+    let visualizerRaf = 0;
 
     const fixed = (value: number) => value.toFixed(3);
 
@@ -221,7 +160,17 @@ const initNrMark = (root: HTMLElement) => {
                 ? 'FIG. 01 / NR SYSTEM · MUSIC ON'
                 : state === 'loading'
                     ? 'FIG. 01 / NR SYSTEM · LOADING'
-                    : 'FIG. 01 / NR SYSTEM · MUSIC OFF';
+                    : state === 'error'
+                        ? 'FIG. 01 / NR SYSTEM · AUDIO ERROR'
+                        : 'FIG. 01 / NR SYSTEM · MUSIC OFF';
+
+        if (hudState) {
+            hudState.textContent =
+                state === 'playing' ? 'playing' :
+                state === 'loading' ? 'loading' :
+                state === 'error' ? 'unavailable' :
+                'paused';
+        }
     };
 
     const paintGradient = () => {
@@ -248,81 +197,88 @@ const initNrMark = (root: HTMLElement) => {
         if (!gradientRaf) gradientRaf = requestAnimationFrame(paintGradient);
     };
 
-    const applyPlayingState = (playing: boolean) => {
-        isPlaying = playing;
-        wantsPlay = playing;
-        updateMusicState(playing ? 'playing' : 'idle');
-        if (!pointerHeld) setShiftTarget(playing ? latchDistance : 0);
+    const updateTimeline = () => {
+        const duration = Number.isFinite(audio.duration) ? audio.duration : 196;
+        const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+        if (timeLabel) timeLabel.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+        if (progress) {
+            const ratio = duration > 0 ? Math.min(1, Math.max(0, current / duration)) : 0;
+            progress.style.transform = `scaleX(${ratio.toFixed(4)})`;
+        }
     };
 
-    const ensurePlayer = () => {
-        if (playerPromise) return playerPromise;
-
-        updateMusicState('loading');
-
-        playerPromise = loadSpotifyApi()
-            .then((api) => new Promise<SpotifyEmbedController>((resolve) => {
-                api.createController(
-                    playerMount,
-                    {
-                        width: 220,
-                        height: 152,
-                        uri: trackUri || undefined,
-                        url: trackUri ? undefined : trackUrl || undefined,
-                    },
-                    (controller) => {
-                        player = controller;
-                        root.dataset.playerLoaded = 'true';
-
-                        controller.addListener('ready', () => {
-                            playerReady = true;
-                            resolve(controller);
-                            updateMusicState(isPlaying ? 'playing' : 'idle');
-                            if (wantsPlay && !isPlaying) controller.resume();
-                        });
-
-                        controller.addListener('playback_started', () => {
-                            applyPlayingState(true);
-                        });
-
-                        controller.addListener('playback_update', (event) => {
-                            const paused = event.data?.isPaused;
-                            if (paused === false) {
-                                applyPlayingState(true);
-                                return;
-                            }
-
-                            // Spotify can emit an initial paused snapshot while a requested
-                            // first play is still starting. Do not cancel that user intent.
-                            if (paused === true && (isPlaying || !wantsPlay)) {
-                                applyPlayingState(false);
-                            }
-                        });
-                    },
-                );
-            }))
-            .catch(() => {
-                isPlaying = false;
-                wantsPlay = false;
-                updateMusicState('error');
-                if (!pointerHeld) setShiftTarget(0);
-                return null;
-            });
-
-        return playerPromise;
+    const setIdleBars = () => {
+        const idleLevels = [0.18, 0.34, 0.24, 0.46, 0.3, 0.58, 0.38, 0.68, 0.44, 0.6, 0.32, 0.5, 0.28, 0.42, 0.22, 0.36, 0.2, 0.3];
+        bars.forEach((bar, index) => {
+            bar.style.setProperty('--level', String(idleLevels[index % idleLevels.length]));
+        });
     };
 
-    const togglePlayback = async () => {
-        if (isPlaying && player && playerReady) {
-            wantsPlay = false;
-            player.pause();
+    const paintVisualizer = () => {
+        if (!isPlaying || !analyser || !frequencyData) {
+            visualizerRaf = 0;
             return;
         }
 
-        wantsPlay = true;
-        const readyPlayer = await ensurePlayer();
-        if (readyPlayer && playerReady && wantsPlay && !isPlaying) {
-            readyPlayer.resume();
+        const data = frequencyData;
+        analyser.getByteFrequencyData(data);
+        bars.forEach((bar, index) => {
+            const sourceIndex = Math.min(data.length - 1, Math.floor(index * data.length / bars.length));
+            const raw = data[sourceIndex] / 255;
+            const level = Math.max(0.16, Math.min(1, 0.12 + raw * 1.15));
+            bar.style.setProperty('--level', level.toFixed(3));
+        });
+
+        visualizerRaf = requestAnimationFrame(paintVisualizer);
+    };
+
+    const ensureAudioGraph = async () => {
+        if (!audioContext) {
+            audioContext = new AudioContext();
+            const source = audioContext.createMediaElementSource(audio);
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 64;
+            analyser.smoothingTimeConstant = 0.82;
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            frequencyData = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        if (audioContext.state === 'suspended') await audioContext.resume();
+    };
+
+    const applyPlayingState = (playing: boolean) => {
+        isPlaying = playing;
+        updateMusicState(playing ? 'playing' : 'idle');
+        if (!pointerHeld) setShiftTarget(playing ? latchDistance : 0);
+
+        if (playing) {
+            if (!visualizerRaf) visualizerRaf = requestAnimationFrame(paintVisualizer);
+        } else {
+            if (visualizerRaf) cancelAnimationFrame(visualizerRaf);
+            visualizerRaf = 0;
+            setIdleBars();
+        }
+    };
+
+    const togglePlayback = async () => {
+        if (!audio.paused) {
+            audio.pause();
+            return;
+        }
+
+        updateMusicState('loading');
+        try {
+            await ensureAudioGraph();
+            if (Number.isFinite(audio.duration) && audio.currentTime >= audio.duration - 0.05) {
+                audio.currentTime = 0;
+            }
+            await audio.play();
+        } catch {
+            isPlaying = false;
+            updateMusicState('error');
+            setShiftTarget(0);
+            setIdleBars();
         }
     };
 
@@ -346,6 +302,25 @@ const initNrMark = (root: HTMLElement) => {
         if (event.key === 'Enter' || event.key === ' ') release();
     };
 
+    audio.addEventListener('loadedmetadata', updateTimeline);
+    audio.addEventListener('durationchange', updateTimeline);
+    audio.addEventListener('timeupdate', updateTimeline);
+    audio.addEventListener('play', () => applyPlayingState(true));
+    audio.addEventListener('pause', () => {
+        if (!audio.ended) applyPlayingState(false);
+    });
+    audio.addEventListener('ended', () => {
+        audio.currentTime = 0;
+        applyPlayingState(false);
+        updateTimeline();
+    });
+    audio.addEventListener('error', () => {
+        isPlaying = false;
+        updateMusicState('error');
+        if (!pointerHeld) setShiftTarget(0);
+        setIdleBars();
+    });
+
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     button.addEventListener('pointerdown', press);
     button.addEventListener('pointerup', release);
@@ -358,9 +333,10 @@ const initNrMark = (root: HTMLElement) => {
         void togglePlayback();
     });
 
+    setIdleBars();
+    updateTimeline();
     applyShift(0);
     updateMusicState('idle');
-    void ensurePlayer();
 };
 
 document.querySelectorAll<HTMLElement>('[data-nr-stage]').forEach(initNrMark);
