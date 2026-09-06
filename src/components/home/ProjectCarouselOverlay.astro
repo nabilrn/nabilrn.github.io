@@ -29,7 +29,7 @@ import ProjectCard from './ProjectCard.astro';
 
     .home-redesign .project-carousel-panel {
         --project-carousel-line: color-mix(in oklab, var(--border) 64%, var(--bg));
-        --project-carousel-distance: 0px;
+        --project-carousel-offset: 0px;
         --project-carousel-duration: 1s;
         --project-carousel-inset: 7px;
 
@@ -87,7 +87,6 @@ import ProjectCard from './ProjectCard.astro';
         transform: translate3d(0, 0, 0);
         will-change: transform;
         backface-visibility: hidden;
-        -webkit-font-smoothing: antialiased;
     }
 
     .home-redesign .project-carousel-panel[data-carousel-ready='true'] .project-carousel-track {
@@ -110,7 +109,7 @@ import ProjectCard from './ProjectCard.astro';
 
     @keyframes home-project-carousel {
         from { transform: translate3d(0, 0, 0); }
-        to { transform: translate3d(calc(-1 * var(--project-carousel-distance)), 0, 0); }
+        to { transform: translate3d(var(--project-carousel-offset), 0, 0); }
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
@@ -201,19 +200,19 @@ import ProjectCard from './ProjectCard.astro';
 
             if (motionQuery.matches || mobileQuery.matches) {
                 panel.dataset.carouselReady = 'false';
-                panel.style.removeProperty('--project-carousel-distance');
+                panel.style.removeProperty('--project-carousel-offset');
                 panel.style.removeProperty('--project-carousel-duration');
                 return;
             }
 
-            // The first group already includes its trailing 10px seam spacing.
-            // Travelling exactly this measured distance makes group #2 occupy the
-            // same coordinates as group #1 at the animation boundary.
+            // The source group includes its trailing seam spacing. Moving by
+            // exactly this measured width makes the duplicate land at the same
+            // coordinates when the animation loops.
             const distance = sourceGroup.getBoundingClientRect().width;
             if (!Number.isFinite(distance) || distance <= 0) return;
 
-            // Avoid restarting the CSS animation for sub-pixel ResizeObserver
-            // noise. A genuine card/viewport geometry change is much larger.
+            // Ignore tiny ResizeObserver noise so the animation is not restarted
+            // by fractional layout fluctuations that do not change the geometry.
             if (Math.abs(distance - previousDistance) < 0.25 && panel.dataset.carouselReady === 'true') {
                 return;
             }
@@ -221,7 +220,7 @@ import ProjectCard from './ProjectCard.astro';
             previousDistance = distance;
             const duration = distance / TARGET_VELOCITY_PX_PER_SECOND;
 
-            panel.style.setProperty('--project-carousel-distance', `${distance.toFixed(3)}px`);
+            panel.style.setProperty('--project-carousel-offset', `${(-distance).toFixed(3)}px`);
             panel.style.setProperty('--project-carousel-duration', `${duration.toFixed(3)}s`);
             panel.dataset.carouselReady = 'true';
         };
@@ -239,7 +238,8 @@ import ProjectCard from './ProjectCard.astro';
         mobileQuery.addEventListener('change', scheduleMeasure);
         window.addEventListener('load', scheduleMeasure, { once: true });
 
-        // Measure after the template is mounted and again after fonts/images settle.
+        // Measure after mounting and once more after fonts settle because the
+        // card width can be viewport-driven and the surrounding shell may shift.
         scheduleMeasure();
         document.fonts?.ready.then(scheduleMeasure);
     }
