@@ -45,7 +45,7 @@ const experienceItems = [
 ] as const;
 ---
 
-<div class="experience-panel">
+<div class="experience-panel" data-scrollable="false" data-at-bottom="false">
     <header class="experience-header">
         <div class="experience-heading">
             <span>my {heading.toLowerCase()}</span>
@@ -85,7 +85,9 @@ const experienceItems = [
         </div>
     </div>
 
-    <div class="experience-scroll-hint" aria-hidden="true">scroll through ↓</div>
+    <div class="experience-scroll-affordance" aria-hidden="true">
+        <span>scroll ↓</span>
+    </div>
 </div>
 
 <style>
@@ -228,35 +230,51 @@ const experienceItems = [
         box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent);
     }
 
-    .experience-scroll-hint {
+    .experience-scroll-affordance {
         position: absolute;
         z-index: 5;
-        right: 12px;
-        bottom: 7px;
-        padding: 7px 2px 1px 18px;
-        background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--bg) 94%, transparent) 32%);
-        color: color-mix(in srgb, var(--muted) 86%, transparent);
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 44px;
+        padding: 0 14px 8px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        background: linear-gradient(
+            to bottom,
+            transparent 0%,
+            color-mix(in srgb, var(--bg) 72%, transparent) 35%,
+            color-mix(in srgb, var(--bg) 96%, transparent) 72%,
+            var(--bg) 100%
+        );
+        box-shadow: 0 -10px 20px -18px color-mix(in srgb, var(--text) 30%, transparent);
+        color: color-mix(in srgb, var(--muted) 88%, transparent);
         font-family: var(--font-mono);
         font-size: 8px;
         line-height: 1;
-        letter-spacing: 0.02em;
-        white-space: nowrap;
+        letter-spacing: 0.03em;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(3px);
-        transition: opacity 150ms ease, transform 150ms ease;
+        transform: translateY(4px);
+        transition: opacity 160ms ease, transform 160ms ease;
     }
 
-    .experience-panel:hover .experience-scroll-hint,
-    .experience-panel:focus-within .experience-scroll-hint {
+    .experience-panel[data-scrollable='true'][data-at-bottom='false'] .experience-scroll-affordance {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    .experience-panel:hover .experience-scroll-affordance,
+    .experience-panel:focus-within .experience-scroll-affordance {
+        opacity: 0;
+        transform: translateY(4px);
     }
 
     .experience-timeline {
         position: relative;
         min-width: 0;
-        padding: 5px 0 6px;
+        padding: 5px 0 46px;
     }
 
     .experience-timeline::before {
@@ -356,7 +374,7 @@ const experienceItems = [
             animation: none;
         }
 
-        .experience-scroll-hint {
+        .experience-scroll-affordance {
             transition: none;
         }
     }
@@ -386,10 +404,6 @@ const experienceItems = [
             font-size: 15px;
         }
 
-        .experience-scroll-hint {
-            display: none;
-        }
-
         .experience-timeline::before {
             left: 17px;
         }
@@ -409,3 +423,27 @@ const experienceItems = [
         }
     }
 </style>
+
+<script>
+    const panels = document.querySelectorAll<HTMLElement>('.experience-panel');
+
+    panels.forEach((panel) => {
+        const scroll = panel.querySelector<HTMLElement>('.experience-scroll');
+        if (!scroll) return;
+
+        const updateOverflowState = () => {
+            const scrollable = scroll.scrollHeight - scroll.clientHeight > 2;
+            const atBottom = !scrollable || scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2;
+            panel.dataset.scrollable = scrollable ? 'true' : 'false';
+            panel.dataset.atBottom = atBottom ? 'true' : 'false';
+        };
+
+        updateOverflowState();
+        scroll.addEventListener('scroll', updateOverflowState, { passive: true });
+
+        const observer = new ResizeObserver(updateOverflowState);
+        observer.observe(scroll);
+        const timeline = scroll.querySelector<HTMLElement>('.experience-timeline');
+        if (timeline) observer.observe(timeline);
+    });
+</script>
