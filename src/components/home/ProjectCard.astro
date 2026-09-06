@@ -1,0 +1,251 @@
+---
+import { Image } from 'astro:assets';
+import type { WebProject } from '../../data/projects';
+import BrandIcon from '../icons/BrandIcon.astro';
+import UiIcon from '../icons/UiIcon.astro';
+
+interface Props {
+    project: WebProject;
+    duplicate?: boolean;
+}
+
+const { project, duplicate = false } = Astro.props;
+const domain = project.liveUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+const tabIndex = duplicate ? -1 : undefined;
+---
+
+<article class="project-card" aria-hidden={duplicate ? 'true' : undefined}>
+    <a
+        class="project-preview"
+        href={project.liveUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        tabindex={tabIndex}
+        aria-label={`Open ${project.name}`}
+    >
+        <Image
+            src={project.screenshot}
+            alt={`${project.name} website preview`}
+            class="project-image"
+            loading="lazy"
+        />
+        <span class="project-domain">{domain}</span>
+    </a>
+
+    <div class="project-info">
+        <div class="project-title-row">
+            <strong>{project.name}</strong>
+            <span class="project-links">
+                {project.repoUrl && (
+                    <a
+                        class="project-action project-action-github"
+                        href={project.repoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        tabindex={tabIndex}
+                        aria-label={`${project.name} GitHub repository`}
+                    >
+                        <BrandIcon name="github" size={12} />
+                        <span>GitHub</span>
+                    </a>
+                )}
+                <a
+                    class="project-action"
+                    href={project.liveUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    tabindex={tabIndex}
+                    aria-label={`Visit ${project.name}`}
+                >
+                    <span>Live</span>
+                    <UiIcon name="arrow-up-right" size={10} strokeWidth={1.5} />
+                </a>
+            </span>
+        </div>
+
+        <div class="project-stack" aria-label={`${project.name} technology stack`}>
+            {project.stack.slice(0, 4).map((item) => <span>{item}</span>)}
+        </div>
+    </div>
+</article>
+
+<style>
+    .project-card {
+        --project-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+
+        width: clamp(218px, 18vw, 276px);
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        flex: none;
+        display: grid;
+        grid-template-rows: minmax(92px, 1fr) auto;
+        border: 1px solid var(--project-line);
+        background: var(--bg);
+        overflow: hidden;
+        transition: border-color 160ms ease, transform 160ms ease;
+    }
+
+    .project-card:hover,
+    .project-card:focus-within {
+        border-color: color-mix(in srgb, var(--text) 42%, var(--border));
+        transform: translateY(-1px);
+    }
+
+    .project-preview {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        display: block;
+        overflow: hidden;
+        border-bottom: 1px solid var(--project-line);
+        background: var(--surface);
+        outline: none;
+    }
+
+    .project-preview :global(img) {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        object-position: center top;
+        filter: grayscale(1) saturate(0.12) contrast(1.03) brightness(0.78);
+        opacity: 0.9;
+        transform: scale(1.001);
+        transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
+    }
+
+    .project-card:hover .project-preview :global(img),
+    .project-card:focus-within .project-preview :global(img) {
+        filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
+        opacity: 1;
+        transform: scale(1.012);
+    }
+
+    .project-domain {
+        position: absolute;
+        left: 7px;
+        bottom: 7px;
+        max-width: calc(100% - 14px);
+        overflow: hidden;
+        padding: 3px 5px;
+        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+        background: color-mix(in srgb, var(--bg) 88%, transparent);
+        color: color-mix(in srgb, var(--text) 78%, var(--muted));
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        backdrop-filter: blur(4px);
+    }
+
+    .project-info {
+        min-width: 0;
+        padding: 8px 9px 9px;
+        display: grid;
+        gap: 6px;
+    }
+
+    .project-title-row {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .project-title-row > strong {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 11.5px;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .project-links {
+        flex: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .project-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1;
+        white-space: nowrap;
+        transition: color 140ms ease, transform 140ms ease;
+    }
+
+    .project-action:hover,
+    .project-action:focus-visible {
+        color: var(--text);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .project-action-github :global(svg) {
+        opacity: 0.82;
+    }
+
+    .project-stack {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 0;
+        overflow: hidden;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .project-stack span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .project-stack span:not(:last-child)::after {
+        content: ' · ';
+        color: color-mix(in srgb, var(--muted) 72%, transparent);
+        white-space: pre;
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .project-card {
+            width: clamp(205px, 17.2vw, 260px);
+            grid-template-rows: minmax(78px, 1fr) auto;
+        }
+
+        .project-info {
+            padding-top: 7px;
+            padding-bottom: 7px;
+            gap: 5px;
+        }
+
+        .project-title-row > strong {
+            font-size: 11px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .project-card,
+        .project-preview :global(img),
+        .project-action {
+            transition: none;
+        }
+    }
+</style>
