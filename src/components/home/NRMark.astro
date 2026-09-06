@@ -1,24 +1,31 @@
 ---
+import HandwrittenNote from './HandwrittenNote.astro';
+
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
 type Surface = { points: Point[]; visible: boolean[] };
-type WallState = { normal: string; pressed: string };
+type Wall = { a: Point; b: Point };
 
 const ISO_STEP = 26;
 const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
 const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
-const DEPTH = 16;
-const PRESS_DISTANCE = 8;
+const GLYPH_X_SCALE = 1.1;
+const DEPTH = 28;
+const LATCH_DISTANCE = 8;
+const PRESS_DISTANCE = 14;
 
-// Canonical plane orientation learned from the ChanhDai construction:
-//   flat +X (letter left -> right) => screen upper-right  (-30°)
-//   flat +Y (letter top  -> bottom) => screen lower-right  (+30°)
-// N and R are therefore authored as an ordinary flat NR wordmark first.
-const ORIGIN = { x: 165, y: 210 };
+const VIEWBOX = { x: 125, y: 30, width: 525, height: 315 };
+const YOUTUBE_VIDEO_ID = 'K8kjo96CJmg';
+const TRACK_TITLE = 'Karanokokoro';
+const TRACK_ARTIST = 'Anly';
+
+// Keep the bottom datum stable while reclaiming the unused space above the mark.
+// The glyphs are authored flat first, then projected on the same ±30° isometric axes.
+const ORIGIN = { x: 165, y: 198 };
 
 const PLACEMENTS: Placement[] = [
     { kind: 'n', ox: 0, oy: 0 },
-    { kind: 'r', ox: 7.5, oy: 0 },
+    { kind: 'r', ox: 6.8, oy: 0 },
 ];
 
 const N_OUTER: Point[] = [
@@ -60,7 +67,7 @@ const R_HOLE: Point[] = [
 ];
 
 const project = (point: Point, placement: Placement): Point => {
-    const x = point.x + placement.ox;
+    const x = placement.ox + point.x * GLYPH_X_SCALE;
     const y = point.y + placement.oy;
     return {
         x: ORIGIN.x + (x + y) * ISO_X,
@@ -72,14 +79,14 @@ const shifted = (point: Point, dy: number): Point => ({ x: point.x, y: point.y +
 const move = (point: Point) => `${point.x.toFixed(3)} ${point.y.toFixed(3)}`;
 const projected = (shape: Point[], placement: Placement) => shape.map((point) => project(point, placement));
 
-const polygonPath = (points: Point[], dy = 0) => {
-    const [first, ...rest] = points.map((point) => shifted(point, dy));
+const polygonPath = (points: Point[]) => {
+    const [first, ...rest] = points;
     return `M ${move(first)} ${rest.map((point) => `L ${move(point)}`).join(' ')} Z`;
 };
 
-const glyphPath = (placement: Placement, dy = 0) => {
-    if (placement.kind === 'n') return polygonPath(projected(N_OUTER, placement), dy);
-    return `${polygonPath(projected(R_OUTER, placement), dy)} ${polygonPath(projected(R_HOLE, placement), dy)}`;
+const glyphPath = (placement: Placement) => {
+    if (placement.kind === 'n') return polygonPath(projected(N_OUTER, placement));
+    return `${polygonPath(projected(R_OUTER, placement))} ${polygonPath(projected(R_HOLE, placement))}`;
 };
 
 const GLYPHS = PLACEMENTS.map((placement) => ({
@@ -105,7 +112,7 @@ const SURFACES: Surface[] = PLACEMENTS.flatMap((placement) => {
     return [makeSurface(R_OUTER, placement), makeSurface(R_HOLE, placement, true)];
 });
 
-const wallPath = (a: Point, b: Point, topShift: number) => {
+const wallPath = (a: Point, b: Point, topShift = 0) => {
     const aTop = shifted(a, topShift);
     const bTop = shifted(b, topShift);
     const bBottom = shifted(b, DEPTH);
@@ -113,20 +120,14 @@ const wallPath = (a: Point, b: Point, topShift: number) => {
     return `M ${move(aTop)} L ${move(bTop)} L ${move(bBottom)} L ${move(aBottom)} Z`;
 };
 
-const WALLS: WallState[] = SURFACES.flatMap((surface) =>
+const WALLS: Wall[] = SURFACES.flatMap((surface) =>
     surface.points.flatMap((a, index) => {
         if (!surface.visible[index]) return [];
         const b = surface.points[(index + 1) % surface.points.length];
-        return [{ normal: wallPath(a, b, 0), pressed: wallPath(a, b, PRESS_DISTANCE) }];
+        return [{ a, b }];
     }),
 );
 
-const topStrokePath = (topShift: number) =>
-    PLACEMENTS.map((placement) => glyphPath(placement, topShift)).join(' ');
-
-// Exposed lower edges are kept separate from the vertical wall creases. This
-// lets the top-face fill act as a painter-style hidden-line mask while still
-// preserving every vertical edge a viewer can actually see, like the reference.
 const bottomStrokePath = () => {
     const chunks: string[] = [];
     for (const surface of SURFACES) {
@@ -139,37 +140,33 @@ const bottomStrokePath = () => {
     return chunks.join(' ');
 };
 
-const connectorStrokePath = (topShift: number) => {
-    const chunks: string[] = [];
-    const connectorKeys = new Set<string>();
+const connectorPoints = () => {
+    const points: Point[] = [];
+    const keys = new Set<string>();
 
     for (const surface of SURFACES) {
         const count = surface.points.length;
         surface.points.forEach((point, index) => {
             const incomingVisible = surface.visible[(index - 1 + count) % count];
             const outgoingVisible = surface.visible[index];
-
-            // A real vertical extrusion edge is visible whenever at least one
-            // incident side face is viewer-facing. This includes the crease
-            // between two visible faces; omitting those is what made the NR
-            // depth look incomplete compared with ChanhDai.
             if (!incomingVisible && !outgoingVisible) return;
 
             const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
-            if (connectorKeys.has(key)) return;
-            connectorKeys.add(key);
-            chunks.push(`M ${move(shifted(point, topShift))} L ${move(shifted(point, DEPTH))}`);
+            if (keys.has(key)) return;
+            keys.add(key);
+            points.push(point);
         });
     }
 
-    return chunks.join(' ');
+    return points;
 };
 
-const TOP_STROKE_NORMAL = topStrokePath(0);
-const TOP_STROKE_PRESSED = topStrokePath(PRESS_DISTANCE);
+const connectorPath = (point: Point, topShift = 0) =>
+    `M ${move(shifted(point, topShift))} L ${move(shifted(point, DEPTH))}`;
+
+const TOP_STROKE = PLACEMENTS.map((placement) => glyphPath(placement)).join(' ');
 const BOTTOM_STROKE = bottomStrokePath();
-const CONNECTOR_STROKE_NORMAL = connectorStrokePath(0);
-const CONNECTOR_STROKE_PRESSED = connectorStrokePath(PRESS_DISTANCE);
+const CONNECTOR_POINTS = connectorPoints();
 
 const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
@@ -189,25 +186,44 @@ const GUIDE_PATHS = [
 ];
 ---
 
-<div class="nr-stage" data-nr-stage>
-    <button class="nr-button" type="button" data-nr-button aria-label="Press the interactive NR mark">
+<div
+    class="nr-stage"
+    data-nr-stage
+    data-music-state="idle"
+    data-video-id={YOUTUBE_VIDEO_ID}
+    data-track-title={TRACK_TITLE}
+    data-track-artist={TRACK_ARTIST}
+    data-depth={DEPTH}
+    data-latch-distance={LATCH_DISTANCE}
+    data-press-distance={PRESS_DISTANCE}
+    data-viewbox-x={VIEWBOX.x}
+    data-viewbox-y={VIEWBOX.y}
+    data-viewbox-width={VIEWBOX.width}
+    data-viewbox-height={VIEWBOX.height}
+>
+    <button
+        class="nr-button"
+        type="button"
+        data-nr-button
+        aria-label={`Play ${TRACK_TITLE} by ${TRACK_ARTIST}`}
+        aria-pressed="false"
+    >
         <svg
             class="nr-svg"
             data-nr-svg
-            viewBox="125 30 525 315"
+            viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.width} ${VIEWBOX.height}`}
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             role="img"
-            aria-label="Interactive isometric NR monogram"
+            aria-label="Interactive isometric NR music switch"
         >
             <defs>
                 <pattern id="nr-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
                     <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nr-pattern-line" />
                 </pattern>
 
-                <path id="nr-top-stroke" data-nr-top-stroke d={TOP_STROKE_NORMAL} />
+                <path id="nr-top-stroke" d={TOP_STROKE} />
                 <path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
-                <path id="nr-connector-stroke" data-nr-connector-stroke d={CONNECTOR_STROKE_NORMAL} />
 
                 <radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
                     <stop offset="0" class="nr-glow-start" />
@@ -221,14 +237,40 @@ const GUIDE_PATHS = [
 
             <g class="nr-walls" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
                 {WALLS.map((wall) => (
-                    <path data-nr-wall data-normal-d={wall.normal} data-pressed-d={wall.pressed} d={wall.normal} />
+                    <path
+                        data-nr-wall
+                        data-ax={wall.a.x}
+                        data-ay={wall.a.y}
+                        data-bx={wall.b.x}
+                        data-by={wall.b.y}
+                        d={wallPath(wall.a, wall.b)}
+                    />
                 ))}
             </g>
 
             <use href="#nr-bottom-stroke" class="nr-stroke-base" />
             <use href="#nr-bottom-stroke" class="nr-stroke-glow" />
-            <use href="#nr-connector-stroke" class="nr-stroke-base" />
-            <use href="#nr-connector-stroke" class="nr-stroke-glow" />
+
+            <g class="nr-connectors" aria-hidden="true">
+                {CONNECTOR_POINTS.map((point) => (
+                    <g>
+                        <path
+                            data-nr-connector
+                            data-x={point.x}
+                            data-y={point.y}
+                            d={connectorPath(point)}
+                            class="nr-stroke-base"
+                        />
+                        <path
+                            data-nr-connector
+                            data-x={point.x}
+                            data-y={point.y}
+                            d={connectorPath(point)}
+                            class="nr-stroke-glow"
+                        />
+                    </g>
+                ))}
+            </g>
 
             <g data-nr-top class="nr-top">
                 <g class="nr-face-background" aria-hidden="true">
@@ -237,14 +279,26 @@ const GUIDE_PATHS = [
                 <g class="nr-face-pattern" aria-hidden="true">
                     {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
                 </g>
+                <use href="#nr-top-stroke" class="nr-stroke-base" />
+                <use href="#nr-top-stroke" class="nr-stroke-glow" />
             </g>
 
-            <use href="#nr-top-stroke" class="nr-stroke-base" />
-            <use href="#nr-top-stroke" class="nr-stroke-glow" />
-
-            <text class="nr-fig-label" x="142" y="330">FIG. 01 / NR SYSTEM</text>
+            <text class="nr-fig-label" data-nr-fig-label x="142" y="330">FIG. 01 / NR SYSTEM · MUSIC OFF</text>
         </svg>
     </button>
+
+    <div class="nr-annotation" aria-hidden="true">
+        <HandwrittenNote text="play my favorite song" class="nr-music-note" arrowVariant="curve" />
+    </div>
+
+    <div class="nr-player-shell" data-nr-player-shell>
+        <div class="nr-player-heading">
+            <span data-nr-player-status>favorite track</span>
+            <strong>{TRACK_TITLE}</strong>
+            <span>{TRACK_ARTIST}</span>
+        </div>
+        <div class="nr-player" data-nr-player></div>
+    </div>
 </div>
 
 <style>
@@ -252,7 +306,9 @@ const GUIDE_PATHS = [
         width: 100%;
         height: 100%;
         min-height: 0;
+        position: relative;
         overflow: hidden;
+        isolation: isolate;
         background: var(--bg);
         --nr-background: var(--bg);
         --nr-foreground: var(--text);
@@ -262,6 +318,9 @@ const GUIDE_PATHS = [
     }
 
     .nr-button {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
         width: 100%;
         height: 100%;
         border: 0;
@@ -302,10 +361,15 @@ const GUIDE_PATHS = [
         fill: var(--nr-background);
     }
 
-    .nr-face-pattern { fill: url(#nr-pattern); }
+    .nr-face-pattern {
+        fill: url(#nr-pattern);
+        transition: opacity 220ms ease;
+    }
 
     .nr-top {
-        transition: transform 170ms cubic-bezier(.2,.8,.2,1);
+        transform-box: fill-box;
+        transform-origin: center;
+        will-change: transform;
     }
 
     .nr-stroke-base,
@@ -317,7 +381,11 @@ const GUIDE_PATHS = [
         pointer-events: none;
     }
 
-    .nr-stroke-base { stroke: var(--nr-stroke); }
+    .nr-stroke-base {
+        stroke: var(--nr-stroke);
+        transition: stroke 220ms ease;
+    }
+
     .nr-stroke-glow { stroke: url(#nr-gradient); }
 
     .nr-glow-start {
@@ -338,84 +406,155 @@ const GUIDE_PATHS = [
         letter-spacing: .05em;
         user-select: none;
     }
+
+    .nr-annotation {
+        position: absolute;
+        right: clamp(18px, 1.8vw, 30px);
+        bottom: clamp(16px, 1.6vw, 26px);
+        z-index: 3;
+        width: 176px;
+        height: 72px;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 220ms ease;
+    }
+
+    :global(.nr-annotation .nr-music-note) {
+        right: 0;
+        bottom: 0;
+        --note-font-size: 14px;
+        --note-arrow-width: 30px;
+        --note-arrow-height: 30px;
+        --note-arrow-gap: -2px;
+        transform: rotate(-4deg);
+        transform-origin: right bottom;
+    }
+
+    :global(.nr-annotation .nr-music-note .arrow-curve) {
+        transform: rotate(64deg) scaleX(-1);
+        transform-origin: center;
+    }
+
+    /* Replaces the old italic index-level hint with the shared handwritten primitive. */
+    :global(.nr-region > .nr-note) {
+        display: none !important;
+    }
+
+    .nr-player-shell {
+        position: absolute;
+        right: clamp(14px, 1.2vw, 22px);
+        bottom: clamp(14px, 1.2vw, 22px);
+        z-index: 5;
+        width: 200px;
+        height: 244px;
+        padding-top: 44px;
+        box-sizing: border-box;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(8px);
+        transition:
+            opacity 220ms ease,
+            transform 260ms cubic-bezier(.2,.8,.2,1),
+            visibility 0s linear 260ms;
+        pointer-events: none;
+    }
+
+    .nr-player-heading {
+        position: absolute;
+        inset: 0 0 auto;
+        height: 44px;
+        padding: 5px 7px 6px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto;
+        gap: 1px 8px;
+        border: 1px solid var(--sheet-line, var(--border));
+        border-bottom: 0;
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        backdrop-filter: blur(6px);
+        font-family: var(--font-mono);
+    }
+
+    .nr-player-heading > span:first-child {
+        grid-column: 1 / -1;
+        color: var(--muted);
+        font-size: 8px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .nr-player-heading strong {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 9px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .nr-player-heading > span:last-child {
+        color: var(--muted);
+        font-size: 8px;
+        white-space: nowrap;
+    }
+
+    .nr-player {
+        width: 200px;
+        height: 200px;
+        border: 1px solid var(--sheet-line, var(--border));
+        background: #000;
+        overflow: hidden;
+    }
+
+    .nr-player :global(iframe) {
+        display: block;
+        width: 200px !important;
+        height: 200px !important;
+        border: 0;
+    }
+
+    .nr-stage[data-player-loaded="true"] .nr-player-shell {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        transition-delay: 0s;
+        pointer-events: auto;
+    }
+
+    .nr-stage[data-music-state="playing"] {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 18%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 24%, var(--nr-background));
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-face-pattern {
+        opacity: 1;
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-annotation,
+    .nr-stage[data-player-loaded="true"] .nr-annotation {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    @media (max-width: 1099px) {
+        .nr-player-shell {
+            right: 10px;
+            bottom: 10px;
+            transform-origin: right bottom;
+            scale: .88;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .nr-player-shell,
+        .nr-annotation,
+        .nr-face-pattern,
+        .nr-stroke-base {
+            transition: none;
+        }
+    }
 </style>
 
-<script define:vars={{ TOP_STROKE_NORMAL, TOP_STROKE_PRESSED, CONNECTOR_STROKE_NORMAL, CONNECTOR_STROKE_PRESSED, PRESS_DISTANCE }}>
-    const roots = document.querySelectorAll('[data-nr-stage]');
-
-    roots.forEach((root) => {
-        if (!(root instanceof HTMLElement) || root.dataset.nrReady === 'true') return;
-        root.dataset.nrReady = 'true';
-
-        const button = root.querySelector('[data-nr-button]');
-        const svg = root.querySelector('[data-nr-svg]');
-        const gradient = root.querySelector('[data-nr-gradient]');
-        const top = root.querySelector('[data-nr-top]');
-        const topStroke = root.querySelector('[data-nr-top-stroke]');
-        const connectorStroke = root.querySelector('[data-nr-connector-stroke]');
-        const walls = Array.from(root.querySelectorAll('[data-nr-wall]'));
-
-        if (
-            !(button instanceof HTMLButtonElement) ||
-            !(svg instanceof SVGSVGElement) ||
-            !(gradient instanceof SVGRadialGradientElement) ||
-            !(top instanceof SVGGElement) ||
-            !(topStroke instanceof SVGPathElement) ||
-            !(connectorStroke instanceof SVGPathElement)
-        ) return;
-
-        const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-        let targetX = 385;
-        let targetY = 190;
-        let currentX = targetX;
-        let currentY = targetY;
-        let raf = 0;
-        let pressed = false;
-
-        const paintGradient = () => {
-            currentX += (targetX - currentX) * 0.18;
-            currentY += (targetY - currentY) * 0.18;
-            gradient.setAttribute('cx', currentX.toFixed(2));
-            gradient.setAttribute('cy', currentY.toFixed(2));
-            if (Math.abs(targetX - currentX) > 0.05 || Math.abs(targetY - currentY) > 0.05) {
-                raf = requestAnimationFrame(paintGradient);
-            } else {
-                raf = 0;
-            }
-        };
-
-        const onPointerMove = (event) => {
-            if (!finePointer.matches || reducedMotion.matches) return;
-            const ctm = svg.getScreenCTM();
-            if (!ctm) return;
-            const point = svg.createSVGPoint();
-            point.x = event.clientX;
-            point.y = event.clientY;
-            const local = point.matrixTransform(ctm.inverse());
-            targetX = local.x;
-            targetY = local.y;
-            if (!raf) raf = requestAnimationFrame(paintGradient);
-        };
-
-        const setPressed = (nextPressed) => {
-            if (pressed === nextPressed) return;
-            pressed = nextPressed;
-            top.style.transform = nextPressed ? `translateY(${PRESS_DISTANCE}px)` : 'translateY(0px)';
-            topStroke.setAttribute('d', nextPressed ? TOP_STROKE_PRESSED : TOP_STROKE_NORMAL);
-            connectorStroke.setAttribute('d', nextPressed ? CONNECTOR_STROKE_PRESSED : CONNECTOR_STROKE_NORMAL);
-            walls.forEach((wall) => {
-                if (!(wall instanceof SVGPathElement)) return;
-                const d = nextPressed ? wall.dataset.pressedD : wall.dataset.normalD;
-                if (d) wall.setAttribute('d', d);
-            });
-        };
-
-        window.addEventListener('pointermove', onPointerMove, { passive: true });
-        button.addEventListener('pointerdown', () => setPressed(true));
-        button.addEventListener('pointerup', () => setPressed(false));
-        button.addEventListener('pointercancel', () => setPressed(false));
-        button.addEventListener('pointerleave', () => setPressed(false));
-        button.addEventListener('blur', () => setPressed(false));
-    });
+<script>
+    import './nrMarkController';
 </script>
