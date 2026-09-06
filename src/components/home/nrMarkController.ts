@@ -20,7 +20,6 @@ const initNrMark = (root: HTMLElement) => {
     const button = root.querySelector<HTMLButtonElement>('[data-nr-button]');
     const gradient = root.querySelector<SVGRadialGradientElement>('[data-nr-gradient]');
     const top = root.querySelector<SVGGElement>('[data-nr-top]');
-    const figLabel = root.querySelector<SVGTextElement>('[data-nr-fig-label]');
     const audio = root.querySelector<HTMLAudioElement>('[data-nr-audio]');
     const timeLabel = root.querySelector<HTMLElement>('[data-nr-time]');
     const hudState = root.querySelector<HTMLElement>('[data-nr-hud-state]');
@@ -30,7 +29,7 @@ const initNrMark = (root: HTMLElement) => {
     const connectors = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-connector]'));
     const bottomStroke = root.querySelector<SVGPathElement>('#nr-bottom-stroke');
 
-    if (!button || !gradient || !top || !figLabel || !audio || !bottomStroke) return;
+    if (!button || !gradient || !top || !audio || !bottomStroke) return;
 
     const depth = numberFromDataset(root, 'depth', 28);
     const latchDistance = numberFromDataset(root, 'latchDistance', 8);
@@ -225,15 +224,6 @@ const initNrMark = (root: HTMLElement) => {
                 ? `Pause ${trackTitle}${trackArtist ? ` by ${trackArtist}` : ''}`
                 : `Play ${trackTitle}${trackArtist ? ` by ${trackArtist}` : ''}`,
         );
-
-        figLabel.textContent =
-            state === 'playing'
-                ? 'FIG. 01 / NR SYSTEM · MUSIC ON'
-                : state === 'loading'
-                    ? 'FIG. 01 / NR SYSTEM · LOADING'
-                    : state === 'error'
-                        ? 'FIG. 01 / NR SYSTEM · AUDIO ERROR'
-                        : 'FIG. 01 / NR SYSTEM · MUSIC OFF';
 
         if (hudState) {
             hudState.textContent =
