@@ -8,9 +8,10 @@ type TechIcon = {
 
 interface Props {
     name: string;
+    duplicate?: boolean;
 }
 
-const { name } = Astro.props;
+const { name, duplicate = false } = Astro.props;
 
 const SIMPLE_ICONS_COMMIT = '7f18aaa676087b8240b6f4ff58a6720be282da59';
 const simpleIconUrl = (slug: string) =>
@@ -47,9 +48,9 @@ const icon = icons[name];
     <span
         class="project-tech-icon"
         data-project-tech-label={icon.label}
-        tabindex="0"
+        tabindex={duplicate ? -1 : 0}
         style={`--project-tech-icon:url('${simpleIconUrl(icon.slug)}');--project-tech-color:${icon.color};--project-tech-scale:${icon.scale ?? 1}`}
-        aria-label={icon.label}
+        aria-label={duplicate ? undefined : icon.label}
     >
         <span class="project-tech-glyph" aria-hidden="true"></span>
     </span>
@@ -105,8 +106,8 @@ const icon = icons[name];
         content: attr(data-project-tech-label);
         position: absolute;
         z-index: 30;
-        left: 50%;
-        bottom: calc(100% + 7px);
+        left: 0;
+        top: calc(100% + 6px);
         width: max-content;
         padding: 4px 7px;
         border: 1px solid var(--border-strong);
@@ -120,14 +121,14 @@ const icon = icons[name];
         white-space: nowrap;
         pointer-events: none;
         opacity: 0;
-        transform: translate(-50%, 3px);
+        transform: translateY(-3px);
         transition: opacity 140ms ease 180ms, transform 140ms ease 180ms;
     }
 
     .project-tech-icon:hover::after,
     .project-tech-icon:focus-visible::after {
         opacity: 1;
-        transform: translate(-50%, 0);
+        transform: translateY(0);
     }
 
     @media (prefers-reduced-motion: reduce) {
