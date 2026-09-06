@@ -23,7 +23,7 @@ const copy = getSiteContent(locale).home.contributions;
 // GitHub Contributions component, which credits Kibo UI's contribution graph.
 // We keep the Astro implementation framework-free while preserving the useful
 // open-source ideas: rolling-year activities, square blocks, month labels,
-// per-day tooltips, technical figure caption, and Less -> More legend.
+// per-day tooltips, compact source caption, and Less -> More legend.
 const activities = await getGitHubContributions(username);
 const activityMap = new Map(activities.map((activity) => [activity.date, activity]));
 
@@ -128,7 +128,6 @@ const formatTooltipDate = (date: string) => {
 
             <div class="graph-footer">
                 <figcaption id="github-activity-caption" class="graph-caption">
-                    <span class="figure-number">Fig. 02.</span>
                     <span class="caption-copy">
                         {copy.totalLabel(total)}, {formatFigureDate(firstDate)} — {formatFigureDate(lastDate)}. Source:{' '}
                         <a href={`https://github.com/${username}`} target="_blank" rel="noopener">GitHub</a>.
@@ -297,14 +296,6 @@ const formatTooltipDate = (date: string) => {
         font-size: 10px;
         line-height: 1.35;
         text-wrap: balance;
-    }
-
-    .figure-number {
-        margin-right: 7px;
-        color: color-mix(in srgb, var(--muted) 78%, transparent);
-        font-family: var(--font-mono);
-        letter-spacing: 0.06em;
-        white-space: nowrap;
     }
 
     .graph-caption a {
