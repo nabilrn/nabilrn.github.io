@@ -203,6 +203,34 @@ const experienceItems = [
         outline: none;
     }
 
+    /* Same clipping principle as the tech rain: fade the actual content with a
+       mask instead of covering it with a dark gradient panel. */
+    .experience-panel[data-scrollable='true'][data-at-bottom='false'] .experience-scroll {
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 78%,
+            rgba(0, 0, 0, .88) 86%,
+            rgba(0, 0, 0, .42) 94%,
+            transparent 100%
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 78%,
+            rgba(0, 0, 0, .88) 86%,
+            rgba(0, 0, 0, .42) 94%,
+            transparent 100%
+        );
+    }
+
+    .experience-panel:hover .experience-scroll,
+    .experience-panel:focus-within .experience-scroll,
+    .experience-panel[data-at-bottom='true'] .experience-scroll {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
     .experience-panel:hover .experience-scroll,
     .experience-panel:focus-within .experience-scroll {
         scrollbar-color: color-mix(in srgb, var(--muted) 58%, transparent) transparent;
@@ -233,22 +261,9 @@ const experienceItems = [
     .experience-scroll-affordance {
         position: absolute;
         z-index: 5;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: 44px;
-        padding: 0 14px 8px;
-        display: flex;
-        align-items: flex-end;
-        justify-content: flex-end;
-        background: linear-gradient(
-            to bottom,
-            transparent 0%,
-            color-mix(in srgb, var(--bg) 72%, transparent) 35%,
-            color-mix(in srgb, var(--bg) 96%, transparent) 72%,
-            var(--bg) 100%
-        );
-        box-shadow: 0 -10px 20px -18px color-mix(in srgb, var(--text) 30%, transparent);
+        right: 14px;
+        bottom: 8px;
+        display: block;
         color: color-mix(in srgb, var(--muted) 88%, transparent);
         font-family: var(--font-mono);
         font-size: 8px;
@@ -256,7 +271,7 @@ const experienceItems = [
         letter-spacing: 0.03em;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(3px);
         transition: opacity 160ms ease, transform 160ms ease;
     }
 
@@ -266,15 +281,16 @@ const experienceItems = [
     }
 
     .experience-panel:hover .experience-scroll-affordance,
-    .experience-panel:focus-within .experience-scroll-affordance {
+    .experience-panel:focus-within .experience-scroll-affordance,
+    .experience-panel[data-at-bottom='true'] .experience-scroll-affordance {
         opacity: 0;
-        transform: translateY(4px);
+        transform: translateY(3px);
     }
 
     .experience-timeline {
         position: relative;
         min-width: 0;
-        padding: 5px 0 46px;
+        padding: 5px 0 16px;
     }
 
     .experience-timeline::before {
