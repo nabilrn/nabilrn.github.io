@@ -1,0 +1,140 @@
+---
+type TechIcon = {
+    label: string;
+    slug: string;
+    color: string;
+    scale?: number;
+};
+
+interface Props {
+    name: string;
+}
+
+const { name } = Astro.props;
+
+const SIMPLE_ICONS_COMMIT = '7f18aaa676087b8240b6f4ff58a6720be282da59';
+const simpleIconUrl = (slug: string) =>
+    `https://cdn.jsdelivr.net/gh/simple-icons/simple-icons@${SIMPLE_ICONS_COMMIT}/icons/${slug}.svg`;
+
+const icons: Record<string, TechIcon> = {
+    Go: { label: 'Go', slug: 'go', color: '#00ADD8' },
+    Svelte: { label: 'Svelte', slug: 'svelte', color: '#FF3E00' },
+    Caddy: { label: 'Caddy', slug: 'caddy', color: '#1F88C0' },
+    PostgreSQL: { label: 'PostgreSQL', slug: 'postgresql', color: '#4169E1' },
+    Astro: { label: 'Astro', slug: 'astro', color: '#BC52EE' },
+    TypeScript: { label: 'TypeScript', slug: 'typescript', color: '#3178C6' },
+    React: { label: 'React', slug: 'react', color: '#61DAFB' },
+    Vite: { label: 'Vite', slug: 'vite', color: '#646CFF' },
+    'Three.js': { label: 'Three.js', slug: 'threedotjs', color: 'var(--text)' },
+    Express: { label: 'Express', slug: 'express', color: 'var(--text)' },
+    MySQL: { label: 'MySQL', slug: 'mysql', color: '#4479A1' },
+    Redis: { label: 'Redis', slug: 'redis', color: '#FF4438' },
+    Docker: { label: 'Docker', slug: 'docker', color: '#2496ED' },
+    Hono: { label: 'Hono', slug: 'hono', color: '#E36002' },
+    SQLite: { label: 'SQLite', slug: 'sqlite', color: '#003B57' },
+    HTML: { label: 'HTML5', slug: 'html5', color: '#E34F26' },
+    CSS: { label: 'CSS', slug: 'css', color: '#663399' },
+    JavaScript: { label: 'JavaScript', slug: 'javascript', color: '#F7DF1E' },
+    'Next.js': { label: 'Next.js', slug: 'nextdotjs', color: 'var(--text)' },
+    Vercel: { label: 'Vercel', slug: 'vercel', color: 'var(--text)' },
+    'Google AI Studio': { label: 'Google Gemini', slug: 'googlegemini', color: '#8E75FF', scale: 0.94 },
+};
+
+const icon = icons[name];
+---
+
+{icon && (
+    <span
+        class="project-tech-icon"
+        data-project-tech-label={icon.label}
+        tabindex="0"
+        style={`--project-tech-icon:url('${simpleIconUrl(icon.slug)}');--project-tech-color:${icon.color};--project-tech-scale:${icon.scale ?? 1}`}
+        aria-label={icon.label}
+    >
+        <span class="project-tech-glyph" aria-hidden="true"></span>
+    </span>
+)}
+
+<style>
+    .project-tech-icon {
+        position: relative;
+        width: 22px;
+        height: 22px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        color: color-mix(in srgb, var(--text) 72%, var(--muted));
+        border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+        background: color-mix(in srgb, var(--bg) 86%, transparent);
+        backdrop-filter: blur(5px);
+        outline: none;
+        transition: color 160ms ease, border-color 160ms ease, transform 160ms ease, background 160ms ease;
+    }
+
+    .project-tech-glyph {
+        width: 12px;
+        height: 12px;
+        display: block;
+        background: currentColor;
+        -webkit-mask: var(--project-tech-icon) center / contain no-repeat;
+        mask: var(--project-tech-icon) center / contain no-repeat;
+        transform: scale(var(--project-tech-scale));
+        transform-origin: center;
+        transition: transform 160ms ease;
+    }
+
+    :global(.project-card:hover) .project-tech-icon,
+    :global(.project-card:focus-within) .project-tech-icon {
+        color: var(--project-tech-color);
+        border-color: color-mix(in srgb, var(--project-tech-color) 35%, var(--border));
+        background: color-mix(in srgb, var(--bg) 92%, transparent);
+    }
+
+    .project-tech-icon:hover,
+    .project-tech-icon:focus-visible {
+        color: var(--project-tech-color);
+        transform: translateY(-1px) scale(1.04);
+    }
+
+    .project-tech-icon:hover .project-tech-glyph,
+    .project-tech-icon:focus-visible .project-tech-glyph {
+        transform: scale(calc(var(--project-tech-scale) * 1.08));
+    }
+
+    .project-tech-icon::after {
+        content: attr(data-project-tech-label);
+        position: absolute;
+        z-index: 30;
+        left: 50%;
+        bottom: calc(100% + 7px);
+        width: max-content;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 450;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, 3px);
+        transition: opacity 140ms ease 180ms, transform 140ms ease 180ms;
+    }
+
+    .project-tech-icon:hover::after,
+    .project-tech-icon:focus-visible::after {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .project-tech-icon,
+        .project-tech-glyph,
+        .project-tech-icon::after {
+            transition: none;
+        }
+    }
+</style>
