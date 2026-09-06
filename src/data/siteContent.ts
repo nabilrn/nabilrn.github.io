@@ -388,7 +388,7 @@ export const siteContent = {
             },
         },
     },
-} as const;
+};
 
 type SiteContent = typeof siteContent.en;
 type DeepPartial<T> = {
