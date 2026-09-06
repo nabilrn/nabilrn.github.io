@@ -3,7 +3,12 @@ import HandwrittenNote from './HandwrittenNote.astro';
 
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
-type Surface = { points: Point[]; visible: boolean[]; connectorVisible: boolean[] };
+type Surface = {
+    points: Point[];
+    wallVisible: boolean[];
+    bottomVisible: boolean[];
+    connectorVisible: boolean[];
+};
 type Wall = { a: Point; b: Point };
 
 const ISO_STEP = 26;
@@ -97,20 +102,25 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-// This is a fixed mark, so hidden-line visibility is authored explicitly instead
-// of inferred from edge direction. Only true silhouette faces/creases are drawn.
+// This mark is fixed, so wall, lower-silhouette and connector visibility are
+// authored separately. A wall can be physically visible while its lower edge is
+// occluded by another part of the solid; conflating those two states made the N
+// either look X-rayed or, after the previous cleanup, like a floating sheet.
 const makeSurface = (
     shape: Point[],
     placement: Placement,
-    visibleEdges: number[],
+    wallEdges: number[],
+    bottomEdges: number[],
     connectorVertices: number[],
 ): Surface => {
     const points = projected(shape, placement);
-    const visibleSet = new Set(visibleEdges);
+    const wallSet = new Set(wallEdges);
+    const bottomSet = new Set(bottomEdges);
     const connectorSet = new Set(connectorVertices);
     return {
         points,
-        visible: points.map((_, index) => visibleSet.has(index)),
+        wallVisible: points.map((_, index) => wallSet.has(index)),
+        bottomVisible: points.map((_, index) => bottomSet.has(index)),
         connectorVisible: points.map((_, index) => connectorSet.has(index)),
     };
 };
@@ -119,13 +129,13 @@ const N = PLACEMENTS[0];
 const R = PLACEMENTS[1];
 
 const SURFACES: Surface[] = [
-    // N inner diagonal extrusion faces are occluded by the solid and must not
-    // produce bottom strokes. Keeping only 5, 8, 9 removes the X-ray line.
-    makeSurface(N_OUTER, N, [5, 8, 9], [0, 5, 6, 8, 9]),
-    // R keeps only the exposed outer silhouette; the nearly-flat 4 -> 5 face is
-    // intentionally omitted because it reads as a false construction crease.
-    makeSurface(R_OUTER, R, [5, 7, 8, 10, 11], [0, 5, 7, 8, 10, 11]),
-    makeSurface(R_HOLE, R, [0, 1, 2], [0, 3]),
+    // N needs the diagonal side faces (2 and 6) to read as a solid extrusion,
+    // but their lower edges sit behind the foreground mass and must stay hidden.
+    makeSurface(N_OUTER, N, [2, 5, 6, 8, 9], [5, 8, 9], [0, 3, 5, 6, 8, 9]),
+    // R keeps its current exposed silhouette while using the same separated
+    // visibility model so future hidden-line cleanup cannot delete whole faces.
+    makeSurface(R_OUTER, R, [5, 7, 8, 10, 11], [5, 7, 8, 10, 11], [0, 5, 7, 8, 10, 11]),
+    makeSurface(R_HOLE, R, [0, 1, 2], [0, 1, 2], [0, 3]),
 ];
 
 const wallPath = (a: Point, b: Point, topShift = 0) => {
@@ -138,7 +148,7 @@ const wallPath = (a: Point, b: Point, topShift = 0) => {
 
 const WALLS: Wall[] = SURFACES.flatMap((surface) =>
     surface.points.flatMap((a, index) => {
-        if (!surface.visible[index]) return [];
+        if (!surface.wallVisible[index]) return [];
         const b = surface.points[(index + 1) % surface.points.length];
         return [{ a, b }];
     }),
@@ -148,7 +158,7 @@ const bottomStrokePath = () => {
     const chunks: string[] = [];
     for (const surface of SURFACES) {
         surface.points.forEach((a, index) => {
-            if (!surface.visible[index]) return;
+            if (!surface.bottomVisible[index]) return;
             const b = surface.points[(index + 1) % surface.points.length];
             chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
         });
