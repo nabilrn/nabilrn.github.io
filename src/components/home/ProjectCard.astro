@@ -26,13 +26,30 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         tabindex={tabIndex}
         aria-label={`Open ${project.name}`}
     >
-        <Image
-            src={project.screenshot}
-            alt={`${project.name} website preview`}
-            class="project-image"
-            loading="lazy"
-        />
-        <span class="project-domain">{domain}</span>
+        <div class="mac-window-bar" aria-hidden="true">
+            <span class="mac-window-controls">
+                <i class="mac-dot mac-dot-close"></i>
+                <i class="mac-dot mac-dot-minimize"></i>
+                <i class="mac-dot mac-dot-maximize"></i>
+            </span>
+            <span class="mac-address">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="6" y="10" width="12" height="9" rx="2"></rect>
+                    <path d="M9 10V7a3 3 0 0 1 6 0v3"></path>
+                </svg>
+                <span>{domain}</span>
+            </span>
+            <span class="mac-window-spacer"></span>
+        </div>
+
+        <div class="project-image-wrap">
+            <Image
+                src={project.screenshot}
+                alt={`${project.name} website preview`}
+                class="project-image"
+                loading="lazy"
+            />
+        </div>
     </a>
 
     <div class="project-info">
@@ -97,17 +114,104 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
     }
 
     .project-preview {
-        position: relative;
         min-width: 0;
         min-height: 0;
-        display: block;
+        display: grid;
+        grid-template-rows: 22px minmax(0, 1fr);
         overflow: hidden;
         border-bottom: 1px solid var(--project-line);
         background: var(--surface);
         outline: none;
     }
 
-    .project-preview :global(img) {
+    .mac-window-bar {
+        min-width: 0;
+        padding: 0 7px;
+        display: grid;
+        grid-template-columns: 48px minmax(0, 1fr) 48px;
+        align-items: center;
+        gap: 5px;
+        border-bottom: 1px solid var(--project-line);
+        background: color-mix(in srgb, var(--surface) 82%, var(--bg));
+    }
+
+    .mac-window-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .mac-dot {
+        width: 6px;
+        height: 6px;
+        display: block;
+        border: 1px solid color-mix(in srgb, var(--text) 14%, var(--border));
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--muted) 36%, var(--surface));
+        transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .project-card:hover .mac-dot-close,
+    .project-card:focus-within .mac-dot-close {
+        border-color: #e0443e;
+        background: #ff5f57;
+    }
+
+    .project-card:hover .mac-dot-minimize,
+    .project-card:focus-within .mac-dot-minimize {
+        border-color: #d89b16;
+        background: #febc2e;
+    }
+
+    .project-card:hover .mac-dot-maximize,
+    .project-card:focus-within .mac-dot-maximize {
+        border-color: #18a73d;
+        background: #28c840;
+    }
+
+    .mac-address {
+        min-width: 0;
+        height: 14px;
+        padding: 0 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+        background: color-mix(in srgb, var(--bg) 72%, var(--surface));
+        color: color-mix(in srgb, var(--muted) 88%, var(--text));
+        font-family: var(--font-mono);
+        font-size: 6.6px;
+        line-height: 1;
+    }
+
+    .mac-address svg {
+        width: 7px;
+        height: 7px;
+        flex: none;
+        opacity: 0.72;
+    }
+
+    .mac-address span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .mac-window-spacer {
+        width: 48px;
+    }
+
+    .project-image-wrap {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+        background: var(--surface);
+    }
+
+    .project-image-wrap :global(img) {
         width: 100%;
         height: 100%;
         display: block;
@@ -119,30 +223,11 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         transition: filter 260ms ease, opacity 260ms ease, transform 260ms ease;
     }
 
-    .project-card:hover .project-preview :global(img),
-    .project-card:focus-within .project-preview :global(img) {
+    .project-card:hover .project-image-wrap :global(img),
+    .project-card:focus-within .project-image-wrap :global(img) {
         filter: grayscale(0) saturate(1) contrast(1) brightness(0.94);
         opacity: 1;
         transform: scale(1.012);
-    }
-
-    .project-domain {
-        position: absolute;
-        left: 7px;
-        bottom: 7px;
-        max-width: calc(100% - 14px);
-        overflow: hidden;
-        padding: 3px 5px;
-        border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-        background: color-mix(in srgb, var(--bg) 88%, transparent);
-        color: color-mix(in srgb, var(--text) 78%, var(--muted));
-        font-family: var(--font-mono);
-        font-size: 7.5px;
-        line-height: 1;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        backdrop-filter: blur(4px);
     }
 
     .project-info {
@@ -218,6 +303,19 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
             grid-template-rows: minmax(78px, 1fr) auto;
         }
 
+        .project-preview {
+            grid-template-rows: 20px minmax(0, 1fr);
+        }
+
+        .mac-window-bar {
+            grid-template-columns: 44px minmax(0, 1fr) 44px;
+            padding-inline: 6px;
+        }
+
+        .mac-window-spacer {
+            width: 44px;
+        }
+
         .project-info {
             padding-top: 6px;
             padding-bottom: 7px;
@@ -235,8 +333,9 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
 
     @media (prefers-reduced-motion: reduce) {
         .project-card,
-        .project-preview :global(img),
-        .project-action {
+        .project-image-wrap :global(img),
+        .project-action,
+        .mac-dot {
             transition: none;
         }
     }
