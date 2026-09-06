@@ -23,10 +23,9 @@ import ProjectCard from './ProjectCard.astro';
 </template>
 
 <style is:global>
-    /* projects-region still carries the legacy .index-region grid from index.astro.
-       That grid has two rows (auto + 1fr), but after the overlay mounts there is
-       only one child. Force this region to one deterministic row so the carousel
-       panel owns the full section height instead of collapsing into the auto row. */
+    /* index.astro gives every .index-region a legacy two-row grid because the
+       original projects block had a header and a list. The overlay is now one
+       self-contained child, so projects must own one full-height row. */
     .home-redesign .projects-region {
         min-width: 0;
         min-height: 0;
@@ -75,10 +74,17 @@ import ProjectCard from './ProjectCard.astro';
         user-select: none;
     }
 
+    /* Keep vertical geometry in normal flow. The viewport has a definite grid
+       height and flex stretching propagates that height to track -> groups ->
+       cards. This avoids the previous percentage-height/absolute-positioning
+       cycle that could collapse the moving content to zero paint height. */
     .home-redesign .project-carousel-viewport {
-        position: relative;
+        box-sizing: border-box;
         min-width: 0;
         min-height: 0;
+        padding-block: var(--project-carousel-inset);
+        display: flex;
+        align-items: stretch;
         overflow: hidden;
         outline: none;
         -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
@@ -86,12 +92,14 @@ import ProjectCard from './ProjectCard.astro';
     }
 
     .home-redesign .project-carousel-track {
-        position: absolute;
-        inset: var(--project-carousel-inset) 0;
+        position: relative;
+        flex: 0 0 auto;
+        align-self: stretch;
         width: max-content;
         min-width: max-content;
         min-height: 0;
         display: flex;
+        align-items: stretch;
         transform: translate3d(0, 0, 0);
         will-change: transform;
         backface-visibility: hidden;
@@ -102,12 +110,21 @@ import ProjectCard from './ProjectCard.astro';
     }
 
     .home-redesign .project-carousel-group {
-        height: 100%;
+        flex: none;
+        align-self: stretch;
         min-height: 0;
         display: flex;
         align-items: stretch;
         gap: 10px;
         padding-right: 10px;
+    }
+
+    /* ProjectCard previously used height:100%. In this carousel the more robust
+       geometry is flex cross-axis stretching, so remove the percentage height
+       specifically inside the moving rail. */
+    .home-redesign .project-carousel-group > .project-card {
+        height: auto;
+        align-self: stretch;
     }
 
     .home-redesign .project-carousel-panel:hover .project-carousel-track,
@@ -148,9 +165,6 @@ import ProjectCard from './ProjectCard.astro';
         }
 
         .home-redesign .project-carousel-track {
-            position: relative;
-            inset: auto;
-            height: 100%;
             animation: none !important;
             transform: none !important;
             will-change: auto;
@@ -169,9 +183,6 @@ import ProjectCard from './ProjectCard.astro';
         }
 
         .home-redesign .project-carousel-track {
-            position: relative;
-            inset: auto;
-            height: 100%;
             animation: none !important;
             transform: none !important;
             will-change: auto;
@@ -213,14 +224,17 @@ import ProjectCard from './ProjectCard.astro';
                 return;
             }
 
-            // The source group includes its trailing seam spacing. Moving by
-            // exactly this measured width makes the duplicate land at the same
-            // coordinates when the animation loops.
+            /* The source group includes its trailing seam spacing. Travelling by
+               exactly this width places duplicate group #2 at group #1's initial
+               coordinates when the animation loops. */
             const distance = sourceGroup.getBoundingClientRect().width;
-            if (!Number.isFinite(distance) || distance <= 0) return;
+            if (!Number.isFinite(distance) || distance <= 0) {
+                panel.dataset.carouselReady = 'false';
+                return;
+            }
 
-            // Ignore tiny ResizeObserver noise so the animation is not restarted
-            // by fractional layout fluctuations that do not change the geometry.
+            /* Ignore tiny ResizeObserver noise so a sub-pixel fluctuation does
+               not restart the CSS animation. */
             if (Math.abs(distance - previousDistance) < 0.25 && panel.dataset.carouselReady === 'true') {
                 return;
             }
@@ -246,8 +260,6 @@ import ProjectCard from './ProjectCard.astro';
         mobileQuery.addEventListener('change', scheduleMeasure);
         window.addEventListener('load', scheduleMeasure, { once: true });
 
-        // Measure after mounting and once more after fonts settle because the
-        // card width can be viewport-driven and the surrounding shell may shift.
         scheduleMeasure();
         document.fonts?.ready.then(scheduleMeasure);
     }
