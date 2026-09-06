@@ -1,6 +1,8 @@
 ---
 type Point = { x: number; y: number };
 type Connector = { top: Point; bottom: Point };
+type SvgFillRule = 'evenodd' | 'nonzero';
+type Letter = { key: string; path: string; transform: string; fillRule: SvgFillRule };
 
 const VIEWBOX_X = 60;
 const VIEWBOX_Y = 45;
@@ -17,7 +19,7 @@ const LEFT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966
 const RIGHT_N_MATRIX = 'matrix(-0.999965966 -0.008251472 -0.008251472 0.999965966 866.330566 275.151489)';
 const R_MATRIX = 'matrix(0.999965966 0.008251472 -0.008251472 0.999965966 332.126709 179.541138)';
 
-const LETTERS = [
+const LETTERS: Letter[] = [
     { key: 'n-left', path: N_FRONT_PATH, transform: LEFT_N_MATRIX, fillRule: 'nonzero' },
     { key: 'r-center', path: R_FRONT_PATH, transform: R_MATRIX, fillRule: 'evenodd' },
     { key: 'n-right', path: N_FRONT_PATH, transform: RIGHT_N_MATRIX, fillRule: 'nonzero' },
