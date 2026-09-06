@@ -1,3 +1,29 @@
+type KVPutOptions = {
+  expirationTtl?: number;
+};
+
+type KVListOptions = {
+  prefix?: string;
+  cursor?: string;
+};
+
+type KVListResult = {
+  keys: Array<{ name: string }>;
+  list_complete: boolean;
+  cursor?: string;
+};
+
+interface KVNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string, options?: KVPutOptions): Promise<void>;
+  delete(key: string): Promise<void>;
+  list(options?: KVListOptions): Promise<KVListResult>;
+}
+
+type ExportedHandler<TEnv> = {
+  fetch(request: Request, env: TEnv): Response | Promise<Response>;
+};
+
 export interface Env {
   METRICS: KVNamespace;
   ALLOWED_ORIGIN?: string;
