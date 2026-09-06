@@ -1,6 +1,7 @@
 ---
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
+type SvgFillRule = 'evenodd' | 'nonzero';
 type Surface = { points: Point[]; visible: boolean[] };
 type WallState = { normal: string; pressed: string };
 
@@ -85,7 +86,7 @@ const glyphPath = (placement: Placement, dy = 0) => {
 const GLYPHS = PLACEMENTS.map((placement) => ({
     placement,
     path: glyphPath(placement),
-    fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
+    fillRule: (placement.kind === 'r' ? 'evenodd' : 'nonzero') as SvgFillRule,
 }));
 
 // Downward screen-space extrusion: outer contour faces with dx < 0 face the
