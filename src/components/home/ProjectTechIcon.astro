@@ -59,22 +59,20 @@ const icon = icons[name];
 <style>
     .project-tech-icon {
         position: relative;
-        width: 22px;
-        height: 22px;
+        width: 15px;
+        height: 15px;
         flex: none;
         display: grid;
         place-items: center;
-        color: color-mix(in srgb, var(--text) 72%, var(--muted));
-        border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-        background: color-mix(in srgb, var(--bg) 86%, transparent);
-        backdrop-filter: blur(5px);
+        color: color-mix(in srgb, var(--muted) 84%, var(--text));
         outline: none;
-        transition: color 160ms ease, border-color 160ms ease, transform 160ms ease, background 160ms ease;
+        cursor: default;
+        transition: color 160ms ease, opacity 160ms ease, transform 160ms ease;
     }
 
     .project-tech-glyph {
-        width: 12px;
-        height: 12px;
+        width: 13px;
+        height: 13px;
         display: block;
         background: currentColor;
         -webkit-mask: var(--project-tech-icon) center / contain no-repeat;
@@ -87,27 +85,25 @@ const icon = icons[name];
     :global(.project-card:hover) .project-tech-icon,
     :global(.project-card:focus-within) .project-tech-icon {
         color: var(--project-tech-color);
-        border-color: color-mix(in srgb, var(--project-tech-color) 35%, var(--border));
-        background: color-mix(in srgb, var(--bg) 92%, transparent);
     }
 
     .project-tech-icon:hover,
     .project-tech-icon:focus-visible {
         color: var(--project-tech-color);
-        transform: translateY(-1px) scale(1.04);
+        transform: translateY(-1px);
     }
 
     .project-tech-icon:hover .project-tech-glyph,
     .project-tech-icon:focus-visible .project-tech-glyph {
-        transform: scale(calc(var(--project-tech-scale) * 1.08));
+        transform: scale(calc(var(--project-tech-scale) * 1.09));
     }
 
     .project-tech-icon::after {
         content: attr(data-project-tech-label);
         position: absolute;
         z-index: 30;
-        left: 0;
-        top: calc(100% + 6px);
+        left: 50%;
+        bottom: calc(100% + 7px);
         width: max-content;
         padding: 4px 7px;
         border: 1px solid var(--border-strong);
@@ -121,14 +117,14 @@ const icon = icons[name];
         white-space: nowrap;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(-3px);
+        transform: translate(-50%, 3px);
         transition: opacity 140ms ease 180ms, transform 140ms ease 180ms;
     }
 
     .project-tech-icon:hover::after,
     .project-tech-icon:focus-visible::after {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, 0);
     }
 
     @media (prefers-reduced-motion: reduce) {
