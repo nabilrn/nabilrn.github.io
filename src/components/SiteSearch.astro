@@ -7,10 +7,9 @@ interface Props {
 
 const locale = normalizeLocale(Astro.props.locale);
 const copy = getSiteContent(locale).search;
-const rootId = `site-search-${locale}`;
 ---
 
-<div class="site-search" id={rootId} data-site-search>
+<div class="site-search" data-site-search>
 	<button class="site-search-trigger" type="button" aria-label={copy.ariaOpen} data-search-open>
 		<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
 			<path d="M10.68 11.74a6 6 0 111.06-1.06l3.29 3.29a.75.75 0 01-1.06 1.06zM11.5 7a4.5 4.5 0 10-9 0 4.5 4.5 0 009 0z"></path>
@@ -26,7 +25,13 @@ const rootId = `site-search-${locale}`;
 				<svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
 					<path d="M10.68 11.74a6 6 0 111.06-1.06l3.29 3.29a.75.75 0 01-1.06 1.06zM11.5 7a4.5 4.5 0 10-9 0 4.5 4.5 0 009 0z"></path>
 				</svg>
-				<input type="search" placeholder={copy.placeholder} autocomplete="off" data-search-input />
+				<input
+					type="search"
+					placeholder={copy.placeholder}
+					aria-label={copy.placeholder}
+					autocomplete="off"
+					data-search-input
+				/>
 				<button class="search-close" type="button" aria-label={copy.close} data-search-close>
 					<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
 						<path d="M3.72 3.72a.75.75 0 011.06 0L8 6.94l3.22-3.22a.75.75 0 111.06 1.06L9.06 8l3.22 3.22a.75.75 0 11-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 01-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 010-1.06z"></path>
@@ -118,7 +123,7 @@ const rootId = `site-search-${locale}`;
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		padding: 14px 14px;
+		padding: 14px;
 		border-bottom: 1px solid var(--border);
 		color: var(--muted);
 	}
@@ -303,132 +308,146 @@ const rootId = `site-search-${locale}`;
 	}
 </style>
 
-<script is:inline define:vars={{ rootId, locale, copy }}>
+<script is:inline define:vars={{ locale, copy }}>
 	(() => {
-		const root = document.getElementById(rootId);
-		if (!root) return;
+		const initialize = (root) => {
+			if (!(root instanceof HTMLElement) || root.dataset.searchReady === 'true') return;
+			root.dataset.searchReady = 'true';
 
-		const openButton = root.querySelector('[data-search-open]');
-		const dialog = root.querySelector('[data-search-dialog]');
-		const input = root.querySelector('[data-search-input]');
-		const results = root.querySelector('[data-search-results]');
-		const status = root.querySelector('[data-search-status]');
-		const closeTargets = root.querySelectorAll('[data-search-close]');
-		let indexPromise;
-		let items = [];
+			const openButton = root.querySelector('[data-search-open]');
+			const dialog = root.querySelector('[data-search-dialog]');
+			const input = root.querySelector('[data-search-input]');
+			const results = root.querySelector('[data-search-results]');
+			const status = root.querySelector('[data-search-status]');
+			const closeTargets = root.querySelectorAll('[data-search-close]');
+			if (!(dialog instanceof HTMLElement) || !(input instanceof HTMLInputElement) || !(results instanceof HTMLElement) || !(status instanceof HTMLElement)) return;
 
-		const normalize = (value) => (value || '').toLowerCase().normalize('NFKD');
-		const escapeText = (value) => {
-			const span = document.createElement('span');
-			span.textContent = value || '';
-			return span.innerHTML;
+			let indexPromise;
+			let items = [];
+
+			const normalize = (value) => (value || '').toLowerCase().normalize('NFKD');
+			const escapeText = (value) => {
+				const span = document.createElement('span');
+				span.textContent = value || '';
+				return span.innerHTML;
+			};
+			const escapeAttr = (value) => escapeText(value).replace(/"/g, '&quot;');
+
+			const loadIndex = async () => {
+				if (!indexPromise) {
+					indexPromise = fetch('/search-index.json')
+						.then((response) => response.json())
+						.then((data) => data.items || [])
+						.catch(() => []);
+				}
+				items = await indexPromise;
+				return items;
+			};
+
+			const scoreItem = (item, query) => {
+				const q = normalize(query);
+				const title = normalize(item.title);
+				const description = normalize(item.description);
+				const content = normalize(item.content);
+				const tags = normalize((item.tags || []).join(' '));
+				let score = item.locale === locale ? 40 : 0;
+
+				if (title === q) score += 120;
+				if (title.includes(q)) score += 70;
+				if (description.includes(q)) score += 35;
+				if (tags.includes(q)) score += 25;
+				if (content.includes(q)) score += 12;
+				if (item.type === 'page') score += 6;
+				return score;
+			};
+
+			const render = async () => {
+				const query = input.value.trim();
+				await loadIndex();
+
+				if (!query) {
+					status.textContent = copy.hint;
+					results.innerHTML = '';
+					return;
+				}
+
+				const matches = items
+					.map((item) => ({ item, score: scoreItem(item, query) }))
+					.filter((entry) => entry.score > 0)
+					.sort((a, b) => b.score - a.score)
+					.slice(0, 10)
+					.map((entry) => entry.item);
+
+				status.textContent = `${matches.length} ${copy.results}`;
+				if (matches.length === 0) {
+					results.innerHTML = `<p class="search-empty">${escapeText(copy.noResults)}</p>`;
+					return;
+				}
+
+				results.innerHTML = matches
+					.map((item) => {
+						const type = copy.resultTypes[item.type] || item.type;
+						const tags = (item.tags || [])
+							.slice(0, 4)
+							.map((tag) => `<span class="search-result-tag">#${escapeText(tag)}</span>`)
+							.join('');
+						return `<a class="search-result" href="${escapeAttr(item.url)}" data-result-type="${escapeAttr(item.type)}">
+							<span class="search-result-type">${escapeText(type)}</span>
+							<span class="search-result-body">
+								<span class="search-result-title">${escapeText(item.title)}</span>
+								<span class="search-result-desc">${escapeText(item.description)}</span>
+								${tags ? `<span class="search-result-tags">${tags}</span>` : ''}
+							</span>
+							<span class="search-result-path">${escapeText(item.url)}</span>
+						</a>`;
+					})
+					.join('');
+			};
+
+			const open = async () => {
+				dialog.hidden = false;
+				document.body.style.overflow = 'hidden';
+				await loadIndex();
+				input.focus();
+				render();
+			};
+
+			const close = () => {
+				dialog.hidden = true;
+				document.body.style.overflow = '';
+				if (openButton instanceof HTMLElement) openButton.focus();
+			};
+
+			openButton?.addEventListener('click', open);
+			closeTargets.forEach((target) => target.addEventListener('click', close));
+			input.addEventListener('input', render);
+			results.addEventListener('click', (event) => {
+				if (event.target instanceof Element && event.target.closest('a')) close();
+			});
 		};
-		const escapeAttr = (value) => escapeText(value).replace(/"/g, '&quot;');
 
-		const loadIndex = async () => {
-			if (!indexPromise) {
-				indexPromise = fetch('/search-index.json')
-					.then((response) => response.json())
-					.then((data) => data.items || [])
-					.catch(() => []);
-			}
-			items = await indexPromise;
-			return items;
-		};
+		document.querySelectorAll('[data-site-search]').forEach(initialize);
 
-		const scoreItem = (item, query) => {
-			const q = normalize(query);
-			const title = normalize(item.title);
-			const description = normalize(item.description);
-			const content = normalize(item.content);
-			const tags = normalize((item.tags || []).join(' '));
-			let score = item.locale === locale ? 40 : 0;
+		if (!window.__portfolioSearchShortcutBound) {
+			window.__portfolioSearchShortcutBound = true;
+			window.addEventListener('keydown', (event) => {
+				const isShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
+				if (isShortcut) {
+					event.preventDefault();
+					const candidates = Array.from(document.querySelectorAll('[data-search-open]'));
+					const visibleButton = candidates.find((candidate) => candidate instanceof HTMLElement && candidate.offsetParent !== null);
+					if (visibleButton instanceof HTMLElement) visibleButton.click();
+				}
 
-			if (title === q) score += 120;
-			if (title.includes(q)) score += 70;
-			if (description.includes(q)) score += 35;
-			if (tags.includes(q)) score += 25;
-			if (content.includes(q)) score += 12;
-			if (item.type === 'page') score += 6;
-
-			return score;
-		};
-
-		const render = async () => {
-			const query = input.value.trim();
-			await loadIndex();
-
-			if (!query) {
-				status.textContent = copy.hint;
-				results.innerHTML = '';
-				return;
-			}
-
-			const matches = items
-				.map((item) => ({ item, score: scoreItem(item, query) }))
-				.filter((entry) => entry.score > 0)
-				.sort((a, b) => b.score - a.score)
-				.slice(0, 10)
-				.map((entry) => entry.item);
-
-			status.textContent = `${matches.length} ${copy.results}`;
-
-			if (matches.length === 0) {
-				results.innerHTML = `<p class="search-empty">${escapeText(copy.noResults)}</p>`;
-				return;
-			}
-
-			results.innerHTML = matches
-				.map((item) => {
-					const type = copy.resultTypes[item.type] || item.type;
-					const tags = (item.tags || [])
-						.slice(0, 4)
-						.map((tag) => `<span class="search-result-tag">#${escapeText(tag)}</span>`)
-						.join('');
-					return `<a class="search-result" href="${escapeAttr(item.url)}" data-result-type="${escapeAttr(item.type)}">
-						<span class="search-result-type">${escapeText(type)}</span>
-						<span class="search-result-body">
-							<span class="search-result-title">${escapeText(item.title)}</span>
-							<span class="search-result-desc">${escapeText(item.description)}</span>
-							${tags ? `<span class="search-result-tags">${tags}</span>` : ''}
-						</span>
-						<span class="search-result-path">${escapeText(item.url)}</span>
-					</a>`;
-				})
-				.join('');
-		};
-
-		const open = async () => {
-			dialog.hidden = false;
-			document.body.style.overflow = 'hidden';
-			await loadIndex();
-			input.focus();
-			render();
-		};
-
-		const close = () => {
-			dialog.hidden = true;
-			document.body.style.overflow = '';
-			openButton?.focus();
-		};
-
-		openButton?.addEventListener('click', open);
-		closeTargets.forEach((target) => target.addEventListener('click', close));
-		input?.addEventListener('input', render);
-		results?.addEventListener('click', (event) => {
-			if (event.target.closest('a')) close();
-		});
-
-		window.addEventListener('keydown', (event) => {
-			const isShortcut = (event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k';
-			if (isShortcut) {
-				event.preventDefault();
-				open();
-			}
-			if (event.key === 'Escape' && !dialog.hidden) {
-				event.preventDefault();
-				close();
-			}
-		});
+				if (event.key === 'Escape') {
+					const openDialog = document.querySelector('[data-search-dialog]:not([hidden])');
+					if (openDialog instanceof HTMLElement) {
+						event.preventDefault();
+						const closeButton = openDialog.querySelector('[data-search-close]');
+						if (closeButton instanceof HTMLElement) closeButton.click();
+					}
+				}
+			});
+		}
 	})();
 </script>
