@@ -221,20 +221,20 @@ const CONNECTOR_POINTS = connectorPoints();
 
 const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
 const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
-const AXIS_HORIZONTAL = { x: 1, y: 0 };
 const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
     `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
     `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
 
 const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
 const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
-// The upper editorial ruler is the resting cap datum itself, matching the
-// reference: it touches the highest NR construction point instead of floating above it.
-const TOP_DATUM_Y = Math.min(...SURFACES.flatMap((surface) => surface.points.map((point) => point.y)));
-const TOP_DATUM_ANCHOR = { x: VIEWBOX.x + VIEWBOX.width / 2, y: TOP_DATUM_Y };
+// Mirror the lower editorial ruler: anchor the upper guide to a real projected
+// NR vertex and keep it on the exact same -30° isometric axis.
+const TOP_GUIDE_ANCHOR = SURFACES
+    .flatMap((surface) => surface.points)
+    .reduce((highest, point) => (point.y < highest.y ? point : highest));
 
 const GUIDE_PATHS = [
-    guideThrough(TOP_DATUM_ANCHOR, AXIS_HORIZONTAL),
+    guideThrough(TOP_GUIDE_ANCHOR, AXIS_NEGATIVE),
     guideThrough(N_BOTTOM_ANCHOR, AXIS_NEGATIVE),
     guideThrough(N_BOTTOM_ANCHOR, AXIS_POSITIVE),
     guideThrough(R_BOTTOM_ANCHOR, AXIS_POSITIVE),
