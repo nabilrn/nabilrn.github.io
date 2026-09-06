@@ -16,6 +16,7 @@ interface Props {
 }
 
 const { locale, name, avatarAlt } = Astro.props;
+const contactHref = 'mailto:nabilrizkinavisa@gmail.com';
 
 const flipSentences = [
     'i use a cheap android phone.',
@@ -29,14 +30,21 @@ const socialLinks = [
     { label: 'GitHub', href: 'https://github.com/nabilrn', brand: 'github' },
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/nabilrizkinavisa2004', brand: 'linkedin' },
     { label: 'X', href: 'https://x.com/NabilrizkiN', brand: 'x' },
-    { label: 'Gmail', href: 'mailto:nabilrizkinavisa@gmail.com', brand: 'gmail' },
+    { label: 'Threads', href: 'https://www.threads.com/@nabilrizkinavisa?hl=en', brand: 'threads' },
 ] as const;
 ---
 
 <div class="identity-profile" data-locale={locale}>
     <div class="avatar-stage">
-        <div class="avatar-wrap">
-            <Image src={avatar} alt={avatarAlt} width={320} height={320} />
+        <div class="avatar-contact-cluster">
+            <div class="avatar-wrap">
+                <Image src={avatar} alt={avatarAlt} width={320} height={320} />
+            </div>
+
+            <a class="avatar-contact" href={contactHref} aria-label="Get in touch by email">
+                <SocialBrandIcon name="gmail" size={12} />
+                <span>get in touch</span>
+            </a>
         </div>
 
         <HandwrittenNote text="my activity" class="profile-activity-note" arrowVariant="shallow" />
@@ -64,8 +72,8 @@ const socialLinks = [
             {socialLinks.map((item) => (
                 <a
                     href={item.href}
-                    target={item.href.startsWith('http') ? '_blank' : undefined}
-                    rel={item.href.startsWith('http') ? 'noopener' : undefined}
+                    target="_blank"
+                    rel="noopener"
                     aria-label={item.label}
                     data-tooltip={item.label}
                 >
@@ -133,6 +141,11 @@ const socialLinks = [
         bottom: 0;
     }
 
+    .avatar-contact-cluster {
+        position: relative;
+        width: max-content;
+    }
+
     .avatar-wrap {
         position: relative;
         width: clamp(136px, 9.2vw, 160px);
@@ -160,6 +173,51 @@ const socialLinks = [
         display: block;
         object-fit: cover;
         object-position: 50% 45%;
+    }
+
+    .avatar-contact {
+        position: absolute;
+        right: -68px;
+        bottom: 10px;
+        z-index: 8;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 7px;
+        border: 1px solid color-mix(in srgb, var(--border-strong) 88%, transparent);
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        color: color-mix(in srgb, var(--muted) 88%, transparent);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+        text-decoration: none;
+        box-shadow: 0 5px 14px color-mix(in srgb, #000 12%, transparent);
+        transition: color 150ms ease, border-color 150ms ease, background 150ms ease, transform 150ms ease;
+    }
+
+    .avatar-contact:hover,
+    .avatar-contact:focus-visible {
+        color: var(--text);
+        border-color: color-mix(in srgb, var(--text) 32%, var(--border));
+        background: color-mix(in srgb, var(--surface) 68%, var(--bg));
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .avatar-contact:hover :global([data-brand='gmail'] .social-brand-mono),
+    .avatar-contact:focus-visible :global([data-brand='gmail'] .social-brand-mono) {
+        opacity: 0;
+        transform: scale(.94);
+    }
+
+    .avatar-contact:hover :global([data-brand='gmail'] .social-brand-color),
+    .avatar-contact:focus-visible :global([data-brand='gmail'] .social-brand-color) {
+        opacity: 1;
+        transform: scale(1.04);
     }
 
     :global(.avatar-stage .profile-activity-note) {
@@ -349,6 +407,109 @@ const socialLinks = [
         overflow: hidden;
     }
 
+    :global(.location-place[data-profile-link='maps']) {
+        position: relative;
+        text-decoration: none;
+        transition: color 150ms ease, transform 150ms ease;
+    }
+
+    :global(.location-place[data-profile-link='maps']:hover),
+    :global(.location-place[data-profile-link='maps']:focus-visible) {
+        color: var(--text);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    :global(.location-map-icon) {
+        position: relative;
+        width: 12px;
+        height: 12px;
+        flex: none;
+        display: grid;
+        place-items: center;
+    }
+
+    :global(.location-map-icon > *) {
+        grid-area: 1 / 1;
+    }
+
+    :global(.location-map-brand) {
+        width: 12px;
+        height: 12px;
+        display: block;
+        object-fit: contain;
+        opacity: 0;
+        transform: scale(.86);
+        transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    :global(.location-map-mono) {
+        display: grid;
+        place-items: center;
+        opacity: 1;
+        transition: opacity 150ms ease, transform 150ms ease;
+    }
+
+    :global(.location-place[data-profile-link='maps']:hover .location-map-mono),
+    :global(.location-place[data-profile-link='maps']:focus-visible .location-map-mono) {
+        opacity: 0;
+        transform: scale(.86);
+    }
+
+    :global(.location-place[data-profile-link='maps']:hover .location-map-brand),
+    :global(.location-place[data-profile-link='maps']:focus-visible .location-map-brand) {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    :global(.profile-link-tooltip) {
+        position: absolute;
+        z-index: 20;
+        left: 0;
+        bottom: calc(100% + 8px);
+        width: max-content;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 450;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    :global(.location-place[data-profile-link='maps']:hover .profile-link-tooltip),
+    :global(.location-place[data-profile-link='maps']:focus-visible .profile-link-tooltip) {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    :global(.streak-region[data-profile-link='duolingo']) {
+        cursor: pointer !important;
+        text-decoration: none;
+        outline: none;
+    }
+
+    :global(.streak-region[data-profile-link='duolingo']:focus-visible) {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 22%, var(--border));
+    }
+
+    :global(.streak-region[data-profile-link='duolingo']:focus-visible .duo-identity),
+    :global(.streak-region[data-profile-link='duolingo']:focus-visible .duo-identity span) {
+        color: #58cc02;
+    }
+
+    :global(.streak-region[data-profile-link='duolingo']:focus-visible .streak-value),
+    :global(.streak-region[data-profile-link='duolingo']:focus-visible .streak-flame) {
+        color: #f49000;
+    }
+
     @media (min-width: 1100px) and (max-height: 859px) {
         .identity-profile {
             --profile-pad: 12px;
@@ -361,6 +522,13 @@ const socialLinks = [
 
         .avatar-wrap {
             width: 128px;
+        }
+
+        .avatar-contact {
+            right: -64px;
+            bottom: 8px;
+            padding: 4px 6px;
+            font-size: 7.5px;
         }
 
         :global(.avatar-stage .profile-activity-note) {
@@ -433,9 +601,74 @@ const socialLinks = [
             width: 136px;
         }
 
+        .avatar-contact {
+            right: -70px;
+        }
+
         :global(.avatar-stage .profile-activity-note),
         .social-annotation-layer {
             display: none;
         }
     }
 </style>
+
+<script>
+    const PADANG_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Padang%2C%20Sumatera%20Barat%2C%20Indonesia';
+    const DUOLINGO_PROFILE_URL = 'https://www.duolingo.com/profile/bilcikiwir?via=share_profile_link';
+
+    const locationPlace = document.querySelector<HTMLElement>('.location-place');
+    if (locationPlace && locationPlace.tagName !== 'A') {
+        const link = document.createElement('a');
+        link.className = locationPlace.className;
+        link.href = PADANG_MAPS_URL;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.dataset.profileLink = 'maps';
+        link.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+
+        while (locationPlace.firstChild) link.append(locationPlace.firstChild);
+
+        const originalIcon = link.firstElementChild;
+        if (originalIcon) {
+            const iconWrap = document.createElement('span');
+            iconWrap.className = 'location-map-icon';
+            const monoWrap = document.createElement('span');
+            monoWrap.className = 'location-map-mono';
+            monoWrap.append(originalIcon);
+            iconWrap.append(monoWrap);
+
+            const mapsIcon = document.createElement('img');
+            mapsIcon.className = 'location-map-brand';
+            mapsIcon.src = 'https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico';
+            mapsIcon.alt = '';
+            mapsIcon.setAttribute('aria-hidden', 'true');
+            iconWrap.append(mapsIcon);
+            link.prepend(iconWrap);
+        }
+
+        const tooltip = document.createElement('span');
+        tooltip.className = 'profile-link-tooltip';
+        tooltip.textContent = 'See Padang on Google Maps';
+        tooltip.setAttribute('role', 'tooltip');
+        link.append(tooltip);
+
+        locationPlace.replaceWith(link);
+    }
+
+    const streakRegion = document.querySelector<HTMLElement>('.streak-region');
+    if (streakRegion && streakRegion.tagName !== 'A') {
+        const link = document.createElement('a');
+        link.className = streakRegion.className;
+        link.href = DUOLINGO_PROFILE_URL;
+        link.target = '_blank';
+        link.rel = 'noopener';
+        link.dataset.profileLink = 'duolingo';
+        link.setAttribute(
+            'aria-label',
+            `${streakRegion.getAttribute('aria-label') ?? 'Duolingo streak'}, open @bilcikiwir profile`,
+        );
+
+        while (streakRegion.firstChild) link.append(streakRegion.firstChild);
+        streakRegion.replaceWith(link);
+    }
+</script>
