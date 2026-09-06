@@ -3,10 +3,11 @@ import HandwrittenNote from './HandwrittenNote.astro';
 
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
+type BottomSegment = { edge: number; from: number; to: number };
 type Surface = {
     points: Point[];
     wallVisible: boolean[];
-    bottomVisible: boolean[];
+    bottomSegments: BottomSegment[];
     connectorVisible: boolean[];
 };
 type Wall = { a: Point; b: Point };
@@ -85,6 +86,10 @@ const project = (point: Point, placement: Placement): Point => {
 const shifted = (point: Point, dy: number): Point => ({ x: point.x, y: point.y + dy });
 const move = (point: Point) => `${point.x.toFixed(3)} ${point.y.toFixed(3)}`;
 const projected = (shape: Point[], placement: Placement) => shape.map((point) => project(point, placement));
+const lerpPoint = (a: Point, b: Point, t: number): Point => ({
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+});
 
 const polygonPath = (points: Point[]) => {
     const [first, ...rest] = points;
@@ -103,39 +108,59 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
 }));
 
 // This mark is fixed, so wall, lower-silhouette and connector visibility are
-// authored separately. A wall can be physically visible while its lower edge is
-// occluded by another part of the solid; conflating those two states made the N
-// either look X-rayed or, after the previous cleanup, like a floating sheet.
+// authored independently. Concave lower edges can be only partially exposed,
+// so bottom geometry uses clipped edge ranges instead of a simple on/off flag.
 const makeSurface = (
     shape: Point[],
     placement: Placement,
     wallEdges: number[],
-    bottomEdges: number[],
+    bottomSegments: BottomSegment[],
     connectorVertices: number[],
 ): Surface => {
     const points = projected(shape, placement);
     const wallSet = new Set(wallEdges);
-    const bottomSet = new Set(bottomEdges);
     const connectorSet = new Set(connectorVertices);
     return {
         points,
         wallVisible: points.map((_, index) => wallSet.has(index)),
-        bottomVisible: points.map((_, index) => bottomSet.has(index)),
+        bottomSegments,
         connectorVisible: points.map((_, index) => connectorSet.has(index)),
     };
 };
+
+const fullBottomSegments = (edges: number[]): BottomSegment[] =>
+    edges.map((edge) => ({ edge, from: 0, to: 1 }));
 
 const N = PLACEMENTS[0];
 const R = PLACEMENTS[1];
 
 const SURFACES: Surface[] = [
-    // Both diagonal lower silhouettes belong to the visible N extrusion. Keep
-    // wall, bottom and connector topology explicit so the shape closes cleanly.
-    makeSurface(N_OUTER, N, [2, 5, 6, 8, 9], [2, 5, 6, 8, 9], [0, 3, 5, 6, 8, 9]),
-    // R keeps its current exposed silhouette while using the same separated
+    // The two diagonal lower silhouettes are partially occluded by the N itself.
+    // Clip them to the exposed ranges so they close the side walls without
+    // cutting across the face like construction lines.
+    makeSurface(
+        N_OUTER,
+        N,
+        [2, 5, 6, 8, 9],
+        [
+            { edge: 2, from: 0.665, to: 1 },
+            { edge: 5, from: 0, to: 1 },
+            { edge: 6, from: 0, to: 0.555 },
+            { edge: 8, from: 0, to: 1 },
+            { edge: 9, from: 0, to: 1 },
+        ],
+        [0, 3, 5, 6, 8, 9],
+    ),
+    // R keeps its current exposed silhouette while using the same explicit
     // visibility model so future hidden-line cleanup cannot delete whole faces.
-    makeSurface(R_OUTER, R, [5, 7, 8, 10, 11], [5, 7, 8, 10, 11], [0, 5, 7, 8, 10, 11]),
-    makeSurface(R_HOLE, R, [0, 1, 2], [0, 1, 2], [0, 3]),
+    makeSurface(
+        R_OUTER,
+        R,
+        [5, 7, 8, 10, 11],
+        fullBottomSegments([5, 7, 8, 10, 11]),
+        [0, 5, 7, 8, 10, 11],
+    ),
+    makeSurface(R_HOLE, R, [0, 1, 2], fullBottomSegments([0, 1, 2]), [0, 3]),
 ];
 
 const wallPath = (a: Point, b: Point, topShift = 0) => {
@@ -157,11 +182,13 @@ const WALLS: Wall[] = SURFACES.flatMap((surface) =>
 const bottomStrokePath = () => {
     const chunks: string[] = [];
     for (const surface of SURFACES) {
-        surface.points.forEach((a, index) => {
-            if (!surface.bottomVisible[index]) return;
-            const b = surface.points[(index + 1) % surface.points.length];
-            chunks.push(`M ${move(shifted(a, DEPTH))} L ${move(shifted(b, DEPTH))}`);
-        });
+        for (const segment of surface.bottomSegments) {
+            const a = surface.points[segment.edge];
+            const b = surface.points[(segment.edge + 1) % surface.points.length];
+            const start = shifted(lerpPoint(a, b, segment.from), DEPTH);
+            const end = shifted(lerpPoint(a, b, segment.to), DEPTH);
+            chunks.push(`M ${move(start)} L ${move(end)}`);
+        }
     }
     return chunks.join(' ');
 };
