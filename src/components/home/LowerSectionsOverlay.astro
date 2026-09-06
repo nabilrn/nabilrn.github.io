@@ -10,20 +10,44 @@ const supportedLocales = new Set(['en', 'id', 'cn', 'jp', 'ar']);
 const locale = (supportedLocales.has(firstSegment) ? firstSegment : 'en') as SiteLocale;
 const content = getSiteContent(locale);
 const blogPath = localizePath('/blog/', locale);
+const dateLocale = locale === 'id' ? 'id-ID' : locale === 'cn' ? 'zh-CN' : locale === 'jp' ? 'ja-JP' : locale === 'ar' ? 'ar-SA' : 'en-US';
+
+const cleanMarkdown = (value: string) => value
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, '')
+    .replace(/[*_`~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const narrativeExcerpt = (body: string, fallback: string) => {
+    const paragraph = body
+        .split(/\n\s*\n/)
+        .map((part) => part.trim())
+        .find((part) => part
+            && !part.startsWith('#')
+            && !part.startsWith('>')
+            && !part.startsWith('```')
+            && !part.startsWith('---')
+            && !part.startsWith('!['));
+
+    const clean = cleanMarkdown(paragraph ?? fallback);
+    return clean.length > 250 ? `${clean.slice(0, 247).trimEnd()}…` : clean;
+};
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const localePosts = allPosts.filter((post) => (post.data.locale ?? 'en') === locale);
 const fallbackPosts = allPosts.filter((post) => (post.data.locale ?? 'en') === 'en');
-const latestPost = [...(localePosts.length ? localePosts : fallbackPosts)]
-    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())[0];
-
-const latestPostPath = latestPost
-    ? localizePath(`/blog/${latestPost.slug}/`, locale)
-    : blogPath;
-const postDate = latestPost?.data.pubDate.toLocaleDateString(
-    locale === 'id' ? 'id-ID' : locale === 'cn' ? 'zh-CN' : locale === 'jp' ? 'ja-JP' : locale === 'ar' ? 'ar-SA' : 'en-US',
-    { month: 'short', day: 'numeric', year: 'numeric' },
-);
+const feedPosts = [...(localePosts.length ? localePosts : fallbackPosts)]
+    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+    .slice(0, 2)
+    .map((post) => ({
+        id: post.slug,
+        title: post.data.title,
+        excerpt: narrativeExcerpt(post.body, post.data.description),
+        href: localizePath(`/blog/${post.slug}/`, locale),
+        date: post.data.pubDate.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' }),
+    }));
 
 const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
 ---
@@ -32,7 +56,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     <section class="analytics-region" aria-labelledby="analytics-heading" data-analytics-api={METRICS_API}>
         <header class="lower-panel-header">
             <h2 id="analytics-heading" class="lower-panel-heading">my analytics</h2>
-            <span class="analytics-period">last 30d</span>
+            <span class="analytics-period" data-analytics-period>last 30d</span>
         </header>
 
         <div class="analytics-body">
@@ -62,51 +86,52 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         </div>
     </section>
 
-    <section class="latest-blog-region" aria-labelledby="latest-blog-heading" data-blog-metrics-api={METRICS_API} data-blog-post-id={latestPost?.slug ?? ''}>
+    <section class="latest-blog-region" aria-labelledby="latest-blog-heading" data-blog-metrics-api={METRICS_API}>
         <header class="lower-panel-header">
             <h2 id="latest-blog-heading" class="lower-panel-heading">my blog</h2>
-            <span class="blog-latest-label">latest post</span>
+            <a class="blog-all-link" href={blogPath}>all posts <span aria-hidden="true">↗</span></a>
         </header>
 
-        <article class="tweet-post">
-            <div class="tweet-author-row">
-                <Image class="tweet-avatar" src={avatar} alt="" width={34} height={34} />
-                <div class="tweet-author-copy">
-                    <div class="tweet-name-row">
-                        <strong>{content.profile.name}</strong>
-                        <span class="tweet-verified" aria-label="Verified">✓</span>
+        <div class="blog-feed">
+            {feedPosts.map((post) => (
+                <article class="tweet-post" data-blog-post-id={post.id}>
+                    <div class="tweet-author-row">
+                        <Image class="tweet-avatar" src={avatar} alt="" width={28} height={28} />
+                        <div class="tweet-author-copy">
+                            <div class="tweet-name-row">
+                                <strong>{content.profile.name}</strong>
+                                <span class="tweet-verified" aria-label="Verified">✓</span>
+                            </div>
+                            <span class="tweet-handle">@NabilrizkiN · {post.date}</span>
+                        </div>
                     </div>
-                    <span class="tweet-handle">@NabilrizkiN · {postDate ?? 'recent'}</span>
-                </div>
-            </div>
 
-            <a class="tweet-copy" href={latestPostPath}>
-                <strong>{latestPost?.data.title ?? 'Writing notes and build logs'}</strong>
-                <p>{latestPost?.data.description ?? 'Notes from projects, infrastructure work, and things I learn along the way.'}</p>
-            </a>
+                    <a class="tweet-copy" href={post.href}>
+                        <strong>{post.title}</strong>
+                        <p>{post.excerpt}</p>
+                    </a>
 
-            <div class="tweet-meta-row">
-                <div class="tweet-engagement" aria-label="Post engagement">
-                    <span class="tweet-metric" title="Views">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.2-6 9-6 9 6 9 6-3.2 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.25"/></svg>
-                        <span data-blog-views>—</span>
-                    </span>
-                    <span class="tweet-metric" title="Likes">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.7a5.4 5.4 0 0 0-7.6 0L12 5.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/></svg>
-                        <span data-blog-likes>—</span>
-                    </span>
-                </div>
-
-                <a class="tweet-read-link" href={latestPostPath}>read <span aria-hidden="true">↗</span></a>
-            </div>
-
-            <a class="all-posts-button" href={blogPath}>all posts <span aria-hidden="true">↗</span></a>
-        </article>
+                    <div class="tweet-meta-row">
+                        <div class="tweet-engagement" aria-label="Post engagement">
+                            <span class="tweet-metric" title="Views">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.2-6 9-6 9 6 9 6-3.2 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.25"/></svg>
+                                <span data-blog-views>—</span>
+                            </span>
+                            <span class="tweet-metric" title="Likes">
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.7a5.4 5.4 0 0 0-7.6 0L12 5.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/></svg>
+                                <span data-blog-likes>—</span>
+                            </span>
+                        </div>
+                        <a class="tweet-read-link" href={post.href}>read <span aria-hidden="true">↗</span></a>
+                    </div>
+                </article>
+            ))}
+        </div>
     </section>
 </template>
 
 <style is:global>
-    .home-redesign .bottom-layout {
+    .home-redesign.home-redesign .bottom-layout {
         grid-template-columns:
             minmax(0, var(--phi-mid))
             minmax(0, var(--phi-small))
@@ -157,8 +182,8 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     }
 
     .home-redesign .analytics-period,
-    .home-redesign .blog-latest-label {
-        color: color-mix(in srgb, var(--muted) 82%, transparent);
+    .home-redesign .blog-all-link {
+        color: color-mix(in srgb, var(--muted) 84%, transparent);
         font-family: var(--font-mono);
         font-size: 7.5px;
         line-height: 1;
@@ -167,11 +192,26 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         white-space: nowrap;
     }
 
+    .home-redesign .blog-all-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        text-decoration: none;
+        transition: color 140ms ease, transform 140ms ease;
+    }
+
+    .home-redesign .blog-all-link:hover,
+    .home-redesign .blog-all-link:focus-visible {
+        color: var(--text);
+        outline: none;
+        transform: translateY(-1px);
+    }
+
     .home-redesign .analytics-body {
         min-height: 0;
         padding: clamp(9px, 0.75vw, 13px);
         display: grid;
-        grid-template-rows: auto minmax(40px, 1fr) auto;
+        grid-template-rows: auto minmax(46px, 1fr) auto;
         gap: 8px;
     }
 
@@ -185,14 +225,14 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     .home-redesign .analytics-stat {
         min-width: 0;
         display: grid;
-        gap: 1px;
+        gap: 2px;
     }
 
     .home-redesign .analytics-stat strong {
         overflow: hidden;
         color: var(--text);
         font-family: var(--font-sans);
-        font-size: clamp(18px, 1.45vw, 25px);
+        font-size: clamp(20px, 1.55vw, 27px);
         font-weight: 600;
         line-height: 1;
         letter-spacing: -0.045em;
@@ -209,7 +249,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     }
 
     .home-redesign .analytics-stat-secondary {
-        padding-left: 8px;
+        padding-left: 9px;
         border-left: var(--minor-stroke) solid var(--sheet-line);
     }
 
@@ -217,18 +257,23 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         min-width: 0;
         min-height: 0;
         display: grid;
-        grid-template-rows: minmax(26px, 1fr) auto;
-        gap: 3px;
+        grid-template-rows: minmax(34px, 1fr) auto;
+        gap: 4px;
     }
 
     .home-redesign .analytics-spark {
+        position: relative;
         min-width: 0;
-        min-height: 26px;
+        min-height: 34px;
+        padding-top: 4px;
         display: flex;
         align-items: end;
         gap: 2px;
         border-bottom: var(--minor-stroke) solid var(--sheet-line);
         overflow: hidden;
+        background-image:
+            linear-gradient(to bottom, transparent 32%, color-mix(in srgb, var(--border) 62%, transparent) 33%, transparent 34%),
+            linear-gradient(to bottom, transparent 65%, color-mix(in srgb, var(--border) 48%, transparent) 66%, transparent 67%);
     }
 
     .home-redesign .analytics-spark > span {
@@ -236,7 +281,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         min-width: 1px;
         height: 2px;
         background: color-mix(in srgb, var(--text) 58%, var(--muted));
-        opacity: 0.72;
+        opacity: 0.7;
         transform-origin: bottom;
         transition: height 260ms ease, opacity 160ms ease;
     }
@@ -278,25 +323,39 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         white-space: nowrap;
     }
 
+    .home-redesign .blog-feed {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+
     .home-redesign .tweet-post {
         min-width: 0;
         min-height: 0;
-        padding: clamp(9px, 0.75vw, 13px);
+        padding: 8px clamp(10px, 0.8vw, 14px) 7px;
         display: grid;
-        grid-template-rows: auto minmax(0, 1fr) auto auto;
-        gap: 7px;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        align-content: start;
+        gap: 5px;
+        overflow: hidden;
+    }
+
+    .home-redesign .tweet-post + .tweet-post {
+        border-top: var(--minor-stroke) solid var(--sheet-line);
     }
 
     .home-redesign .tweet-author-row {
         min-width: 0;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 7px;
     }
 
     .home-redesign .tweet-avatar {
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         flex: none;
         border: var(--minor-stroke) solid var(--sheet-line);
         border-radius: 50%;
@@ -322,9 +381,9 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         overflow: hidden;
         color: var(--text);
         font-family: var(--font-sans);
-        font-size: 10px;
+        font-size: 10.5px;
         font-weight: 600;
-        line-height: 1.15;
+        line-height: 1.1;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -350,7 +409,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         color: var(--muted);
         font-family: var(--font-sans);
         font-size: 7.5px;
-        line-height: 1.2;
+        line-height: 1.15;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -360,10 +419,11 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         min-height: 0;
         display: grid;
         align-content: start;
-        gap: 4px;
+        gap: 3px;
         color: inherit;
         text-decoration: none;
         outline: none;
+        overflow: hidden;
     }
 
     .home-redesign .tweet-copy strong {
@@ -371,21 +431,21 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         overflow: hidden;
         color: var(--text);
         font-family: var(--font-sans);
-        font-size: clamp(10.5px, 0.78vw, 12px);
+        font-size: clamp(11px, 0.8vw, 12.5px);
         font-weight: 600;
-        line-height: 1.25;
+        line-height: 1.2;
         letter-spacing: -0.025em;
         -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
     }
 
     .home-redesign .tweet-copy p {
         display: -webkit-box;
         overflow: hidden;
-        color: var(--muted);
+        color: color-mix(in srgb, var(--muted) 92%, var(--text));
         font-family: var(--font-sans);
-        font-size: 8px;
-        line-height: 1.35;
+        font-size: clamp(8.5px, 0.62vw, 9.5px);
+        line-height: 1.32;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
     }
@@ -407,14 +467,13 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 
     .home-redesign .tweet-engagement,
     .home-redesign .tweet-metric,
-    .home-redesign .tweet-read-link,
-    .home-redesign .all-posts-button {
+    .home-redesign .tweet-read-link {
         display: inline-flex;
         align-items: center;
     }
 
     .home-redesign .tweet-engagement {
-        gap: 10px;
+        gap: 11px;
     }
 
     .home-redesign .tweet-metric {
@@ -435,8 +494,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         stroke-linejoin: round;
     }
 
-    .home-redesign .tweet-read-link,
-    .home-redesign .all-posts-button {
+    .home-redesign .tweet-read-link {
         gap: 3px;
         color: var(--muted);
         font-family: var(--font-mono);
@@ -447,21 +505,10 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     }
 
     .home-redesign .tweet-read-link:hover,
-    .home-redesign .tweet-read-link:focus-visible,
-    .home-redesign .all-posts-button:hover,
-    .home-redesign .all-posts-button:focus-visible {
+    .home-redesign .tweet-read-link:focus-visible {
         color: var(--text);
         outline: none;
         transform: translateY(-1px);
-    }
-
-    .home-redesign .all-posts-button {
-        width: max-content;
-        margin-left: auto;
-        padding: 5px 7px;
-        border: var(--minor-stroke) solid var(--sheet-line);
-        background: transparent;
-        color: color-mix(in srgb, var(--text) 72%, var(--muted));
     }
 
     @media (min-width: 1100px) and (min-height: 860px) {
@@ -479,10 +526,16 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         .home-redesign .lower-panel-heading {
             font-size: 15px;
         }
+
+        .home-redesign .tweet-post {
+            padding-top: 9px;
+            padding-bottom: 8px;
+            gap: 6px;
+        }
     }
 
     @media (max-width: 1099px), (max-height: 759px) {
-        .home-redesign .bottom-layout {
+        .home-redesign.home-redesign .bottom-layout {
             grid-template-columns: 1fr;
         }
 
@@ -494,7 +547,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 
         .home-redesign .analytics-region,
         .home-redesign .latest-blog-region {
-            min-height: 220px;
+            min-height: 260px;
         }
     }
 </style>
@@ -510,6 +563,14 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 
     const apiBase = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
     const numberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+    const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+    const previewAnalytics = {
+        visitors: 128,
+        pageviews: 406,
+        topPage: '/blog/linus-torvalds-and-linux/',
+        last30Days: [4, 7, 5, 9, 12, 8, 10, 14, 18, 13, 20, 22, 17, 24, 19, 27, 31, 25, 34, 29, 38, 42, 36, 45, 41, 48, 52, 47, 56, 61],
+    };
 
     const getVisitorId = () => {
         const key = 'portfolio:visitor-id';
@@ -525,6 +586,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const pageviewsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-pageviews]');
     const topPageEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-top-page]');
     const sparkEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-spark]');
+    const periodEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-period]');
 
     const renderSpark = (values: number[]) => {
         if (!sparkEl) return;
@@ -537,6 +599,24 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
             bar.style.height = `${normalized}%`;
             sparkEl.appendChild(bar);
         }
+    };
+
+    const renderAnalytics = (summary: {
+        visitors?: number;
+        pageviews?: number;
+        topPage?: { path?: string } | string;
+        last30Days?: Array<{ views?: number }> | number[];
+    }, preview = false) => {
+        const visitors = Number(summary.visitors ?? 0);
+        const pageviews = Number(summary.pageviews ?? 0);
+        const topPage = typeof summary.topPage === 'string' ? summary.topPage : summary.topPage?.path || '/';
+        const values = (summary.last30Days ?? []).map((item) => typeof item === 'number' ? item : Number(item.views ?? 0));
+
+        if (visitorsEl) visitorsEl.textContent = numberFormatter.format(visitors);
+        if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(pageviews);
+        if (topPageEl) topPageEl.textContent = topPage;
+        if (periodEl) periodEl.textContent = preview ? 'preview · 30d' : 'last 30d';
+        renderSpark(values);
     };
 
     renderSpark(Array.from({ length: 30 }, () => 0));
@@ -552,17 +632,13 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 last30Days?: Array<{ views?: number }>;
             };
 
-            if (visitorsEl) visitorsEl.textContent = numberFormatter.format(Number(summary.visitors ?? 0));
-            if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(Number(summary.pageviews ?? 0));
-            if (topPageEl) topPageEl.textContent = summary.topPage?.path || '/';
-            renderSpark((summary.last30Days ?? []).map((day) => Number(day.views ?? 0)));
+            const empty = Number(summary.visitors ?? 0) === 0 && Number(summary.pageviews ?? 0) === 0;
+            renderAnalytics(isLocalPreview && empty ? previewAnalytics : summary, isLocalPreview && empty);
         } catch {
-            if (visitorsEl) visitorsEl.textContent = '0';
-            if (pageviewsEl) pageviewsEl.textContent = '0';
+            renderAnalytics(isLocalPreview ? previewAnalytics : { visitors: 0, pageviews: 0, topPage: '/', last30Days: [] }, isLocalPreview);
         }
     })();
 
-    const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
     if (!isLocalPreview) {
         void fetch(`${apiBase}/analytics/view`, {
             method: 'POST',
@@ -572,26 +648,29 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         }).catch(() => undefined);
     }
 
-    const blogRegion = document.querySelector<HTMLElement>('.latest-blog-region');
-    const postId = blogRegion?.dataset.blogPostId?.trim();
-    const blogViewsEl = blogRegion?.querySelector<HTMLElement>('[data-blog-views]');
-    const blogLikesEl = blogRegion?.querySelector<HTMLElement>('[data-blog-likes]');
+    const blogPosts = document.querySelectorAll<HTMLElement>('.tweet-post[data-blog-post-id]');
+    blogPosts.forEach((post) => {
+        const postId = post.dataset.blogPostId?.trim();
+        const viewsEl = post.querySelector<HTMLElement>('[data-blog-views]');
+        const likesEl = post.querySelector<HTMLElement>('[data-blog-likes]');
 
-    if (postId) {
+        if (!postId) {
+            if (viewsEl) viewsEl.textContent = '0';
+            if (likesEl) likesEl.textContent = '0';
+            return;
+        }
+
         void (async () => {
             try {
                 const response = await fetch(`${apiBase}/metrics/${encodeURIComponent(postId)}`, { headers: { Accept: 'application/json' } });
                 if (!response.ok) throw new Error(`blog metrics ${response.status}`);
                 const metrics = await response.json() as { views?: number; likes?: number };
-                if (blogViewsEl) blogViewsEl.textContent = numberFormatter.format(Number(metrics.views ?? 0));
-                if (blogLikesEl) blogLikesEl.textContent = numberFormatter.format(Number(metrics.likes ?? 0));
+                if (viewsEl) viewsEl.textContent = numberFormatter.format(Number(metrics.views ?? 0));
+                if (likesEl) likesEl.textContent = numberFormatter.format(Number(metrics.likes ?? 0));
             } catch {
-                if (blogViewsEl) blogViewsEl.textContent = '0';
-                if (blogLikesEl) blogLikesEl.textContent = '0';
+                if (viewsEl) viewsEl.textContent = '0';
+                if (likesEl) likesEl.textContent = '0';
             }
         })();
-    } else {
-        if (blogViewsEl) blogViewsEl.textContent = '0';
-        if (blogLikesEl) blogLikesEl.textContent = '0';
-    }
+    });
 </script>
