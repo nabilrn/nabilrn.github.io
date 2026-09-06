@@ -399,6 +399,11 @@ const GUIDE_PATHS = [
         --nr-pattern: color-mix(in oklab, var(--nr-foreground) 12%, var(--nr-background));
         --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
         --nr-line: color-mix(in oklab, var(--border) 64%, var(--nr-background));
+        --nr-glow-start: #fff;
+        --nr-glow-start-opacity: 1;
+        --nr-glow-end: #52525b;
+        --nr-guide-base-opacity: .58;
+        --nr-guide-glow-opacity: .34;
     }
 
     .nr-button {
@@ -440,12 +445,12 @@ const GUIDE_PATHS = [
 
     .nr-guides-base {
         stroke: var(--nr-line);
-        opacity: .58;
+        opacity: var(--nr-guide-base-opacity);
     }
 
     .nr-guides-glow {
         stroke: url(#nr-gradient);
-        opacity: .34;
+        opacity: var(--nr-guide-glow-opacity);
     }
 
     .nr-walls,
@@ -481,13 +486,24 @@ const GUIDE_PATHS = [
     .nr-stroke-glow { stroke: url(#nr-gradient); }
 
     .nr-glow-start {
-        stop-color: #fff;
-        stop-opacity: 1;
+        stop-color: var(--nr-glow-start);
+        stop-opacity: var(--nr-glow-start-opacity);
     }
 
     .nr-glow-end {
-        stop-color: #52525b;
+        stop-color: var(--nr-glow-end);
         stop-opacity: 0;
+    }
+
+    :global(html[data-theme='light']) .nr-stage {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 13%, var(--nr-background));
+        --nr-line: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+        --nr-glow-start: #525252;
+        --nr-glow-start-opacity: .38;
+        --nr-glow-end: #a3a3a3;
+        --nr-guide-base-opacity: .64;
+        --nr-guide-glow-opacity: .30;
     }
 
     .nr-annotation {
@@ -668,6 +684,11 @@ const GUIDE_PATHS = [
     .nr-stage[data-music-state="playing"] {
         --nr-pattern: color-mix(in oklab, var(--nr-foreground) 18%, var(--nr-background));
         --nr-stroke: color-mix(in oklab, var(--nr-foreground) 24%, var(--nr-background));
+    }
+
+    :global(html[data-theme='light']) .nr-stage[data-music-state="playing"] {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 11%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
     }
 
     .nr-stage[data-music-state="playing"] .nr-face-pattern {
