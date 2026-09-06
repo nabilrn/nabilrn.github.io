@@ -2,7 +2,6 @@
 import SiteSearch from '../SiteSearch.astro';
 import ThemeToggle from '../ThemeToggle.astro';
 import GitHubStars from './GitHubStars.astro';
-import NRLogo from './NRLogo.astro';
 import {
     getSiteContent,
     localeMeta,
@@ -24,9 +23,23 @@ const blogPath = localizePath('/blog/', locale);
 
 <header class="home-header">
     <div class="home-header-inner">
-        <a href={homePath} class="home-brand" aria-label={`${content.profile.name} — ${content.nav.home}`}>
-            <NRLogo class="home-brand-logo" width={44} height={24} />
-        </a>
+        <div class="home-intro">
+            <a href={homePath} class="home-greeting" aria-label={`${content.profile.name} — ${content.nav.home}`}>
+                <span data-local-greeting data-ready="false">good day</span>
+            </a>
+
+            <a
+                class="design-reference"
+                href="https://chanhdai.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Design reference: Chánh Đại"
+            >
+                <span>design reference —</span>
+                <strong>Chánh Đại</strong>
+                <span aria-hidden="true">↗</span>
+            </a>
+        </div>
 
         <div class="home-spacer" aria-hidden="true"></div>
 
@@ -70,6 +83,28 @@ const blogPath = localizePath('/blog/', locale);
     </div>
 </header>
 
+<script is:inline>
+    (() => {
+        const target = document.querySelector('[data-local-greeting]');
+        if (!(target instanceof HTMLElement)) return;
+
+        const renderGreeting = () => {
+            const hour = new Date().getHours();
+            const greeting = hour >= 5 && hour < 12
+                ? 'good morning'
+                : hour >= 12 && hour < 17
+                    ? 'good afternoon'
+                    : 'good evening';
+
+            target.textContent = greeting;
+            target.dataset.ready = 'true';
+        };
+
+        renderGreeting();
+        window.setInterval(renderGreeting, 60000);
+    })();
+</script>
+
 <style>
     .home-header {
         position: relative;
@@ -111,23 +146,79 @@ const blogPath = localizePath('/blog/', locale);
         bottom: 0;
     }
 
-    .home-brand {
-        display: inline-flex;
-        width: max-content;
+    .home-intro {
+        min-width: 0;
+        display: flex;
         flex: none;
         align-items: center;
+        gap: clamp(12px, 1vw, 16px);
+    }
+
+    .home-greeting {
+        display: inline-flex;
+        align-items: center;
+        flex: none;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        text-decoration: none;
+        transform: rotate(-1.3deg);
+        transform-origin: left center;
+        transition: color 140ms ease, transform 140ms ease;
+    }
+
+    .home-greeting:hover,
+    .home-greeting:focus-visible {
         color: var(--text);
-        transition: color 140ms ease, opacity 140ms ease;
+        transform: rotate(-.6deg) translateY(-1px);
+        outline: none;
     }
 
-    .home-brand:hover {
-        opacity: 0.76;
+    .home-greeting [data-local-greeting] {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 120ms ease;
     }
 
-    .home-brand-logo {
-        display: block;
-        width: 44px;
-        height: 24px;
+    .home-greeting [data-local-greeting][data-ready='true'] {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .design-reference {
+        min-width: 0;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        color: color-mix(in srgb, var(--muted) 84%, transparent);
+        font-family: var(--font-mono);
+        font-size: 8.5px;
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: .015em;
+        white-space: nowrap;
+        text-decoration: none;
+        transition: color 140ms ease, transform 140ms ease;
+    }
+
+    .design-reference strong {
+        color: color-mix(in srgb, var(--text) 76%, var(--muted));
+        font: inherit;
+        font-weight: 600;
+    }
+
+    .design-reference:hover,
+    .design-reference:focus-visible {
+        color: var(--text);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .design-reference:hover strong,
+    .design-reference:focus-visible strong {
+        color: var(--text);
     }
 
     .home-spacer {
@@ -313,6 +404,12 @@ const blogPath = localizePath('/blog/', locale);
         stroke-width: 1.6;
     }
 
+    @media (max-width: 1180px) {
+        .design-reference {
+            display: none;
+        }
+    }
+
     @media (max-width: 760px) {
         .home-header {
             height: 48px;
@@ -324,9 +421,12 @@ const blogPath = localizePath('/blog/', locale);
             border-inline: 0;
         }
 
-        .home-brand-logo {
-            width: 40px;
-            height: 22px;
+        .home-intro {
+            gap: 0;
+        }
+
+        .home-greeting {
+            font-size: 14px;
         }
 
         .home-nav,
@@ -402,5 +502,47 @@ const blogPath = localizePath('/blog/', locale);
         z-index: 8;
         height: var(--major-stroke);
         background: var(--border);
+    }
+
+    /* Final interaction affordances shared by the locked profile + NR area. */
+    .home-redesign[data-home-redesign] .nr-hud-title strong::before {
+        content: '♪ ';
+        color: color-mix(in srgb, var(--muted) 82%, transparent);
+        font-weight: 400;
+    }
+
+    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo'] {
+        position: relative;
+        z-index: 9;
+        overflow: visible !important;
+    }
+
+    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']::before {
+        content: 'View @bilcikiwir on Duolingo ↗';
+        position: absolute;
+        z-index: 30;
+        left: 12px;
+        bottom: calc(100% + 8px);
+        width: max-content;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 450;
+        line-height: 1.2;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']:hover::before,
+    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']:focus-within::before {
+        opacity: 1;
+        transform: translateY(0);
     }
 </style>
