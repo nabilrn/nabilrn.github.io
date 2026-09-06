@@ -1,3 +1,5 @@
+export {};
+
 type YouTubePlayer = {
     playVideo: () => void;
     pauseVideo: () => void;
