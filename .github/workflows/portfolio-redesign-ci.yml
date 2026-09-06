@@ -62,6 +62,9 @@ jobs:
           cat /tmp/astro-preview.log
           exit 1
 
+      - name: Install Chrome for accessibility audit
+        run: pnpm dlx puppeteer@24.43.1 browsers install chrome
+
       - name: Accessibility audit
         run: >-
           pnpm dlx pa11y-ci@4.1.1
