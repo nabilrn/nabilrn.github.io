@@ -1,0 +1,597 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import avatar from '../../assets/profile-anime.webp';
+import { getSiteContent, localizePath, type SiteLocale } from '../../data/siteContent';
+
+const pathname = Astro.url.pathname;
+const firstSegment = pathname.split('/').filter(Boolean)[0];
+const supportedLocales = new Set(['en', 'id', 'cn', 'jp', 'ar']);
+const locale = (supportedLocales.has(firstSegment) ? firstSegment : 'en') as SiteLocale;
+const content = getSiteContent(locale);
+const blogPath = localizePath('/blog/', locale);
+
+const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const localePosts = allPosts.filter((post) => (post.data.locale ?? 'en') === locale);
+const fallbackPosts = allPosts.filter((post) => (post.data.locale ?? 'en') === 'en');
+const latestPost = [...(localePosts.length ? localePosts : fallbackPosts)]
+    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())[0];
+
+const latestPostPath = latestPost
+    ? localizePath(`/blog/${latestPost.slug}/`, locale)
+    : blogPath;
+const postDate = latestPost?.data.pubDate.toLocaleDateString(
+    locale === 'id' ? 'id-ID' : locale === 'cn' ? 'zh-CN' : locale === 'jp' ? 'ja-JP' : locale === 'ar' ? 'ar-SA' : 'en-US',
+    { month: 'short', day: 'numeric', year: 'numeric' },
+);
+
+const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
+---
+
+<template data-lower-sections-template>
+    <section class="analytics-region" aria-labelledby="analytics-heading" data-analytics-api={METRICS_API}>
+        <header class="lower-panel-header">
+            <h2 id="analytics-heading" class="lower-panel-heading">my analytics</h2>
+            <span class="analytics-period">last 30d</span>
+        </header>
+
+        <div class="analytics-body">
+            <div class="analytics-primary">
+                <div class="analytics-stat">
+                    <strong data-analytics-visitors>—</strong>
+                    <span>visitors</span>
+                </div>
+                <div class="analytics-stat analytics-stat-secondary">
+                    <strong data-analytics-pageviews>—</strong>
+                    <span>pageviews</span>
+                </div>
+            </div>
+
+            <div class="analytics-chart-wrap" aria-label="Pageviews during the last 30 days">
+                <div class="analytics-spark" data-analytics-spark aria-hidden="true"></div>
+                <div class="analytics-chart-caption">
+                    <span>30 days ago</span>
+                    <span>today</span>
+                </div>
+            </div>
+
+            <div class="analytics-top-page">
+                <span class="analytics-label">top page</span>
+                <span class="analytics-page-path" data-analytics-top-page>/</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="latest-blog-region" aria-labelledby="latest-blog-heading" data-blog-metrics-api={METRICS_API} data-blog-post-id={latestPost?.slug ?? ''}>
+        <header class="lower-panel-header">
+            <h2 id="latest-blog-heading" class="lower-panel-heading">my blog</h2>
+            <span class="blog-latest-label">latest post</span>
+        </header>
+
+        <article class="tweet-post">
+            <div class="tweet-author-row">
+                <Image class="tweet-avatar" src={avatar} alt="" width={34} height={34} />
+                <div class="tweet-author-copy">
+                    <div class="tweet-name-row">
+                        <strong>{content.profile.name}</strong>
+                        <span class="tweet-verified" aria-label="Verified">✓</span>
+                    </div>
+                    <span class="tweet-handle">@NabilrizkiN · {postDate ?? 'recent'}</span>
+                </div>
+            </div>
+
+            <a class="tweet-copy" href={latestPostPath}>
+                <strong>{latestPost?.data.title ?? 'Writing notes and build logs'}</strong>
+                <p>{latestPost?.data.description ?? 'Notes from projects, infrastructure work, and things I learn along the way.'}</p>
+            </a>
+
+            <div class="tweet-meta-row">
+                <div class="tweet-engagement" aria-label="Post engagement">
+                    <span class="tweet-metric" title="Views">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.2-6 9-6 9 6 9 6-3.2 6-9 6-9-6-9-6Z"/><circle cx="12" cy="12" r="2.25"/></svg>
+                        <span data-blog-views>—</span>
+                    </span>
+                    <span class="tweet-metric" title="Likes">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.7a5.4 5.4 0 0 0-7.6 0L12 5.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/></svg>
+                        <span data-blog-likes>—</span>
+                    </span>
+                </div>
+
+                <a class="tweet-read-link" href={latestPostPath}>read <span aria-hidden="true">↗</span></a>
+            </div>
+
+            <a class="all-posts-button" href={blogPath}>all posts <span aria-hidden="true">↗</span></a>
+        </article>
+    </section>
+</template>
+
+<style is:global>
+    .home-redesign .bottom-layout {
+        grid-template-columns:
+            minmax(0, var(--phi-mid))
+            minmax(0, var(--phi-small))
+            minmax(0, var(--phi-side));
+    }
+
+    .home-redesign .projects-region {
+        border-right: var(--major-stroke) solid var(--border);
+    }
+
+    .home-redesign .analytics-region,
+    .home-redesign .latest-blog-region {
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        display: grid;
+        grid-template-rows: 32px minmax(0, 1fr);
+        background: var(--bg);
+        overflow: hidden;
+    }
+
+    .home-redesign .analytics-region {
+        border-right: var(--minor-stroke) solid var(--sheet-line);
+    }
+
+    .home-redesign .lower-panel-header {
+        min-width: 0;
+        height: 32px;
+        padding: 6px clamp(10px, 0.8vw, 14px) 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
+    }
+
+    .home-redesign .lower-panel-heading {
+        width: max-content;
+        margin: 0;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.15deg);
+        transform-origin: left center;
+        user-select: none;
+    }
+
+    .home-redesign .analytics-period,
+    .home-redesign .blog-latest-label {
+        color: color-mix(in srgb, var(--muted) 82%, transparent);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .home-redesign .analytics-body {
+        min-height: 0;
+        padding: clamp(9px, 0.75vw, 13px);
+        display: grid;
+        grid-template-rows: auto minmax(40px, 1fr) auto;
+        gap: 8px;
+    }
+
+    .home-redesign .analytics-primary {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .home-redesign .analytics-stat {
+        min-width: 0;
+        display: grid;
+        gap: 1px;
+    }
+
+    .home-redesign .analytics-stat strong {
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: clamp(18px, 1.45vw, 25px);
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: -0.045em;
+        text-overflow: ellipsis;
+    }
+
+    .home-redesign .analytics-stat span,
+    .home-redesign .analytics-label {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1.2;
+        letter-spacing: 0.02em;
+    }
+
+    .home-redesign .analytics-stat-secondary {
+        padding-left: 8px;
+        border-left: var(--minor-stroke) solid var(--sheet-line);
+    }
+
+    .home-redesign .analytics-chart-wrap {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: minmax(26px, 1fr) auto;
+        gap: 3px;
+    }
+
+    .home-redesign .analytics-spark {
+        min-width: 0;
+        min-height: 26px;
+        display: flex;
+        align-items: end;
+        gap: 2px;
+        border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        overflow: hidden;
+    }
+
+    .home-redesign .analytics-spark > span {
+        flex: 1 1 0;
+        min-width: 1px;
+        height: 2px;
+        background: color-mix(in srgb, var(--text) 58%, var(--muted));
+        opacity: 0.72;
+        transform-origin: bottom;
+        transition: height 260ms ease, opacity 160ms ease;
+    }
+
+    .home-redesign .analytics-spark > span:last-child {
+        background: var(--text);
+        opacity: 1;
+    }
+
+    .home-redesign .analytics-chart-caption {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        color: color-mix(in srgb, var(--muted) 76%, transparent);
+        font-family: var(--font-mono);
+        font-size: 6.5px;
+        line-height: 1;
+    }
+
+    .home-redesign .analytics-top-page {
+        min-width: 0;
+        padding-top: 6px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: center;
+        gap: 8px;
+        border-top: var(--minor-stroke) solid var(--sheet-line);
+    }
+
+    .home-redesign .analytics-page-path {
+        min-width: 0;
+        overflow: hidden;
+        color: color-mix(in srgb, var(--text) 86%, var(--muted));
+        font-family: var(--font-mono);
+        font-size: 8px;
+        line-height: 1.2;
+        text-align: right;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .home-redesign .tweet-post {
+        min-width: 0;
+        min-height: 0;
+        padding: clamp(9px, 0.75vw, 13px);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto auto;
+        gap: 7px;
+    }
+
+    .home-redesign .tweet-author-row {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .home-redesign .tweet-avatar {
+        width: 30px;
+        height: 30px;
+        flex: none;
+        border: var(--minor-stroke) solid var(--sheet-line);
+        border-radius: 50%;
+        object-fit: cover;
+        filter: grayscale(1) contrast(1.02);
+    }
+
+    .home-redesign .tweet-author-copy {
+        min-width: 0;
+        display: grid;
+        gap: 1px;
+    }
+
+    .home-redesign .tweet-name-row {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .home-redesign .tweet-name-row strong {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.15;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .home-redesign .tweet-verified {
+        width: 12px;
+        height: 12px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--text) 88%, var(--muted));
+        color: var(--bg);
+        font-family: var(--font-sans);
+        font-size: 8px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .home-redesign .tweet-handle {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 7.5px;
+        line-height: 1.2;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .home-redesign .tweet-copy {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        align-content: start;
+        gap: 4px;
+        color: inherit;
+        text-decoration: none;
+        outline: none;
+    }
+
+    .home-redesign .tweet-copy strong {
+        display: -webkit-box;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: clamp(10.5px, 0.78vw, 12px);
+        font-weight: 600;
+        line-height: 1.25;
+        letter-spacing: -0.025em;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .home-redesign .tweet-copy p {
+        display: -webkit-box;
+        overflow: hidden;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 8px;
+        line-height: 1.35;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    .home-redesign .tweet-copy:hover strong,
+    .home-redesign .tweet-copy:focus-visible strong {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 2px;
+    }
+
+    .home-redesign .tweet-meta-row {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .home-redesign .tweet-engagement,
+    .home-redesign .tweet-metric,
+    .home-redesign .tweet-read-link,
+    .home-redesign .all-posts-button {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .home-redesign .tweet-engagement {
+        gap: 10px;
+    }
+
+    .home-redesign .tweet-metric {
+        gap: 4px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1;
+    }
+
+    .home-redesign .tweet-metric svg {
+        width: 11px;
+        height: 11px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.55;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .home-redesign .tweet-read-link,
+    .home-redesign .all-posts-button {
+        gap: 3px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 7.5px;
+        line-height: 1;
+        text-decoration: none;
+        transition: color 140ms ease, transform 140ms ease;
+    }
+
+    .home-redesign .tweet-read-link:hover,
+    .home-redesign .tweet-read-link:focus-visible,
+    .home-redesign .all-posts-button:hover,
+    .home-redesign .all-posts-button:focus-visible {
+        color: var(--text);
+        outline: none;
+        transform: translateY(-1px);
+    }
+
+    .home-redesign .all-posts-button {
+        width: max-content;
+        margin-left: auto;
+        padding: 5px 7px;
+        border: var(--minor-stroke) solid var(--sheet-line);
+        background: transparent;
+        color: color-mix(in srgb, var(--text) 72%, var(--muted));
+    }
+
+    @media (min-width: 1100px) and (min-height: 860px) {
+        .home-redesign .analytics-region,
+        .home-redesign .latest-blog-region {
+            grid-template-rows: 36px minmax(0, 1fr);
+        }
+
+        .home-redesign .lower-panel-header {
+            height: 36px;
+            padding-top: 8px;
+            padding-bottom: 7px;
+        }
+
+        .home-redesign .lower-panel-heading {
+            font-size: 15px;
+        }
+    }
+
+    @media (max-width: 1099px), (max-height: 759px) {
+        .home-redesign .bottom-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .home-redesign .projects-region,
+        .home-redesign .analytics-region {
+            border-right: 0;
+            border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .analytics-region,
+        .home-redesign .latest-blog-region {
+            min-height: 220px;
+        }
+    }
+</style>
+
+<script>
+    const template = document.querySelector<HTMLTemplateElement>('[data-lower-sections-template]');
+    const bottomLayout = document.querySelector<HTMLElement>('.bottom-layout');
+    const oldBlogRegion = bottomLayout?.querySelector<HTMLElement>('.blog-region');
+
+    if (template && bottomLayout && oldBlogRegion && !bottomLayout.querySelector('.analytics-region')) {
+        oldBlogRegion.replaceWith(template.content.cloneNode(true));
+    }
+
+    const apiBase = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
+    const numberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+
+    const getVisitorId = () => {
+        const key = 'portfolio:visitor-id';
+        const existing = localStorage.getItem(key);
+        if (existing) return existing;
+        const id = crypto.randomUUID();
+        localStorage.setItem(key, id);
+        return id;
+    };
+
+    const analyticsRegion = document.querySelector<HTMLElement>('.analytics-region');
+    const visitorsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-visitors]');
+    const pageviewsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-pageviews]');
+    const topPageEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-top-page]');
+    const sparkEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-spark]');
+
+    const renderSpark = (values: number[]) => {
+        if (!sparkEl) return;
+        sparkEl.replaceChildren();
+        const safeValues = values.length ? values : Array.from({ length: 30 }, () => 0);
+        const max = Math.max(1, ...safeValues);
+        for (const value of safeValues) {
+            const bar = document.createElement('span');
+            const normalized = value <= 0 ? 2 : Math.max(8, (value / max) * 100);
+            bar.style.height = `${normalized}%`;
+            sparkEl.appendChild(bar);
+        }
+    };
+
+    renderSpark(Array.from({ length: 30 }, () => 0));
+
+    void (async () => {
+        try {
+            const response = await fetch(`${apiBase}/analytics/summary`, { headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error(`analytics summary ${response.status}`);
+            const summary = await response.json() as {
+                visitors?: number;
+                pageviews?: number;
+                topPage?: { path?: string; views?: number };
+                last30Days?: Array<{ views?: number }>;
+            };
+
+            if (visitorsEl) visitorsEl.textContent = numberFormatter.format(Number(summary.visitors ?? 0));
+            if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(Number(summary.pageviews ?? 0));
+            if (topPageEl) topPageEl.textContent = summary.topPage?.path || '/';
+            renderSpark((summary.last30Days ?? []).map((day) => Number(day.views ?? 0)));
+        } catch {
+            if (visitorsEl) visitorsEl.textContent = '0';
+            if (pageviewsEl) pageviewsEl.textContent = '0';
+        }
+    })();
+
+    const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+    if (!isLocalPreview) {
+        void fetch(`${apiBase}/analytics/view`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ path: location.pathname, visitorId: getVisitorId() }),
+            keepalive: true,
+        }).catch(() => undefined);
+    }
+
+    const blogRegion = document.querySelector<HTMLElement>('.latest-blog-region');
+    const postId = blogRegion?.dataset.blogPostId?.trim();
+    const blogViewsEl = blogRegion?.querySelector<HTMLElement>('[data-blog-views]');
+    const blogLikesEl = blogRegion?.querySelector<HTMLElement>('[data-blog-likes]');
+
+    if (postId) {
+        void (async () => {
+            try {
+                const response = await fetch(`${apiBase}/metrics/${encodeURIComponent(postId)}`, { headers: { Accept: 'application/json' } });
+                if (!response.ok) throw new Error(`blog metrics ${response.status}`);
+                const metrics = await response.json() as { views?: number; likes?: number };
+                if (blogViewsEl) blogViewsEl.textContent = numberFormatter.format(Number(metrics.views ?? 0));
+                if (blogLikesEl) blogLikesEl.textContent = numberFormatter.format(Number(metrics.likes ?? 0));
+            } catch {
+                if (blogViewsEl) blogViewsEl.textContent = '0';
+                if (blogLikesEl) blogLikesEl.textContent = '0';
+            }
+        })();
+    } else {
+        if (blogViewsEl) blogViewsEl.textContent = '0';
+        if (blogLikesEl) blogLikesEl.textContent = '0';
+    }
+</script>
