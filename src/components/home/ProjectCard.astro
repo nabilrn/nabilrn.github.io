@@ -35,10 +35,6 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         <span class="project-domain">{domain}</span>
     </a>
 
-    <div class="project-tech-stack" aria-label={`${project.name} technology stack`}>
-        {visibleStack.map((item) => <ProjectTechIcon name={item} duplicate={duplicate} />)}
-    </div>
-
     <div class="project-info">
         <div class="project-title-row">
             <strong>{project.name}</strong>
@@ -68,6 +64,10 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
                     <UiIcon name="arrow-up-right" size={10} strokeWidth={1.5} />
                 </a>
             </span>
+        </div>
+
+        <div class="project-tech-stack" aria-label={`${project.name} technology stack`}>
+            {visibleStack.map((item) => <ProjectTechIcon name={item} duplicate={duplicate} />)}
         </div>
     </div>
 </article>
@@ -145,22 +145,11 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         backdrop-filter: blur(4px);
     }
 
-    .project-tech-stack {
-        position: absolute;
-        z-index: 5;
-        left: 7px;
-        top: 7px;
-        max-width: calc(100% - 14px);
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        pointer-events: auto;
-    }
-
     .project-info {
         min-width: 0;
-        padding: 8px 9px 9px;
+        padding: 7px 9px 8px;
         display: grid;
+        gap: 5px;
     }
 
     .project-title-row {
@@ -214,6 +203,15 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         opacity: 0.82;
     }
 
+    .project-tech-stack {
+        min-width: 0;
+        min-height: 15px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        overflow: visible;
+    }
+
     @media (min-width: 1100px) and (max-height: 859px) {
         .project-card {
             width: clamp(205px, 17.2vw, 260px);
@@ -221,12 +219,17 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         }
 
         .project-info {
-            padding-top: 7px;
+            padding-top: 6px;
             padding-bottom: 7px;
+            gap: 4px;
         }
 
         .project-title-row > strong {
             font-size: 11px;
+        }
+
+        .project-tech-stack {
+            gap: 6px;
         }
     }
 
