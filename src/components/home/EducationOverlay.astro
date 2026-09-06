@@ -7,3 +7,23 @@ import LowerSectionsOverlay from './LowerSectionsOverlay.astro';
 <EducationOverlayBase />
 <ProjectCarouselOverlay />
 <LowerSectionsOverlay />
+
+<style is:global>
+    /* index.astro scopes its legacy two-column .bottom-layout rule, which gives
+       that selector the same effective specificity as the lower-section overlay.
+       Keep the intended lower bento geometry authoritative on desktop. */
+    @media (min-width: 1100px) and (min-height: 760px) {
+        .home-redesign .portfolio-board .bottom-layout {
+            grid-template-columns:
+                minmax(0, 47.2136fr)
+                minmax(0, 23.6068fr)
+                minmax(0, 29.1796fr);
+        }
+    }
+
+    @media (max-width: 1099px), (max-height: 759px) {
+        .home-redesign .portfolio-board .bottom-layout {
+            grid-template-columns: minmax(0, 1fr);
+        }
+    }
+</style>
