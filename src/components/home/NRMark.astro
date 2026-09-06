@@ -3,7 +3,7 @@ import HandwrittenNote from './HandwrittenNote.astro';
 
 type Point = { x: number; y: number };
 type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
-type Surface = { points: Point[]; visible: boolean[]; connectorVisible: boolean[]; inner: boolean };
+type Surface = { points: Point[]; visible: boolean[]; connectorVisible: boolean[] };
 type Wall = { a: Point; b: Point };
 
 const ISO_STEP = 26;
@@ -15,10 +15,10 @@ const LATCH_DISTANCE = 8;
 const PRESS_DISTANCE = 14;
 
 const VIEWBOX = { x: 125, y: 30, width: 525, height: 315 };
-const SPOTIFY_TRACK_URI = 'spotify:track:2oo7wjTWwZjL5ggojMGGnK';
-const SPOTIFY_TRACK_URL = 'https://open.spotify.com/track/2oo7wjTWwZjL5ggojMGGnK';
-const TRACK_TITLE = 'Karanokokoro -NARUTO Opening Ver.-';
-const TRACK_ARTIST = 'Anly';
+const AUDIO_SRC = '/audio/2_23_AM.mp3';
+const TRACK_TITLE = '2:23 AM';
+const TRACK_ARTIST = 'Sharou';
+const HUD_BARS = Array.from({ length: 18 }, (_, index) => index);
 
 // Keep the bottom datum stable while reclaiming the unused space above the mark.
 // The glyphs are authored flat first, then projected on the same ±30° isometric axes.
@@ -42,8 +42,8 @@ const N_OUTER: Point[] = [
     { x: 0, y: 7 },
 ];
 
-// The diagonal leg now joins the stem directly. The old 1.8 -> 1.4 horizontal
-// micro-segment produced a visible notch after isometric projection.
+// The diagonal leg joins the stem directly; the previous micro-segment created
+// a false notch after projection.
 const R_OUTER: Point[] = [
     { x: 0, y: 0 },
     { x: 1.4, y: 0 },
@@ -97,43 +97,36 @@ const GLYPHS = PLACEMENTS.map((placement) => ({
     fillRule: placement.kind === 'r' ? 'evenodd' : 'nonzero',
 }));
 
-const vertexCross = (shape: Point[], index: number) => {
-    const previous = shape[(index - 1 + shape.length) % shape.length];
-    const current = shape[index];
-    const next = shape[(index + 1) % shape.length];
-    const incoming = { x: current.x - previous.x, y: current.y - previous.y };
-    const outgoing = { x: next.x - current.x, y: next.y - current.y };
-    return incoming.x * outgoing.y - incoming.y * outgoing.x;
-};
-
-// Downward screen-space extrusion: outer contour faces with dx < 0 face the
-// viewer. Counter walls reverse that facing rule. Connector visibility is more
-// selective than face visibility: outer concave vertices are hidden by the solid,
-// and the counter only exposes the two silhouette transitions. This removes the
-// wireframe-like creases that a human viewer could not actually see.
-const makeSurface = (shape: Point[], placement: Placement, inner = false): Surface => {
+// This is a fixed mark, so hidden-line visibility is authored explicitly instead
+// of inferred from edge direction. Only true silhouette faces/creases are drawn.
+const makeSurface = (
+    shape: Point[],
+    placement: Placement,
+    visibleEdges: number[],
+    connectorVertices: number[],
+): Surface => {
     const points = projected(shape, placement);
-    const visible = points.map((a, index) => {
-        const b = points[(index + 1) % points.length];
-        const dx = b.x - a.x;
-        return inner ? dx > 0.1 : dx < -0.1;
-    });
-
-    const connectorVisible = points.map((_, index) => {
-        const incomingVisible = visible[(index - 1 + visible.length) % visible.length];
-        const outgoingVisible = visible[index];
-        if (!incomingVisible && !outgoingVisible) return false;
-        if (inner) return incomingVisible !== outgoingVisible;
-        return vertexCross(shape, index) > 0.001;
-    });
-
-    return { points, visible, connectorVisible, inner };
+    const visibleSet = new Set(visibleEdges);
+    const connectorSet = new Set(connectorVertices);
+    return {
+        points,
+        visible: points.map((_, index) => visibleSet.has(index)),
+        connectorVisible: points.map((_, index) => connectorSet.has(index)),
+    };
 };
 
-const SURFACES: Surface[] = PLACEMENTS.flatMap((placement) => {
-    if (placement.kind === 'n') return [makeSurface(N_OUTER, placement)];
-    return [makeSurface(R_OUTER, placement), makeSurface(R_HOLE, placement, true)];
-});
+const N = PLACEMENTS[0];
+const R = PLACEMENTS[1];
+
+const SURFACES: Surface[] = [
+    // N inner diagonal extrusion faces are occluded by the solid and must not
+    // produce bottom strokes. Keeping only 5, 8, 9 removes the X-ray line.
+    makeSurface(N_OUTER, N, [5, 8, 9], [0, 5, 6, 8, 9]),
+    // R keeps only the exposed outer silhouette; the nearly-flat 4 -> 5 face is
+    // intentionally omitted because it reads as a false construction crease.
+    makeSurface(R_OUTER, R, [5, 7, 8, 10, 11], [0, 5, 7, 8, 10, 11]),
+    makeSurface(R_HOLE, R, [0, 1, 2], [0, 3]),
+];
 
 const wallPath = (a: Point, b: Point, topShift = 0) => {
     const aTop = shifted(a, topShift);
@@ -193,8 +186,6 @@ const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
     `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
     `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
 
-const N = PLACEMENTS[0];
-const R = PLACEMENTS[1];
 const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
 const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
 
@@ -209,8 +200,6 @@ const GUIDE_PATHS = [
     class="nr-stage"
     data-nr-stage
     data-music-state="idle"
-    data-track-uri={SPOTIFY_TRACK_URI}
-    data-track-url={SPOTIFY_TRACK_URL}
     data-track-title={TRACK_TITLE}
     data-track-artist={TRACK_ARTIST}
     data-depth={DEPTH}
@@ -307,13 +296,35 @@ const GUIDE_PATHS = [
         </svg>
     </button>
 
-    <div class="nr-annotation" aria-hidden="true">
+    <div class="nr-annotation nr-annotation-play" aria-hidden="true">
         <HandwrittenNote text="click to play song" class="nr-music-note" arrowVariant="curve" />
     </div>
-
-    <div class="nr-player-shell" data-nr-player-shell aria-label={`${TRACK_TITLE} by ${TRACK_ARTIST} on Spotify`}>
-        <div class="nr-player" data-nr-player></div>
+    <div class="nr-annotation nr-annotation-pause" aria-hidden="true">
+        <HandwrittenNote text="click to pause" class="nr-music-note nr-pause-note" arrowVariant="curve" />
     </div>
+
+    <div class="nr-music-hud" aria-hidden="true">
+        <div class="nr-hud-meta">
+            <span>BGM / 01</span>
+            <span data-nr-hud-state>paused</span>
+        </div>
+        <div class="nr-hud-title">
+            <strong>{TRACK_TITLE}</strong>
+            <span>{TRACK_ARTIST}</span>
+        </div>
+        <div class="nr-hud-wave" aria-hidden="true">
+            {HUD_BARS.map((bar) => <i data-nr-bar data-index={bar}></i>)}
+        </div>
+        <div class="nr-hud-footer">
+            <span data-nr-time>00:00 / 03:16</span>
+            <span>LOCAL AUDIO</span>
+        </div>
+        <div class="nr-hud-progress" aria-hidden="true">
+            <span data-nr-progress></span>
+        </div>
+    </div>
+
+    <audio data-nr-audio src={AUDIO_SRC} preload="metadata" aria-hidden="true"></audio>
 </div>
 
 <style>
@@ -449,47 +460,116 @@ const GUIDE_PATHS = [
         transform-origin: center;
     }
 
+    .nr-annotation-pause {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    :global(.nr-annotation-pause .nr-pause-note) {
+        transform: rotate(2deg);
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-annotation-play {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-annotation-pause {
+        opacity: 1;
+        transform: translateY(8px);
+    }
+
     /* Replaces the old italic index-level hint with the shared handwritten primitive. */
     :global(.nr-region > .nr-note) {
         display: none !important;
     }
 
-    .nr-player-shell {
+    .nr-music-hud {
         position: absolute;
-        top: clamp(14px, 1.2vw, 22px);
-        left: clamp(14px, 1.2vw, 22px);
-        z-index: 5;
-        width: 220px;
-        height: 152px;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(-6px);
-        transition:
-            opacity 220ms ease,
-            transform 260ms cubic-bezier(.2,.8,.2,1),
-            visibility 0s linear 260ms;
+        top: clamp(14px, 1.2vw, 20px);
+        left: clamp(16px, 1.4vw, 24px);
+        z-index: 4;
+        width: 196px;
+        height: 78px;
+        box-sizing: border-box;
+        padding: 7px 9px 8px;
+        border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        font-family: var(--font-mono);
         pointer-events: none;
+        transition: border-color 180ms ease, opacity 180ms ease;
     }
 
-    .nr-player {
-        width: 220px;
-        height: 152px;
-        overflow: hidden;
+    .nr-hud-meta,
+    .nr-hud-footer,
+    .nr-hud-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
     }
 
-    .nr-player :global(iframe) {
+    .nr-hud-meta,
+    .nr-hud-footer {
+        color: color-mix(in srgb, var(--muted) 70%, var(--bg));
+        font-size: 7px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .nr-hud-title {
+        margin-top: 3px;
+    }
+
+    .nr-hud-title strong {
+        color: color-mix(in srgb, var(--text) 74%, var(--bg));
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .03em;
+    }
+
+    .nr-hud-title span {
+        color: var(--muted);
+        font-size: 8px;
+    }
+
+    .nr-hud-wave {
+        height: 19px;
+        margin: 5px 0 4px;
+        display: flex;
+        align-items: end;
+        gap: 2px;
+    }
+
+    .nr-hud-wave i {
+        --level: .25;
         display: block;
-        width: 220px !important;
-        height: 152px !important;
-        border: 0;
+        width: 3px;
+        height: 100%;
+        flex: 1 1 0;
+        background: color-mix(in srgb, var(--muted) 52%, var(--bg));
+        transform: scaleY(var(--level));
+        transform-origin: center bottom;
+        transition: transform 85ms linear, background-color 180ms ease;
     }
 
-    .nr-stage[data-player-loaded="true"] .nr-player-shell {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-        transition-delay: 0s;
-        pointer-events: auto;
+    .nr-hud-progress {
+        position: absolute;
+        right: 9px;
+        bottom: 4px;
+        left: 9px;
+        height: 1px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .nr-hud-progress span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: color-mix(in srgb, var(--text) 62%, var(--bg));
+        transform: scaleX(0);
+        transform-origin: left center;
     }
 
     .nr-stage[data-music-state="playing"] {
@@ -501,17 +581,28 @@ const GUIDE_PATHS = [
         opacity: 1;
     }
 
-    .nr-stage[data-music-state="playing"] .nr-annotation {
-        opacity: 0;
-        transform: translateY(4px);
+    .nr-stage[data-music-state="playing"] .nr-music-hud {
+        border-color: color-mix(in srgb, var(--text) 28%, var(--border));
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-hud-wave i {
+        background: color-mix(in srgb, var(--text) 66%, var(--bg));
+    }
+
+    .nr-stage[data-music-state="error"] .nr-music-hud {
+        opacity: .58;
+    }
+
+    audio[data-nr-audio] {
+        display: none;
     }
 
     @media (min-width: 1100px) and (max-height: 859px) {
-        .nr-player-shell {
+        .nr-music-hud {
             top: 12px;
             left: 12px;
             transform-origin: left top;
-            scale: .9;
+            scale: .92;
         }
 
         .nr-annotation {
@@ -521,19 +612,20 @@ const GUIDE_PATHS = [
     }
 
     @media (max-width: 1099px) {
-        .nr-player-shell {
+        .nr-music-hud {
             top: 10px;
             left: 10px;
             transform-origin: left top;
-            scale: .86;
+            scale: .88;
         }
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .nr-player-shell,
         .nr-annotation,
         .nr-face-pattern,
-        .nr-stroke-base {
+        .nr-stroke-base,
+        .nr-music-hud,
+        .nr-hud-wave i {
             transition: none;
         }
     }
