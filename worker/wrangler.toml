@@ -5,7 +5,7 @@ account_id = "4bfdace13a8f558f066ea6e93e3d41d8"
 workers_dev = true
 
 [vars]
-ALLOWED_ORIGIN = "https://nabilrizkinavisa.me,https://www.nabilrizkinavisa.me,http://localhost:4321,http://127.0.0.1:4321"
+ALLOWED_ORIGIN = "https://nabilrizkinavisa.me,https://www.nabilrizkinavisa.me,https://nabilrn.github.io,http://localhost:4321,http://127.0.0.1:4321"
 
 [[kv_namespaces]]
 binding = "METRICS"
