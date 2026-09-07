@@ -50,7 +50,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     <section class="analytics-region" aria-labelledby="analytics-heading" data-analytics-api={METRICS_API}>
         <header class="lower-panel-header">
             <h2 id="analytics-heading" class="lower-panel-heading">analytics</h2>
-            <span class="analytics-period" data-analytics-period>last 30d</span>
+            <span class="analytics-period" data-analytics-period>last 24h</span>
         </header>
 
         <div class="analytics-body">
@@ -65,11 +65,11 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 </div>
             </div>
 
-            <div class="analytics-chart-wrap" aria-label="Pageviews during the last 30 days">
-                <div class="analytics-spark" data-analytics-spark role="list" aria-label="Daily analytics during the last 30 days"></div>
+            <div class="analytics-chart-wrap" aria-label="Pageviews during the last 24 hours">
+                <div class="analytics-spark" data-analytics-spark role="list" aria-label="Hourly analytics during the last 24 hours"></div>
                 <div class="analytics-chart-caption">
-                    <span>30 days ago</span>
-                    <span>today</span>
+                    <span>24h ago</span>
+                    <span>now</span>
                 </div>
             </div>
 
@@ -587,6 +587,12 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 </style>
 
 <script>
+    type HourPoint = {
+        hour?: string;
+        views?: number;
+        visitors?: number;
+    };
+
     const template = document.querySelector<HTMLTemplateElement>('[data-lower-sections-template]');
     const bottomLayout = document.querySelector<HTMLElement>('.bottom-layout');
     const oldBlogRegion = bottomLayout?.querySelector<HTMLElement>('.blog-region');
@@ -598,17 +604,26 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const apiBase = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
     const numberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
     const exactNumberFormatter = new Intl.NumberFormat('en-US');
-    const chartDateFormatter = new Intl.DateTimeFormat('en-GB', {
+    const chartHourFormatter = new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    });
+    const chartDayFormatter = new Intl.DateTimeFormat('en-GB', {
         day: '2-digit',
         month: 'short',
     });
     const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-
+    const previewViews = [2, 1, 0, 0, 1, 3, 5, 2, 4, 7, 6, 9, 11, 8, 7, 13, 10, 15, 12, 18, 16, 21, 17, 24];
     const previewAnalytics = {
         visitors: 128,
         pageviews: 406,
         topPage: '/blog/linus-torvalds-and-linux/',
-        last30Days: [4, 7, 5, 9, 12, 8, 10, 14, 18, 13, 20, 22, 17, 24, 19, 27, 31, 25, 34, 29, 38, 42, 36, 45, 41, 48, 52, 47, 56, 61],
+        last24Hours: previewViews.map((views, index) => ({
+            hour: new Date(Date.now() - (23 - index) * 3_600_000).toISOString(),
+            views,
+            visitors: Math.max(0, Math.round(views * 0.62)),
+        })),
     };
 
     const getVisitorId = () => {
@@ -657,22 +672,26 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         analyticsTooltip.style.top = `${top}px`;
     };
 
-    const renderSpark = (values: Array<{ date?: string; views?: number; visitors?: number } | number>) => {
+    const renderSpark = (values: HourPoint[]) => {
         if (!sparkEl) return;
         sparkEl.replaceChildren();
-        const safeValues = values.length ? values : Array.from({ length: 30 }, () => 0);
-        const viewValues = safeValues.map((item) => typeof item === 'number' ? item : Number(item.views ?? 0));
+        const safeValues = values.length === 24 ? values : Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 }));
+        const viewValues = safeValues.map((item) => Number(item.views ?? 0));
         const max = Math.max(1, ...viewValues);
 
         safeValues.forEach((item, index) => {
-            const views = typeof item === 'number' ? Number(item) : Number(item.views ?? 0);
-            const visitors = typeof item === 'number' ? Math.round(views * 0.62) : Number(item.visitors ?? 0);
-            const fallbackDate = new Date(Date.now() - (safeValues.length - 1 - index) * 86_400_000);
-            const parsedDate = typeof item === 'number' || !item.date ? fallbackDate : new Date(`${item.date}T00:00:00`);
-            const dateLabel = Number.isNaN(parsedDate.getTime()) ? '' : chartDateFormatter.format(parsedDate);
-            const detail = `${dateLabel} · ${exactNumberFormatter.format(views)} pageviews · ${exactNumberFormatter.format(visitors)} visitors`;
+            const views = Number(item.views ?? 0);
+            const visitors = Number(item.visitors ?? 0);
+            const fallbackHour = new Date(Date.now() - (safeValues.length - 1 - index) * 3_600_000);
+            const parsedHour = item.hour ? new Date(item.hour) : fallbackHour;
+            const hourEnd = new Date(parsedHour.getTime() + 3_600_000);
+            const validHour = !Number.isNaN(parsedHour.getTime());
+            const hourLabel = validHour
+                ? `${chartDayFormatter.format(parsedHour)} · ${chartHourFormatter.format(parsedHour)}–${chartHourFormatter.format(hourEnd)}`
+                : 'Hour';
+            const detail = `${hourLabel} · ${exactNumberFormatter.format(views)} pageviews · ${exactNumberFormatter.format(visitors)} visitors`;
             const bar = document.createElement('span');
-            const normalized = views <= 0 ? 2 : Math.max(8, (views / max) * 100);
+            const normalized = views <= 0 ? 2 : Math.max(10, (views / max) * 100);
 
             bar.style.height = `${normalized}%`;
             bar.tabIndex = 0;
@@ -691,7 +710,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         visitors?: number;
         pageviews?: number;
         topPage?: { path?: string } | string;
-        last30Days?: Array<{ date?: string; views?: number; visitors?: number }> | number[];
+        last24Hours?: HourPoint[];
     }, preview = false) => {
         const visitors = Number(summary.visitors ?? 0);
         const pageviews = Number(summary.pageviews ?? 0);
@@ -700,11 +719,11 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         if (visitorsEl) visitorsEl.textContent = numberFormatter.format(visitors);
         if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(pageviews);
         if (topPageEl) topPageEl.textContent = topPage;
-        if (periodEl) periodEl.textContent = preview ? 'preview · 30d' : 'last 30d';
-        renderSpark(summary.last30Days ?? []);
+        if (periodEl) periodEl.textContent = preview ? 'preview · 24h' : 'last 24h';
+        renderSpark(summary.last24Hours ?? []);
     };
 
-    renderSpark(Array.from({ length: 30 }, () => 0));
+    renderSpark(Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 })));
 
     void (async () => {
         try {
@@ -714,13 +733,14 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 visitors?: number;
                 pageviews?: number;
                 topPage?: { path?: string; views?: number };
-                last30Days?: Array<{ date?: string; views?: number; visitors?: number }>;
+                last24Hours?: HourPoint[];
             };
 
-            const empty = Number(summary.visitors ?? 0) === 0 && Number(summary.pageviews ?? 0) === 0;
-            renderAnalytics(isLocalPreview && empty ? previewAnalytics : summary, isLocalPreview && empty);
+            const hasHourlyData = Array.isArray(summary.last24Hours) && summary.last24Hours.length === 24;
+            const usePreview = isLocalPreview && !hasHourlyData;
+            renderAnalytics(usePreview ? previewAnalytics : summary, usePreview);
         } catch {
-            renderAnalytics(isLocalPreview ? previewAnalytics : { visitors: 0, pageviews: 0, topPage: '/', last30Days: [] }, isLocalPreview);
+            renderAnalytics(isLocalPreview ? previewAnalytics : { visitors: 0, pageviews: 0, topPage: '/', last24Hours: [] }, isLocalPreview);
         }
     })();
 
