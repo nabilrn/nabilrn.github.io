@@ -1,12 +1,11 @@
 ---
 import Icon from './Icon.astro';
-import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import { getSiteContent } from '../data/siteContent';
 
 interface Props {
 	postId: string;
 	title: string;
 	variant?: 'inline' | 'floating' | 'feed';
-	locale?: SiteLocale;
 	trackView?: boolean;
 }
 
@@ -14,36 +13,24 @@ const {
 	postId,
 	title,
 	variant = 'inline',
-	locale: rawLocale,
 	trackView = true,
 } = Astro.props;
-const locale = normalizeLocale(rawLocale);
 const fallbackApiBase = import.meta.env.PROD
 	? 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 	: '';
 const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE?.trim() || fallbackApiBase;
 const rootId = `engage-${postId}`;
 const dialogTitleId = `${rootId}-share-title`;
-const content = getSiteContent(locale).engagement;
-const shareCopy = locale === 'id'
-	? {
-		share: 'Bagikan',
-		shareTitle: 'Bagikan tulisan',
-		copy: 'Salin',
-		copied: 'Tersalin',
-		close: 'Tutup dialog bagikan',
-		link: 'Tautan tulisan',
-		platformPrefix: 'Bagikan ke',
-	}
-	: {
-		share: 'Share',
-		shareTitle: 'Share this post',
-		copy: 'Copy',
-		copied: 'Copied',
-		close: 'Close share dialog',
-		link: 'Post link',
-		platformPrefix: 'Share on',
-	};
+const content = getSiteContent().engagement;
+const shareCopy = {
+	share: 'Share',
+	shareTitle: 'Share this post',
+	copy: 'Copy',
+	copied: 'Copied',
+	close: 'Close share dialog',
+	link: 'Post link',
+	platformPrefix: 'Share on',
+};
 ---
 
 <div
