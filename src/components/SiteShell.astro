@@ -1,6 +1,5 @@
 ---
 import HomeHeader from './home/HomeHeader.astro';
-import HomePolish from './home/HomePolish.astro';
 import {
     localizePath,
     normalizeLocale,
@@ -29,8 +28,6 @@ const languageTargets = {
 ---
 
 <div class="full-shell">
-    <HomePolish />
-
     {!isHomePage && (
         <HomeHeader
             locale={locale}
