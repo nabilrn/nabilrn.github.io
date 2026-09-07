@@ -2,30 +2,21 @@
 import ThemeToggle from '../ThemeToggle.astro';
 import GitHubStars from './GitHubStars.astro';
 import VerifiedIcon from './VerifiedIcon.astro';
-import {
-    getSiteContent,
-    localeMeta,
-    localizePath,
-    normalizeLocale,
-    supportedLocales,
-    type SiteLocale,
-} from '../../data/siteContent';
+import { getSiteContent } from '../../data/siteContent';
 
 type HeaderSection = 'overview' | 'blog' | 'none';
 
 interface Props {
-    locale?: SiteLocale;
     activeSection?: HeaderSection;
-    languageTargets?: Partial<Record<SiteLocale, string>>;
+    /** Temporary compatibility while callers are collapsed to the single-language API. */
+    locale?: string;
+    languageTargets?: unknown;
 }
 
-const locale = normalizeLocale(Astro.props.locale);
 const activeSection = Astro.props.activeSection ?? 'overview';
-const languageTargets = Astro.props.languageTargets ?? {};
-const content = getSiteContent(locale);
-const homePath = localizePath('/', locale);
-const blogPath = localizePath('/blog/', locale);
-const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath('/', item);
+const content = getSiteContent();
+const homePath = '/';
+const blogPath = '/blog/';
 ---
 
 <header class="home-header">
@@ -77,25 +68,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
 
             <span class="header-separator" aria-hidden="true"></span>
 
-            <ThemeToggle locale={locale} />
-
-            <span class="header-separator" aria-hidden="true"></span>
-
-            <details class="home-language">
-                <summary aria-label={content.nav.ariaLanguageNavigation}>{locale.toUpperCase()}</summary>
-                <div class="home-language-menu">
-                    {supportedLocales.map((item) => (
-                        <a
-                            class:list={['home-language-option', { 'is-active': item === locale }]}
-                            href={languageHref(item)}
-                            aria-label={`Switch language to ${localeMeta[item].label}`}
-                        >
-                            <span>{item.toUpperCase()}</span>
-                            <span>{localeMeta[item].label}</span>
-                        </a>
-                    ))}
-                </div>
-            </details>
+            <ThemeToggle />
         </div>
     </div>
 </header>
@@ -328,66 +301,6 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         height: 20px;
         flex: none;
         background: var(--sheet-line, var(--border));
-    }
-
-    .home-language { position: relative; }
-
-    .home-language summary {
-        min-width: 28px;
-        height: 30px;
-        padding: 0 4px;
-        display: grid;
-        place-items: center;
-        list-style: none;
-        border: 0;
-        border-radius: 0;
-        color: var(--muted);
-        background: transparent;
-        cursor: pointer;
-        font-family: var(--font-mono);
-        font-size: 9px;
-        line-height: 1;
-        transition: color 140ms ease;
-    }
-
-    .home-language summary::-webkit-details-marker { display: none; }
-
-    .home-language summary:hover,
-    .home-language[open] summary {
-        color: var(--text);
-        background: transparent;
-    }
-
-    .home-language-menu {
-        position: absolute;
-        top: calc(100% + 8px);
-        right: 0;
-        width: 170px;
-        padding: 4px;
-        display: grid;
-        gap: 1px;
-        background: var(--surface);
-        border: 1px solid var(--border-strong);
-        border-radius: 0;
-        box-shadow: var(--shadow);
-    }
-
-    .home-language-option {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 7px 8px;
-        border-radius: 0;
-        color: var(--muted);
-        font-family: var(--font-sans);
-        font-size: 10px;
-    }
-
-    .home-language-option:hover,
-    .home-language-option.is-active {
-        color: var(--text);
-        background: var(--surface-2);
     }
 
     :global(.home-header .theme-toggle) {
