@@ -111,7 +111,11 @@
         }
 
         .home-redesign .index-region {
-            min-height: 320px;
+            min-height: 0;
+        }
+
+        .home-redesign .projects-region {
+            height: 280px;
         }
 
         .home-redesign .projects-region,
@@ -212,7 +216,11 @@
         }
 
         .home-redesign .index-region {
-            min-height: 320px;
+            min-height: 0;
+        }
+
+        .home-redesign .projects-region {
+            height: 280px;
         }
 
         .home-redesign .projects-region,
@@ -228,16 +236,38 @@
         }
     }
 
+    /* Flow layouts should size the carousel to the cards rather than inheriting
+       the old generic 320px index-region minimum. This removes the large empty
+       shelf below the project rail on tablets and phones. */
+    @media (max-width: 1099px) {
+        .home-redesign .projects-region {
+            min-height: 0;
+            height: clamp(230px, 28vw, 270px);
+        }
+    }
+
     /* Keep the established two-column phone bento until content readability is
        more important than preserving side-by-side cards. */
     @media (max-width: 720px) {
         .home-redesign .identity-board {
             grid-template-columns: 1fr 1fr;
         }
+
+        /* The mobile profile previously reserved 680px and a 300px waterfall.
+           Trim only the dead vertical area; avatar/social geometry remains intact. */
+        .home-redesign .identity-profile {
+            --waterfall-height: 255px;
+            min-height: 610px;
+        }
+
+        .home-redesign .projects-region {
+            height: 238px;
+        }
     }
 
     /* Narrow phones get readable work/education sections instead of two ~190px
-       columns full of ellipses. */
+       columns full of ellipses. Education becomes content-driven so the rectorate
+       photo keeps an editorial landscape crop instead of turning into a poster. */
     @media (max-width: 520px) {
         .home-redesign .identity-board {
             grid-template-rows: auto auto auto auto auto;
@@ -254,7 +284,32 @@
         .home-redesign .education-region {
             grid-column: 1 / 3;
             grid-row: 5;
-            min-height: 340px;
+            min-height: 0;
+            height: auto;
+        }
+
+        .home-redesign .education-panel {
+            height: auto;
+            grid-template-rows: auto auto;
+        }
+
+        .home-redesign .education-body {
+            grid-template-rows: auto auto;
+        }
+
+        .home-redesign .education-photo {
+            height: auto;
+            min-height: 0;
+            aspect-ratio: 16 / 9;
+            margin-bottom: 0;
+        }
+
+        .home-redesign .education-photo img {
+            height: 100%;
+        }
+
+        .home-redesign .projects-region {
+            height: 230px;
         }
     }
 
@@ -319,6 +374,11 @@
 
         .home-redesign .education-region {
             grid-row: 6;
+        }
+
+        .home-redesign .identity-profile {
+            --waterfall-height: 245px;
+            min-height: 595px;
         }
     }
 </style>
