@@ -94,7 +94,6 @@ const blogCollectionJson = JSON.stringify({
 	description={content.seoDescription}
 	path={pagePath}
 	locale={locale}
-	layoutVariant="blog-full"
 	ogImageAlt={content.ogImageAlt}
 >
 	<div data-blog-locale-root>
@@ -136,8 +135,8 @@ const blogCollectionJson = JSON.stringify({
 		</section>
 	</div>
 
-	<script type="application/ld+json" set:html={breadcrumbJson}></script>
-	<script type="application/ld+json" set:html={blogCollectionJson}></script>
+	<script is:inline type="application/ld+json" set:html={breadcrumbJson}></script>
+	<script is:inline type="application/ld+json" set:html={blogCollectionJson}></script>
 </Page>
 
 <style>
@@ -362,8 +361,7 @@ const blogCollectionJson = JSON.stringify({
 
 			if (emptyState) {
 				emptyState.hidden = visible > 0;
-				emptyState.textContent =
-					noMatchesMessage;
+				emptyState.textContent = noMatchesMessage;
 			}
 		};
 
