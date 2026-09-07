@@ -1,6 +1,7 @@
 ---
 import ThemeToggle from '../ThemeToggle.astro';
 import GitHubStars from './GitHubStars.astro';
+import VerifiedIcon from './VerifiedIcon.astro';
 import {
     getSiteContent,
     localeMeta,
@@ -42,12 +43,14 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
             href="https://chanhdai.com/"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Design reference: Chánh Đại. Open Chánh Đại's portfolio"
+            aria-label="Design reference: Chánh Đại. Visit chanhdai.com"
         >
-            <span>design reference —</span>
+            <span class="design-reference-copy">design reference —</span>
             <strong>Chánh Đại</strong>
-            <span aria-hidden="true">↗</span>
-            <span class="design-reference-tooltip" role="tooltip">Visit Chánh Đại's portfolio ↗</span>
+            <span class="design-reference-verified" aria-hidden="true">
+                <VerifiedIcon size={13} />
+            </span>
+            <span class="design-reference-tooltip" role="tooltip">visit chanhdai.com</span>
         </a>
 
         <nav class="home-nav" aria-label={content.nav.ariaPageNavigation}>
@@ -213,25 +216,51 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         white-space: nowrap;
         text-decoration: none;
         transform: translate(-50%, -50%);
-        transition: color 140ms ease, transform 140ms ease;
+        transition: transform 140ms ease;
+    }
+
+    .design-reference-copy,
+    .design-reference strong {
+        color: transparent;
+        background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--muted) 82%, transparent) 0%,
+            color-mix(in srgb, var(--text) 90%, var(--muted)) 36%,
+            var(--text) 50%,
+            color-mix(in srgb, var(--text) 90%, var(--muted)) 64%,
+            color-mix(in srgb, var(--muted) 82%, transparent) 100%
+        );
+        background-size: 220% 100%;
+        background-clip: text;
+        -webkit-background-clip: text;
+        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--text) 16%, transparent));
+        animation: design-reference-shimmer 4.2s ease-in-out infinite;
     }
 
     .design-reference strong {
-        color: color-mix(in srgb, var(--text) 86%, var(--muted));
         font: inherit;
         font-weight: 600;
-        transition: color 140ms ease;
+    }
+
+    .design-reference-verified {
+        width: 13px;
+        height: 13px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        margin-left: 1px;
+        color: #f4c430;
+        filter:
+            drop-shadow(0 0 3px rgb(244 196 48 / 68%))
+            drop-shadow(0 0 7px rgb(244 196 48 / 30%));
+        animation: design-reference-gold-pulse 2.8s ease-in-out infinite;
     }
 
     .design-reference:hover,
     .design-reference:focus-visible {
-        color: var(--text);
         transform: translate(-50%, -50%) translateY(-1px);
         outline: none;
     }
-
-    .design-reference:hover strong,
-    .design-reference:focus-visible strong { color: var(--text); }
 
     .design-reference-tooltip {
         position: absolute;
@@ -387,6 +416,16 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         stroke-width: 1.6;
     }
 
+    @keyframes design-reference-shimmer {
+        0% { background-position: 115% 0; }
+        54%, 100% { background-position: -115% 0; }
+    }
+
+    @keyframes design-reference-gold-pulse {
+        0%, 100% { opacity: .88; transform: scale(.97); }
+        50% { opacity: 1; transform: scale(1.04); }
+    }
+
     @media (max-width: 1020px) {
         .design-reference { display: none; }
     }
@@ -409,6 +448,14 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
 
         .home-spacer { min-width: 0; }
         .home-actions { gap: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .design-reference-copy,
+        .design-reference strong,
+        .design-reference-verified {
+            animation: none;
+        }
     }
 </style>
 
@@ -476,7 +523,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
     }
 
     .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']::before {
-        content: 'View @bilcikiwir on Duolingo ↗';
+        content: 'View @bilcikiwir on Duolingo';
         position: absolute;
         z-index: 30;
         left: 12px;
@@ -505,7 +552,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
     }
 
     .home-redesign[data-home-redesign] .nr-song-credit::after {
-        content: "Visit Sharou's YouTube channel ↗";
+        content: "Visit Sharou's YouTube channel";
         position: absolute;
         z-index: 40;
         right: 0;
