@@ -62,6 +62,7 @@ const initNrMark = (root: HTMLElement) => {
     let isPlaying = false;
     let pointerHeld = false;
     let audioContext: AudioContext | null = null;
+    let mechanicalContext: AudioContext | null = null;
     let analyser: AnalyserNode | null = null;
     let frequencyData: Uint8Array<ArrayBuffer> | null = null;
     let visualizerRaf = 0;
@@ -308,6 +309,42 @@ const initNrMark = (root: HTMLElement) => {
         if (audioContext.state === 'suspended') await audioContext.resume();
     };
 
+    const playMechanicalClick = async () => {
+        try {
+            mechanicalContext ??= new AudioContext();
+            if (mechanicalContext.state === 'suspended') await mechanicalContext.resume();
+
+            const context = mechanicalContext;
+            const now = context.currentTime;
+
+            const tick = context.createOscillator();
+            const tickGain = context.createGain();
+            tick.type = 'square';
+            tick.frequency.setValueAtTime(720, now);
+            tick.frequency.exponentialRampToValueAtTime(260, now + 0.028);
+            tickGain.gain.setValueAtTime(0.0001, now);
+            tickGain.gain.exponentialRampToValueAtTime(0.022, now + 0.002);
+            tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.036);
+            tick.connect(tickGain).connect(context.destination);
+            tick.start(now);
+            tick.stop(now + 0.04);
+
+            const thunk = context.createOscillator();
+            const thunkGain = context.createGain();
+            thunk.type = 'triangle';
+            thunk.frequency.setValueAtTime(150, now + 0.004);
+            thunk.frequency.exponentialRampToValueAtTime(82, now + 0.046);
+            thunkGain.gain.setValueAtTime(0.0001, now + 0.004);
+            thunkGain.gain.exponentialRampToValueAtTime(0.032, now + 0.009);
+            thunkGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.054);
+            thunk.connect(thunkGain).connect(context.destination);
+            thunk.start(now + 0.004);
+            thunk.stop(now + 0.058);
+        } catch {
+            // Mechanical feedback is decorative; music interaction must still work without Web Audio.
+        }
+    };
+
     const applyPlayingState = (playing: boolean) => {
         isPlaying = playing;
         updateMusicState(playing ? 'playing' : 'idle');
@@ -344,7 +381,9 @@ const initNrMark = (root: HTMLElement) => {
     };
 
     const press = () => {
+        if (pointerHeld) return;
         pointerHeld = true;
+        void playMechanicalClick();
         setShiftTarget(pressDistance);
     };
 
