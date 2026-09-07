@@ -97,5 +97,8 @@ export function buildStoredZip(files: Record<string, string>): Blob {
     u16(0),
   ]);
 
-  return new Blob([...locals, centralDirectory, end], { type: 'application/zip' });
+  const archive = concat([...locals, centralDirectory, end]);
+  const buffer = new ArrayBuffer(archive.byteLength);
+  new Uint8Array(buffer).set(archive);
+  return new Blob([buffer], { type: 'application/zip' });
 }
