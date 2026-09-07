@@ -44,6 +44,9 @@ jobs:
         run: pnpm exec astro check
 
       - name: Production build
+        env:
+          # Never let CI/preview builds fall back to the live Cloudflare metrics Worker.
+          PUBLIC_ENGAGEMENT_API_BASE: /__ci-disabled-engagement__
         run: pnpm build
 
       - name: Start Astro preview
