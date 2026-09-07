@@ -1,6 +1,4 @@
 ---
-import { Image } from 'astro:assets';
-
 type SkillItem = {
     label: string;
     source: 'simple' | 'lobe' | 'local';
@@ -114,20 +112,10 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
                                 <span
                                     class:list={['skill-item', coloredAsset && 'has-color-asset']}
                                     data-skill-label={item.label}
-                                    style={`--skill-icon:url('${monoUrl(item)}');--brand-color:${item.color ?? 'var(--text)'};--icon-scale:${item.scale ?? 1}`}
+                                    style={`--skill-icon:url('${monoUrl(item)}');--skill-color-icon:${coloredAsset ? `url('${coloredAsset}')` : 'none'};--brand-color:${item.color ?? 'var(--text)'};--icon-scale:${item.scale ?? 1}`}
                                 >
                                     <span class="skill-mono" aria-hidden="true" />
-                                    {coloredAsset && (
-                                        <Image
-                                            class="skill-color"
-                                            src={coloredAsset}
-                                            width={20}
-                                            height={20}
-                                            alt=""
-                                            loading="lazy"
-                                            aria-hidden="true"
-                                        />
-                                    )}
+                                    {coloredAsset && <span class="skill-color" aria-hidden="true" />}
                                     <span class="sr-only">{item.label}</span>
                                 </span>
                             );
@@ -214,7 +202,10 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
     }
 
     .skill-color {
-        object-fit: contain;
+        background-image: var(--skill-color-icon);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
         opacity: 0;
     }
 

@@ -38,7 +38,15 @@ const socialLinks = [
     <div class="avatar-stage">
         <div class="avatar-contact-cluster">
             <div class="avatar-wrap">
-                <Image src={avatar} alt={avatarAlt} width={320} height={320} />
+                <Image
+                    src={avatar}
+                    alt={avatarAlt}
+                    width={320}
+                    height={320}
+                    loading="eager"
+                    decoding="sync"
+                    fetchpriority="high"
+                />
             </div>
 
             <a class="avatar-contact" href={contactHref} aria-label="Get in touch by email">

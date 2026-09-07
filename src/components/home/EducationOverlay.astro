@@ -8,6 +8,39 @@ import LowerSectionsOverlay from './LowerSectionsOverlay.astro';
 <ProjectCarouselOverlay />
 <LowerSectionsOverlay />
 
+<script is:inline>
+    (() => {
+        const desktop = window.matchMedia('(min-width: 721px)').matches;
+        const loading = desktop ? 'eager' : 'lazy';
+        const fetchPriority = desktop ? 'low' : 'auto';
+
+        const configureTemplateImages = (templateSelector, imageSelector) => {
+            const template = document.querySelector(templateSelector);
+            if (!(template instanceof HTMLTemplateElement)) return;
+
+            template.content.querySelectorAll(imageSelector).forEach((node) => {
+                if (!(node instanceof HTMLImageElement)) return;
+                node.loading = loading;
+                node.decoding = 'async';
+                node.fetchPriority = fetchPriority;
+            });
+        };
+
+        /* These images live inside inert templates until the home overlays mount.
+           Apply the viewport policy before those templates are cloned into the
+           live DOM: desktop renders them above the fold, while the mobile stack
+           keeps them lazy because Education and Blog sit much farther down-page. */
+        configureTemplateImages(
+            '[data-education-template]',
+            '.education-logo, .education-photo img',
+        );
+        configureTemplateImages(
+            '[data-lower-sections-template]',
+            '.tweet-avatar',
+        );
+    })();
+</script>
+
 <style is:global>
     /* index.astro scopes its legacy two-column .bottom-layout rule, which gives
        that selector the same effective specificity as the lower-section overlay.

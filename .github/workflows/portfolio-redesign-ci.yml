@@ -1,9 +1,9 @@
-name: Portfolio Redesign CI
+name: Portfolio CI
 
 on:
   push:
     branches:
-      - redesign/chanhdai-bento-home
+      - main
   pull_request:
     branches:
       - main
@@ -12,12 +12,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: portfolio-redesign-ci-${{ github.ref }}
+  group: portfolio-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    if: github.event_name == 'push' || github.head_ref == 'redesign/chanhdai-bento-home'
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
