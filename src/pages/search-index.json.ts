@@ -94,7 +94,7 @@ export const GET: APIRoute = async () => {
       entry.path,
       entry.source,
       entry.css,
-      entry.scripts.map((script) => [script.path, script.source]),
+      entry.scripts.flatMap((script) => [script.path, script.source]),
     ),
   }));
 
