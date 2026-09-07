@@ -71,16 +71,24 @@ const commonSchema = {
     ],
 };
 
+const commonSeo = {
+    siteAlternateName: ['nabilrn', 'Nabil Portfolio'],
+    keywords:
+        'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, Information Systems Graduate, Universitas Andalas, AI Agent, Web Developer, Mobile Developer, Backend Developer, DevOps, IT Infrastructure, Proxmox, Docker, Indonesia',
+    ogSiteName: authorName,
+    themeColor: '#0a0a0a',
+};
+
 const enContent = {
     profile: {
         name: authorName,
         avatarAlt: authorName,
     },
     seo: {
+        ...commonSeo,
         defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
         defaultDescription:
             'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
-        siteAlternateName: ['nabilrn', 'Nabil Portfolio'],
     },
     schema: {
         ...commonSchema,
@@ -187,10 +195,10 @@ const idContent: SiteContent = {
         ...enContent.profile,
     },
     seo: {
+        ...enContent.seo,
         defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Lulusan Sistem Informasi',
         defaultDescription:
             'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
-        siteAlternateName: enContent.seo.siteAlternateName,
     },
     schema: {
         ...enContent.schema,
