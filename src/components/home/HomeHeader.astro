@@ -88,6 +88,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
                         <a
                             class:list={['home-language-option', { 'is-active': item === locale }]}
                             href={languageHref(item)}
+                            aria-label={`Switch language to ${localeMeta[item].label}`}
                         >
                             <span>{item.toUpperCase()}</span>
                             <span>{localeMeta[item].label}</span>
