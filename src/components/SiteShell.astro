@@ -2,6 +2,7 @@
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
+import SiteVisualGuardrails from './SiteVisualGuardrails.astro';
 import {
     localizePath,
     normalizeLocale,
@@ -44,6 +45,7 @@ const languageTargets = {
 
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
+    <SiteVisualGuardrails />
 </div>
 
 <style>
