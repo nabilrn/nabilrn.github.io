@@ -2,15 +2,14 @@
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
-import { getSiteContent, localizePath, type SiteLocale } from '../../data/siteContent';
+import { getSiteContent, localizePath, type ActiveSiteLocale } from '../../data/siteContent';
 
 const pathname = Astro.url.pathname;
 const firstSegment = pathname.split('/').filter(Boolean)[0];
-const supportedLocales = new Set(['en', 'id', 'cn', 'jp', 'ar']);
-const locale = (supportedLocales.has(firstSegment) ? firstSegment : 'en') as SiteLocale;
+const locale = (firstSegment === 'id' ? 'id' : 'en') as ActiveSiteLocale;
 const content = getSiteContent(locale);
 const blogPath = localizePath('/blog/', locale);
-const dateLocale = locale === 'id' ? 'id-ID' : locale === 'cn' ? 'zh-CN' : locale === 'jp' ? 'ja-JP' : locale === 'ar' ? 'ar-SA' : 'en-US';
+const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
 
 const cleanMarkdown = (value: string) => value
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
