@@ -434,7 +434,6 @@ const socialLinks = [
         width: 12px;
         height: 12px;
         display: block;
-        object-fit: contain;
         opacity: 0;
         transform: translateY(-50%) scale(.86);
         pointer-events: none;
@@ -624,11 +623,17 @@ const socialLinks = [
         hitLink.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
         locationPlace.append(hitLink);
 
-        const mapsIcon = document.createElement('img');
-        mapsIcon.className = 'location-map-brand';
-        mapsIcon.src = 'https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico';
-        mapsIcon.alt = '';
+        const svgNamespace = 'http://www.w3.org/2000/svg';
+        const mapsIcon = document.createElementNS(svgNamespace, 'svg');
+        mapsIcon.classList.add('location-map-brand');
+        mapsIcon.setAttribute('viewBox', '0 0 24 24');
         mapsIcon.setAttribute('aria-hidden', 'true');
+        mapsIcon.innerHTML = `
+            <path fill="#34A853" d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8Z"></path>
+            <path fill="#FBBC04" d="M12 2a8 8 0 0 0-7.3 4.7L12 12l7.3-5.3A8 8 0 0 0 12 2Z"></path>
+            <path fill="#EA4335" d="M4 10c0 2.2 1.5 5 3.4 7.3L12 12 4.7 6.7A8 8 0 0 0 4 10Z"></path>
+            <circle cx="12" cy="10" r="2.8" fill="#4285F4"></circle>
+        `;
         locationPlace.append(mapsIcon);
 
         const tooltip = document.createElement('span');
