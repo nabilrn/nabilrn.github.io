@@ -2,7 +2,7 @@
 import Page from '../components/Page.astro';
 import { getSiteContent } from '../data/siteContent';
 
-const content = getSiteContent('en').errors;
+const content = getSiteContent().errors;
 const page = content.notFound;
 ---
 
