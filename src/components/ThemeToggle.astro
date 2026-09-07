@@ -46,6 +46,10 @@ const labels = { toLight: 'Switch to light mode', toDark: 'Switch to dark mode' 
 		box-shadow: inset 0 0 0 1px var(--border-strong);
 	}
 
+	.theme-toggle:disabled {
+		cursor: default;
+	}
+
 	.theme-toggle .theme-icon {
 		grid-area: 1 / 1;
 		width: 14px;
@@ -67,6 +71,16 @@ const labels = { toLight: 'Switch to light mode', toDark: 'Switch to dark mode' 
 		transform: scale(1) rotate(0deg);
 	}
 
+	.theme-pixel-transition {
+		position: fixed;
+		inset: 0;
+		z-index: 2147483646;
+		width: 100vw;
+		height: 100vh;
+		pointer-events: none;
+		contain: strict;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.theme-toggle,
 		.theme-toggle .theme-icon {
@@ -76,23 +90,162 @@ const labels = { toLight: 'Switch to light mode', toDark: 'Switch to dark mode' 
 </style>
 
 <script>
+	type ThemeName = 'dark' | 'light';
+	type PixelCell = {
+		x: number;
+		y: number;
+		order: number;
+		clearOrder: number;
+		shade: number;
+	};
+
 	class ThemeToggle extends HTMLElement {
+		private animating = false;
+
 		constructor() {
 			super();
 			const button = this.querySelector('button');
 			this.syncButtonState();
 
 			button?.addEventListener('click', () => {
+				if (this.animating) return;
 				const currentTheme = document.documentElement.dataset.theme || 'dark';
-				const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
-				this.setTheme(nextTheme);
+				const nextTheme: ThemeName = currentTheme === 'light' ? 'dark' : 'light';
+				if (button instanceof HTMLButtonElement) {
+					void this.transitionTheme(nextTheme, button);
+				} else {
+					this.setTheme(nextTheme);
+				}
 			});
 		}
 
-		setTheme(theme: string) {
+		setTheme(theme: ThemeName) {
 			document.documentElement.dataset.theme = theme;
 			localStorage.setItem('portfolio-theme', theme);
 			this.syncButtonState();
+		}
+
+		private async transitionTheme(theme: ThemeName, button: HTMLButtonElement) {
+			const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			if (reducedMotion) {
+				this.setTheme(theme);
+				return;
+			}
+
+			const canvas = document.createElement('canvas');
+			canvas.className = 'theme-pixel-transition';
+			canvas.setAttribute('aria-hidden', 'true');
+			const context = canvas.getContext('2d');
+			if (!context) {
+				this.setTheme(theme);
+				return;
+			}
+
+			this.animating = true;
+			button.disabled = true;
+			button.setAttribute('aria-busy', 'true');
+			document.body.appendChild(canvas);
+
+			const width = window.innerWidth;
+			const height = window.innerHeight;
+			const dpr = Math.min(window.devicePixelRatio || 1, 2);
+			canvas.width = Math.max(1, Math.round(width * dpr));
+			canvas.height = Math.max(1, Math.round(height * dpr));
+			context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+			const cellSize = Math.max(18, Math.min(32, Math.round(Math.min(width, height) / 28)));
+			const columns = Math.ceil(width / cellSize);
+			const rows = Math.ceil(height / cellSize);
+			const rect = button.getBoundingClientRect();
+			const originX = rect.left + rect.width / 2;
+			const originY = rect.top + rect.height / 2;
+			const maxDistance = Math.hypot(
+				Math.max(originX, width - originX),
+				Math.max(originY, height - originY),
+			) || 1;
+
+			const cells: PixelCell[] = [];
+			for (let row = 0; row < rows; row += 1) {
+				for (let column = 0; column < columns; column += 1) {
+					const x = column * cellSize;
+					const y = row * cellSize;
+					const centerX = x + cellSize / 2;
+					const centerY = y + cellSize / 2;
+					const distance = Math.hypot(centerX - originX, centerY - originY) / maxDistance;
+					const jitter = Math.random() * 0.18;
+					cells.push({
+						x,
+						y,
+						order: distance * 0.82 + jitter,
+						clearOrder: (1 - distance) * 0.7 + Math.random() * 0.3,
+						shade: Math.floor(Math.random() * 3),
+					});
+				}
+			}
+
+			cells.sort((a, b) => a.order - b.order);
+			const clearCells = [...cells].sort((a, b) => a.clearOrder - b.clearOrder);
+			const palette = theme === 'light'
+				? ['#fafafa', '#f1f1f1', '#e8e8e8']
+				: ['#0a0a0a', '#111111', '#181818'];
+			const coverDuration = 330;
+			const uncoverDuration = 360;
+			let painted = 0;
+			let cleared = 0;
+
+			const drawCell = (cell: PixelCell) => {
+				context.fillStyle = palette[cell.shade] || palette[0];
+				context.fillRect(cell.x, cell.y, cellSize + 1, cellSize + 1);
+			};
+			const clearCell = (cell: PixelCell) => {
+				context.clearRect(cell.x - 1, cell.y - 1, cellSize + 2, cellSize + 2);
+			};
+
+			try {
+				await new Promise<void>((resolve) => {
+					const started = performance.now();
+					const coverFrame = (now: number) => {
+						const progress = Math.min(1, (now - started) / coverDuration);
+						const eased = 1 - Math.pow(1 - progress, 3);
+						const target = Math.ceil(cells.length * eased);
+						while (painted < target) {
+							drawCell(cells[painted]);
+							painted += 1;
+						}
+
+						if (progress < 1) {
+							requestAnimationFrame(coverFrame);
+							return;
+						}
+
+						this.setTheme(theme);
+						const uncoverStarted = performance.now();
+						const uncoverFrame = (uncoverNow: number) => {
+							const uncoverProgress = Math.min(1, (uncoverNow - uncoverStarted) / uncoverDuration);
+							const uncoverEased = uncoverProgress * uncoverProgress * (3 - 2 * uncoverProgress);
+							const clearTarget = Math.ceil(clearCells.length * uncoverEased);
+							while (cleared < clearTarget) {
+								clearCell(clearCells[cleared]);
+								cleared += 1;
+							}
+
+							if (uncoverProgress < 1) {
+								requestAnimationFrame(uncoverFrame);
+								return;
+							}
+							resolve();
+						};
+						requestAnimationFrame(uncoverFrame);
+					};
+					requestAnimationFrame(coverFrame);
+				});
+			} finally {
+				canvas.remove();
+				this.animating = false;
+				button.disabled = false;
+				button.removeAttribute('aria-busy');
+				this.syncButtonState();
+			}
 		}
 
 		syncButtonState() {
