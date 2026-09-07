@@ -22,7 +22,7 @@ const localeInfo = getBlogLocaleInfo(post);
 const postLocale: BlogLocale = localeInfo.locale;
 const uiLocale = normalizeLocale(rawUiLocale ?? postLocale);
 const variants = getTranslationVariants(allPosts, localeInfo.translationKey);
-const blogLocales = ['en', 'id', 'cn', 'jp'] as const satisfies readonly BlogLocale[];
+const blogLocales = ['en', 'id'] as const satisfies readonly BlogLocale[];
 
 const words = post.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.ceil(words / 200));
