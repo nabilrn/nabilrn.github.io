@@ -1,5 +1,6 @@
 ---
 import HomeHeader from './home/HomeHeader.astro';
+import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
 import {
     localizePath,
     normalizeLocale,
@@ -39,6 +40,8 @@ const languageTargets = {
     <main class="full-main">
         <slot />
     </main>
+
+    {isHomePage && <HomeResponsiveArchitecture />}
 </div>
 
 <style>
