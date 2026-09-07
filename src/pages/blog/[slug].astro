@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import avatar from '../../assets/profile-anime.webp';
-import EngagementBar from '../../components/EngagementBarNew.astro';
+import BlogArticleDock from '../../components/blog/BlogArticleDock.astro';
 import Page from '../../components/Page.astro';
 import { authorName, getSiteContent, localeMeta, localizePath, normalizeLocale, siteUrl, type SiteLocale } from '../../data/siteContent';
 import { getBlogLocaleInfo, getTranslationVariants, type BlogLocale } from '../../utils/blogLocale';
@@ -97,10 +97,6 @@ const blogPostingJson = JSON.stringify({
 	alternatePaths={alternatePaths}
 >
 	<div class="article-page">
-		<div class="back-row">
-			<a href={localizePath('/blog/', uiLocale)}>← Blog</a>
-		</div>
-
 		<header class="article-header">
 			<div class="author-row">
 				<Image src={avatar} alt={authorName} width={88} height={88} />
@@ -127,10 +123,6 @@ const blogPostingJson = JSON.stringify({
 			<div class="article-tags">
 				{post.data.tags.map((tag: string) => <span>#{tag.toLowerCase().replace(/\s+/g, '-')}</span>)}
 			</div>
-
-			<div class="article-engagement">
-				<EngagementBar postId={post.slug} title={post.data.title} variant="inline" locale={uiLocale} />
-			</div>
 		</header>
 
 		<article class="post-content">
@@ -148,6 +140,14 @@ const blogPostingJson = JSON.stringify({
 		)}
 	</div>
 
+	<BlogArticleDock
+		postId={post.slug}
+		title={post.data.title}
+		locale={uiLocale}
+		postsHref={localizePath('/blog/', uiLocale)}
+		homeHref={localizePath('/', uiLocale)}
+	/>
+
 	<script is:inline type="application/ld+json" set:html={breadcrumbJson}></script>
 	<script is:inline type="application/ld+json" set:html={blogPostingJson}></script>
 </Page>
@@ -155,31 +155,9 @@ const blogPostingJson = JSON.stringify({
 <style>
 	.article-page {
 		width: min(760px, 100%);
-		margin: 0 auto;
+		margin: 0 auto 86px;
 		border-inline: 1px solid var(--sheet-line, var(--border));
 		border-bottom: 1px solid var(--sheet-line, var(--border));
-	}
-
-	.back-row {
-		height: 40px;
-		padding: 0 18px;
-		display: flex;
-		align-items: center;
-		border-bottom: 1px solid var(--sheet-line, var(--border));
-	}
-
-	.back-row a {
-		font-family: var(--font-sans);
-		font-size: 12px;
-		font-weight: 500;
-		color: var(--text);
-	}
-
-	.back-row a:hover,
-	.back-row a:focus-visible {
-		text-decoration: underline;
-		text-underline-offset: 3px;
-		outline: none;
 	}
 
 	.article-header {
@@ -257,12 +235,6 @@ const blogPostingJson = JSON.stringify({
 
 	.article-submeta { margin-top: 9px; }
 	.article-tags { margin-top: 5px; }
-
-	.article-engagement {
-		margin-top: 9px;
-		padding-top: 6px;
-		border-top: 1px solid var(--sheet-line, var(--border));
-	}
 
 	.post-content {
 		max-width: 680px;
@@ -407,7 +379,10 @@ const blogPostingJson = JSON.stringify({
 	}
 
 	@media (max-width: 720px) {
-		.article-page { border-inline: 0; }
+		.article-page {
+			border-inline: 0;
+			margin-bottom: 78px;
+		}
 		.article-header { padding-inline: 16px; }
 		.post-content { padding: 22px 16px 44px; }
 		.post-content :global(p),
