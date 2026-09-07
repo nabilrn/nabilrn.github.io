@@ -6,8 +6,8 @@ Personal portfolio and blog built as a static Astro site.
 
 - Bento-style portfolio homepage
 - Selected web-project carousel
-- English and Indonesian locales
-- Markdown blog and localized blog routes
+- English portfolio and blog
+- Markdown blog content with static article routes
 - Blog engagement metrics: views, likes, and shares
 - Site analytics summary used by the homepage
 - Cloudflare Worker metrics API backed by Workers KV
@@ -44,11 +44,9 @@ The Astro production output is static and is written to `dist/`.
 
 The public site currently exposes:
 
-- `/` — English portfolio
-- `/id/` — Indonesian portfolio
-- `/blog/` — English blog index
-- `/id/blog/` — Indonesian blog index
-- `/blog/<slug>/` and `/id/blog/<slug>/` — articles
+- `/` — portfolio homepage
+- `/blog/` — blog index
+- `/blog/<slug>/` — blog articles
 - `/404/` — custom not-found page
 - `/sitemap.xml` — custom sitemap
 
@@ -68,8 +66,6 @@ updatedDate: 2026-03-20 # optional
 tags: ["tag1", "tag2"]
 featured: false
 draft: false
-locale: en # en | id
-translationKey: shared-post-key # optional, links translations
 ```
 
 ## Metrics Worker
