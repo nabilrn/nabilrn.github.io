@@ -84,7 +84,7 @@ const blogCollectionJson = JSON.stringify({
 	path={pagePath}
 	ogImageAlt={content.ogImageAlt}
 >
-	<div class="blog-feed" data-blog-locale-root>
+	<div class="blog-feed" data-blog-feed-root>
 		<header class="feed-header">
 			<div>
 				<h1>Blog</h1>
@@ -142,7 +142,7 @@ const blogCollectionJson = JSON.stringify({
 				</article>
 			))}
 
-			<p class="empty-state" data-locale-empty hidden>{content.noMatches}</p>
+			<p class="empty-state" data-empty-state hidden>{content.noMatches}</p>
 		</section>
 	</div>
 
@@ -392,11 +392,11 @@ const blogCollectionJson = JSON.stringify({
 
 <script is:inline define:vars={{ noMatchesMessage: content.noMatches }}>
 	(() => {
-		const root = document.querySelector('[data-blog-locale-root]');
+		const root = document.querySelector('[data-blog-feed-root]');
 		if (!root) return;
 
 		const cards = Array.from(root.querySelectorAll('[data-post-search]'));
-		const emptyState = root.querySelector('[data-locale-empty]');
+		const emptyState = root.querySelector('[data-empty-state]');
 		const search = root.querySelector('[data-blog-search]');
 		if (!(search instanceof HTMLInputElement)) return;
 
