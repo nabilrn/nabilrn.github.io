@@ -5,9 +5,6 @@ import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro'
 
 interface Props {
     currentPath?: string;
-    /** Temporary compatibility while Page.astro drops the old locale props. */
-    locale?: unknown;
-    alternatePaths?: unknown;
 }
 
 const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
