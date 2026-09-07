@@ -1,0 +1,324 @@
+<style is:global>
+    /*
+     * Responsive architecture for the homepage board.
+     *
+     * The desktop composition is authored around a landscape canvas. Width alone
+     * is not enough to decide whether that composition is safe: a 1108 x 1972
+     * viewport used to cross the old 1100px threshold and then stretch the whole
+     * board to 100dvh. These rules keep the golden-ratio composition for genuine
+     * landscape desktops while giving tablets and tall/narrow desktop windows a
+     * normal document flow.
+     */
+
+    /* The profile column keeps its intended 23.6% proportion when space allows,
+       but the two content columns now divide the *remaining* width. This removes
+       the previous min-width + percentage over-constraint around tablet widths. */
+    .home-redesign .identity-board {
+        grid-template-columns:
+            clamp(218px, 23.6068%, 280px)
+            minmax(0, 1.618034fr)
+            minmax(0, 1fr);
+    }
+
+    /* Tablet status strip: four pieces of metadata cannot reliably share one
+       narrow line. Keep the section compact while giving it an explicit 2 x 2
+       information hierarchy. */
+    @media (min-width: 721px) and (max-width: 1279px) {
+        .home-redesign .location-region {
+            padding: 7px clamp(12px, 1.2vw, 16px);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-rows: auto auto;
+            align-content: center;
+            align-items: center;
+            column-gap: 14px;
+            row-gap: 4px;
+        }
+
+        .home-redesign .location-place {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: start;
+        }
+
+        .home-redesign .location-time {
+            grid-column: 2;
+            grid-row: 1;
+            justify-self: end;
+        }
+
+        .home-redesign .location-date {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: start;
+        }
+
+        .home-redesign .location-diff {
+            grid-column: 2;
+            grid-row: 2;
+            justify-self: end;
+        }
+    }
+
+    /* Widths below 1280px are not given the locked, viewport-filling desktop
+       composition. This includes narrow desktop windows that are technically
+       wider than the old 1100px breakpoint. */
+    @media (min-width: 1100px) and (max-width: 1279px) and (min-height: 760px) {
+        html,
+        body {
+            height: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .home-redesign {
+            width: min(100%, calc(100vw - 24px));
+            height: auto;
+            min-height: 100vh;
+            display: block;
+            overflow: visible;
+        }
+
+        .home-redesign .portfolio-board {
+            grid-template-rows: auto auto;
+            border-top: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .top-layout,
+        .home-redesign.home-redesign .bottom-layout {
+            height: auto;
+            grid-template-columns: 1fr;
+        }
+
+        .home-redesign .identity-board,
+        .home-redesign .nr-region,
+        .home-redesign .index-region {
+            height: auto;
+        }
+
+        .home-redesign .identity-board,
+        .home-redesign .projects-region {
+            border-right: 0;
+        }
+
+        .home-redesign .identity-board {
+            min-height: 620px;
+        }
+
+        .home-redesign .nr-region {
+            min-height: 460px;
+            border-top: var(--major-stroke) solid var(--border);
+        }
+
+        .home-redesign .index-region {
+            min-height: 320px;
+        }
+
+        .home-redesign .projects-region,
+        .home-redesign .analytics-region {
+            border-right: 0;
+            border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .analytics-region,
+        .home-redesign .latest-blog-region {
+            min-height: 260px;
+            height: auto;
+        }
+    }
+
+    /* Very tall desktop windows also leave the locked landscape composition,
+       even when they are wider than 1280px. 4:3 is the last supported aspect
+       ratio for the viewport-filling board. */
+    @media (min-width: 1280px) and (min-height: 760px) and (max-aspect-ratio: 4 / 3) {
+        html,
+        body {
+            height: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .home-redesign {
+            height: auto;
+            min-height: 100vh;
+            display: block;
+            overflow: visible;
+        }
+
+        .home-redesign .portfolio-board {
+            grid-template-rows: auto auto;
+            border-top: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .top-layout,
+        .home-redesign.home-redesign .bottom-layout {
+            height: auto;
+            grid-template-columns: 1fr;
+        }
+
+        .home-redesign .identity-board,
+        .home-redesign .nr-region,
+        .home-redesign .index-region {
+            height: auto;
+        }
+
+        .home-redesign .identity-board,
+        .home-redesign .projects-region {
+            border-right: 0;
+        }
+
+        .home-redesign .identity-board {
+            min-height: 620px;
+        }
+
+        .home-redesign .location-region {
+            padding: 7px clamp(12px, 1.2vw, 16px);
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-rows: auto auto;
+            align-content: center;
+            align-items: center;
+            column-gap: 14px;
+            row-gap: 4px;
+        }
+
+        .home-redesign .location-place {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: start;
+        }
+
+        .home-redesign .location-time {
+            grid-column: 2;
+            grid-row: 1;
+            justify-self: end;
+        }
+
+        .home-redesign .location-date {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: start;
+        }
+
+        .home-redesign .location-diff {
+            grid-column: 2;
+            grid-row: 2;
+            justify-self: end;
+        }
+
+        .home-redesign .nr-region {
+            min-height: 460px;
+            border-top: var(--major-stroke) solid var(--border);
+        }
+
+        .home-redesign .index-region {
+            min-height: 320px;
+        }
+
+        .home-redesign .projects-region,
+        .home-redesign .analytics-region {
+            border-right: 0;
+            border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .analytics-region,
+        .home-redesign .latest-blog-region {
+            min-height: 260px;
+            height: auto;
+        }
+    }
+
+    /* Keep the established two-column phone bento until content readability is
+       more important than preserving side-by-side cards. */
+    @media (max-width: 720px) {
+        .home-redesign .identity-board {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    /* Narrow phones get readable work/education sections instead of two ~190px
+       columns full of ellipses. */
+    @media (max-width: 520px) {
+        .home-redesign .identity-board {
+            grid-template-rows: auto auto auto auto auto;
+        }
+
+        .home-redesign .experience-region {
+            grid-column: 1 / 3;
+            grid-row: 4;
+            min-height: 320px;
+            border-right: 0;
+            border-bottom: var(--minor-stroke) solid var(--sheet-line);
+        }
+
+        .home-redesign .education-region {
+            grid-column: 1 / 3;
+            grid-row: 5;
+            min-height: 340px;
+        }
+    }
+
+    /* On the narrowest phones, location and streak become two compact full-width
+       status rows. This prevents the Duolingo handle and local-time metadata from
+       fighting for half of a 380-430px viewport. */
+    @media (max-width: 430px) {
+        .home-redesign .identity-board {
+            grid-template-rows: auto auto auto auto auto auto;
+        }
+
+        .home-redesign .location-region {
+            grid-column: 1 / 3;
+            grid-row: 3;
+            min-height: 76px;
+            padding: 10px 14px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-rows: auto auto;
+            align-content: center;
+            align-items: center;
+            column-gap: 12px;
+            row-gap: 4px;
+            border-right: 0;
+        }
+
+        .home-redesign .location-place {
+            grid-column: 1;
+            grid-row: 1;
+            justify-self: start;
+        }
+
+        .home-redesign .location-time {
+            grid-column: 2;
+            grid-row: 1;
+            justify-self: end;
+        }
+
+        .home-redesign .location-date {
+            grid-column: 1;
+            grid-row: 2;
+            justify-self: start;
+        }
+
+        .home-redesign .location-diff {
+            grid-column: 2;
+            grid-row: 2;
+            justify-self: end;
+        }
+
+        .home-redesign .streak-region {
+            grid-column: 1 / 3;
+            grid-row: 4;
+            min-height: 72px;
+            padding: 12px 14px;
+            border-right: 0;
+        }
+
+        .home-redesign .experience-region {
+            grid-row: 5;
+        }
+
+        .home-redesign .education-region {
+            grid-row: 6;
+        }
+    }
+</style>
