@@ -265,6 +265,22 @@
         }
     }
 
+    /* The graph's original mobile override forced 6px cells with 2px gaps,
+       producing a 422px rail before padding. Let the container solve the 53-week
+       geometry instead: 52 one-pixel seams + 53 fractional cells always fit. */
+    @media (max-width: 640px) {
+        .home-redesign .contribution-panel {
+            --cell-gap: 1px !important;
+            --cell-size: clamp(4px, calc((100cqw - 52px) / 53), 8px) !important;
+        }
+
+        .home-redesign .contribution-calendar {
+            max-width: 100% !important;
+            overflow-x: clip !important;
+            overflow-y: visible !important;
+        }
+    }
+
     /* Narrow phones get readable work/education sections instead of two ~190px
        columns full of ellipses. Education becomes content-driven so the rectorate
        photo keeps an editorial landscape crop instead of turning into a poster. */
