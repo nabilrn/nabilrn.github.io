@@ -1,27 +1,5 @@
-export type SiteLocale = string;
-export type ActiveSiteLocale = SiteLocale;
-
-export const defaultLocale: SiteLocale = 'en';
-export const supportedLocales = ['en'] as const;
-export const localizedLocales = [] as const;
 export const siteUrl = 'https://portfolio.nabilrn.space';
 export const authorName = 'Nabil Rizki Navisa';
-
-export const localeMeta: Record<
-    string,
-    { label: string; htmlLang: string; ogLocale: string; pathPrefix: string; dateLocale: string }
-> = {
-    en: { label: 'English', htmlLang: 'en', ogLocale: 'en_US', pathPrefix: '', dateLocale: 'en-US' },
-};
-
-export const normalizeLocale = (_locale?: string): SiteLocale => defaultLocale;
-
-export const stripLocaleFromPath = (path = '/') => {
-    const normalized = path.startsWith('/') ? path : `/${path}`;
-    return normalized === '' ? '/' : normalized;
-};
-
-export const localizePath = (path: string, _locale: SiteLocale = defaultLocale) => stripLocaleFromPath(path);
 
 const commonSchema = {
     alternateName: ['Nabil Navisa', 'Nabil Rizki', 'nabilrn', 'nabilrizkinavisa'],
@@ -169,4 +147,4 @@ const enContent = {
 
 export type SiteContent = typeof enContent;
 
-export const getSiteContent = (_locale: SiteLocale = defaultLocale): SiteContent => enContent;
+export const getSiteContent = (): SiteContent => enContent;
