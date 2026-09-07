@@ -2,7 +2,6 @@
 import { Image } from 'astro:assets';
 import type { WebProject } from '../../data/projects';
 import BrandIcon from '../icons/BrandIcon.astro';
-import UiIcon from '../icons/UiIcon.astro';
 import ProjectTechIcon from './ProjectTechIcon.astro';
 
 interface Props {
@@ -78,7 +77,6 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
                     aria-label={`Visit ${project.name}`}
                 >
                     <span>Live</span>
-                    <UiIcon name="arrow-up-right" size={10} strokeWidth={1.5} />
                 </a>
             </span>
         </div>
