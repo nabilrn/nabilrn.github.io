@@ -1,8 +1,7 @@
 ---
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
-import PortfolioLayout from './PortfolioLayout.astro';
-import PortfolioFullLayout from './PortfolioFullLayout.astro';
+import SiteShell from './SiteShell.astro';
 import {
   authorName,
   getSiteContent,
@@ -22,6 +21,7 @@ interface Props {
   locale?: SiteLocale;
   lang?: string;
   robots?: string;
+  /** @deprecated All pages now use the shared SiteShell. */
   layoutVariant?: 'portfolio' | 'portfolio-full' | 'blog-full';
   ogImage?: string;
   ogImageAlt?: string;
@@ -42,7 +42,6 @@ const {
   locale: pageLocale,
   lang = 'en',
   robots = 'index, follow',
-  layoutVariant = 'portfolio',
   ogImage: pageOgImage,
   ogImageAlt,
   ogType = 'website',
@@ -130,14 +129,6 @@ const websiteJson = JSON.stringify({
   publisher: {
     '@id': `${siteUrl}/#person`,
   },
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: `${siteUrl}${localizePath('/blog/', contentLocale)}?q={search_term_string}`,
-    },
-    'query-input': 'required name=search_term_string',
-  },
 });
 const webPageJson = JSON.stringify({
   '@context': 'https://schema.org',
@@ -175,12 +166,6 @@ const siteNavigationJson = JSON.stringify({
     {
       '@type': 'SiteNavigationElement',
       position: 2,
-      name: content.nav.projects,
-      url: new URL(localizePath('/projects/', contentLocale), siteUrl).toString(),
-    },
-    {
-      '@type': 'SiteNavigationElement',
-      position: 3,
       name: content.nav.blog,
       url: new URL(localizePath('/blog/', contentLocale), siteUrl).toString(),
     },
@@ -263,15 +248,9 @@ const siteNavigationJson = JSON.stringify({
     <script type="application/ld+json" set:html={siteNavigationJson}></script>
 </head>
 <body>
-    {layoutVariant === 'portfolio-full' || layoutVariant === 'blog-full' ? (
-        <PortfolioFullLayout currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
-            <slot />
-        </PortfolioFullLayout>
-    ) : (
-        <PortfolioLayout currentPath={path} locale={contentLocale}>
-            <slot />
-        </PortfolioLayout>
-    )}
+    <SiteShell currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
+        <slot />
+    </SiteShell>
 </body>
 </html>
 
@@ -382,9 +361,7 @@ const siteNavigationJson = JSON.stringify({
         height: 10px;
     }
 
-    ::-webkit-scrollbar-track {
-        background: var(--bg);
-    }
+    ::-webkit-scrollbar-track { background: var(--bg); }
 
     ::-webkit-scrollbar-thumb {
         background: var(--border-strong);
@@ -392,9 +369,7 @@ const siteNavigationJson = JSON.stringify({
         border-radius: 6px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--muted);
-    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     a {
         color: inherit;
@@ -414,9 +389,7 @@ const siteNavigationJson = JSON.stringify({
         color: var(--text);
     }
 
-    code, kbd, pre, samp {
-        font-family: var(--font-mono);
-    }
+    code, kbd, pre, samp { font-family: var(--font-mono); }
 
     p {
         font-size: 14px;
@@ -442,9 +415,7 @@ const siteNavigationJson = JSON.stringify({
         margin: 0 0 6px 0;
     }
 
-    li::marker {
-        color: var(--muted);
-    }
+    li::marker { color: var(--muted); }
 
     hr {
         border: none;
@@ -452,7 +423,5 @@ const siteNavigationJson = JSON.stringify({
         margin: 24px 0;
     }
 
-    img {
-        max-width: 100%;
-    }
+    img { max-width: 100%; }
 </style>
