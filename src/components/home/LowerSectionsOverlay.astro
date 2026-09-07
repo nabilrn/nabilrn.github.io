@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
 import { getSiteContent, localizePath, type ActiveSiteLocale } from '../../data/siteContent';
+import VerifiedIcon from './VerifiedIcon.astro';
 
 const pathname = Astro.url.pathname;
 const firstSegment = pathname.split('/').filter(Boolean)[0];
@@ -54,7 +55,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 <template data-lower-sections-template>
     <section class="analytics-region" aria-labelledby="analytics-heading" data-analytics-api={METRICS_API}>
         <header class="lower-panel-header">
-            <h2 id="analytics-heading" class="lower-panel-heading">my analytics</h2>
+            <h2 id="analytics-heading" class="lower-panel-heading">analytics</h2>
             <span class="analytics-period" data-analytics-period>last 30d</span>
         </header>
 
@@ -88,7 +89,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     <section class="latest-blog-region" aria-labelledby="latest-blog-heading" data-blog-metrics-api={METRICS_API}>
         <header class="lower-panel-header">
             <h2 id="latest-blog-heading" class="lower-panel-heading">my blog</h2>
-            <a class="blog-all-link" href={blogPath}>all posts <span aria-hidden="true">↗</span></a>
+            <a class="blog-all-link" href={blogPath}>all posts</a>
         </header>
 
         <div class="blog-feed">
@@ -99,7 +100,9 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                         <div class="tweet-author-copy">
                             <div class="tweet-name-row">
                                 <strong>{content.profile.name}</strong>
-                                <span class="tweet-verified" aria-label="Verified">✓</span>
+                                <span class="tweet-verified" aria-label="Verified">
+                                    <VerifiedIcon size={12} />
+                                </span>
                             </div>
                             <span class="tweet-handle">@NabilrizkiN · {post.date}</span>
                         </div>
@@ -121,7 +124,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                                 <span data-blog-likes>—</span>
                             </span>
                         </div>
-                        <a class="tweet-read-link" href={post.href}>read <span aria-hidden="true">↗</span></a>
+                        <a class="tweet-read-link" href={post.href}>read</a>
                     </div>
                 </article>
             ))}
@@ -393,13 +396,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         flex: none;
         display: grid;
         place-items: center;
-        border-radius: 50%;
-        background: color-mix(in srgb, var(--text) 88%, var(--muted));
-        color: var(--bg);
-        font-family: var(--font-sans);
-        font-size: 8px;
-        font-weight: 800;
-        line-height: 1;
+        color: color-mix(in srgb, var(--text) 92%, transparent);
     }
 
     .home-redesign .tweet-handle {
