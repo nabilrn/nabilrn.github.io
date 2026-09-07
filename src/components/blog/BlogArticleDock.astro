@@ -218,6 +218,10 @@ const copy = locale === 'id'
     }
 
     @media (max-width: 520px) {
+        :global(.article-page) {
+            margin-bottom: calc(12px + env(safe-area-inset-bottom));
+        }
+
         .article-dock {
             bottom: max(10px, env(safe-area-inset-bottom));
             width: min(calc(100vw - 20px), 360px);
@@ -241,6 +245,27 @@ const copy = locale === 'id'
         .dock-separator {
             height: 26px;
             margin-inline: 2px;
+        }
+
+        .dock-action:first-child::after {
+            left: 0;
+            transform: translateY(3px);
+        }
+
+        .dock-action:first-child:hover::after,
+        .dock-action:first-child:focus-visible::after {
+            transform: translateY(0);
+        }
+
+        :global(.article-dock .share-action::after) {
+            left: auto;
+            right: 0;
+            transform: translateY(3px);
+        }
+
+        :global(.article-dock .share-action:hover::after),
+        :global(.article-dock .share-action:focus-visible::after) {
+            transform: translateY(0);
         }
     }
 
