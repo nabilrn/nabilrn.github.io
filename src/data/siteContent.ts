@@ -1,37 +1,33 @@
-export type ActiveSiteLocale = 'en' | 'id';
+export type SiteLocale = 'en' | 'id';
+export type ActiveSiteLocale = SiteLocale;
 
-// A few components still accept historical locale strings from pathname parsing.
-// Runtime normalization below collapses every retired value to English; only EN
-// and ID are generated, linked, indexed, or stored as content.
-export type SiteLocale = ActiveSiteLocale | 'cn' | 'jp' | 'ar';
-
-export const defaultLocale: ActiveSiteLocale = 'en';
-export const supportedLocales = ['en', 'id'] as const satisfies readonly ActiveSiteLocale[];
-export const localizedLocales = ['id'] as const satisfies readonly ActiveSiteLocale[];
+export const defaultLocale: SiteLocale = 'en';
+export const supportedLocales = ['en', 'id'] as const satisfies readonly SiteLocale[];
+export const localizedLocales = ['id'] as const satisfies readonly SiteLocale[];
 export const siteUrl = 'https://portfolio.nabilrn.space';
 export const authorName = 'Nabil Rizki Navisa';
 
 export const localeMeta: Record<
-    ActiveSiteLocale,
+    SiteLocale,
     { label: string; htmlLang: string; ogLocale: string; pathPrefix: string; dateLocale: string }
 > = {
     en: { label: 'English', htmlLang: 'en', ogLocale: 'en_US', pathPrefix: '', dateLocale: 'en-US' },
     id: { label: 'Indonesia', htmlLang: 'id', ogLocale: 'id_ID', pathPrefix: '/id', dateLocale: 'id-ID' },
 };
 
-export const normalizeLocale = (locale?: string): ActiveSiteLocale => (locale === 'id' ? 'id' : defaultLocale);
+export const normalizeLocale = (locale?: string): SiteLocale => (locale === 'id' ? 'id' : defaultLocale);
 
 export const stripLocaleFromPath = (path = '/') => {
     const normalized = path.startsWith('/') ? path : `/${path}`;
+    // Strip retired prefixes too so old inbound URLs canonicalize to the active route surface.
     const stripped = normalized.replace(/^\/(id|cn|jp|ar)(?=\/|$)/, '');
     return stripped === '' ? '/' : stripped;
 };
 
 export const localizePath = (path: string, locale: SiteLocale = defaultLocale) => {
     const normalizedPath = stripLocaleFromPath(path);
-    const normalizedLocale = normalizeLocale(locale);
-    if (normalizedLocale === defaultLocale) return normalizedPath;
-    return `${localeMeta[normalizedLocale].pathPrefix}${normalizedPath === '/' ? '/' : normalizedPath}`;
+    if (locale === defaultLocale) return normalizedPath;
+    return `${localeMeta[locale].pathPrefix}${normalizedPath === '/' ? '/' : normalizedPath}`;
 };
 
 const commonSchema = {
@@ -296,10 +292,9 @@ const idContent: SiteContent = {
     },
 };
 
-const localizedSiteContent: Record<ActiveSiteLocale, SiteContent> = {
+const localizedSiteContent: Record<SiteLocale, SiteContent> = {
     en: enContent,
     id: idContent,
 };
 
-export const getSiteContent = (locale: SiteLocale = defaultLocale): SiteContent =>
-    localizedSiteContent[normalizeLocale(locale)];
+export const getSiteContent = (locale: SiteLocale = defaultLocale): SiteContent => localizedSiteContent[locale];
