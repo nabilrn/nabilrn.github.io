@@ -3,8 +3,6 @@ title: "I Used Linux Before I Cared Who Built It"
 description: "I had already been using Linux, Git, Docker, and Ubuntu servers for years before I spent time learning about Linus Torvalds. His story changed how I think about engineering work."
 pubDate: "2026-08-01"
 tags: ["Tech", "History", "Open Source"]
-locale: "en"
-translationKey: "linus-torvalds-and-linux"
 ---
 
 I used Linux long before I cared who made it.
