@@ -51,6 +51,15 @@ export const GET: APIRoute = async () => {
       href: '/components/',
       searchText: buildSearchText('components component explorer design system source preview astro typescript css'),
     },
+    {
+      id: 'page-isometric-generator',
+      kind: 'page',
+      category: 'Pages',
+      title: 'Isometric A–Z Generator',
+      description: 'Generate modular technical-isometric A–Z marks with depth, hatch, guide, Astro, SVG, and runnable ZIP exports.',
+      href: '/components/isometric-generator/',
+      searchText: buildSearchText('isometric generator alphabet a z glyph character depth hatch guide astro svg zip component'),
+    },
   ];
 
   const projects: SearchEntry[] = webProjects.map((project, index) => ({
