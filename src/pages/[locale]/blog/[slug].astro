@@ -7,12 +7,11 @@ import { getBlogLocaleInfo } from '../../../utils/blogLocale';
 // Astro narrows imported page props from that page's own getStaticPaths().
 // This wrapper intentionally passes the optional locale/path props that the page reads at runtime.
 const LocalizedBlogPostPage = BlogPostPage as any;
-const localizedBlogLocales = ['id'] as const;
 
 export async function getStaticPaths() {
     const posts = await getCollection('blog', ({ data }) => !data.draft);
 
-    return localizedBlogLocales.flatMap((locale) =>
+    return (['id'] as const).flatMap((locale) =>
         posts
             .filter((post) => getBlogLocaleInfo(post).locale === locale)
             .map((post) => ({
