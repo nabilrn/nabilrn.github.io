@@ -109,7 +109,6 @@ const blogPostingJson = JSON.stringify({
 	path={postPath}
 	locale={uiLocale}
 	lang={postLocale}
-	layoutVariant="blog-full"
 	ogImage={ogImagePath}
 	ogImageAlt={blogCopy.article.ogImageAlt(post.data.title)}
 	ogType="article"
@@ -151,8 +150,8 @@ const blogPostingJson = JSON.stringify({
 		</aside>
 	</div>
 
-	<script type="application/ld+json" set:html={breadcrumbJson}></script>
-	<script type="application/ld+json" set:html={blogPostingJson}></script>
+	<script is:inline type="application/ld+json" set:html={breadcrumbJson}></script>
+	<script is:inline type="application/ld+json" set:html={blogPostingJson}></script>
 </Page>
 
 <style>
