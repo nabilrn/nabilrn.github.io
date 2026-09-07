@@ -12,7 +12,7 @@ export const getTranslationKeyFromSlug = (slug: string): string =>
 
 export const getBlogLocaleInfo = (post: BlogEntry) => ({
 	locale: 'en' as const,
-	translationKey: post.data.translationKey?.trim() || getTranslationKeyFromSlug(post.slug),
+	translationKey: getTranslationKeyFromSlug(post.slug),
 });
 
 export const getTranslationVariants = (posts: BlogEntry[], translationKey: string) => {
