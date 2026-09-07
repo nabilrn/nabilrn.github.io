@@ -31,8 +31,8 @@ const isBlogPage = normalizedPath.startsWith('/blog/');
 const homePath = localizePath('/', locale);
 const blogPath = localizePath('/blog/', locale);
 const localeFlags: Record<'en' | 'id', string> = {
-    en: '🇬🇧',
-    id: '🇮🇩',
+    en: 'EN',
+    id: 'ID',
 };
 const languageLinks = supportedLocales.map((item) => ({
     locale: item,
@@ -47,19 +47,20 @@ const activeLink = languageLinks.find((item) => item.active) ?? languageLinks[0]
 <div class="full-shell">
     <header class="full-header">
         <div class="full-header-inner">
-            <a href={homePath} class="brand">
+            <a href={homePath} class="brand" aria-label={`${content.nav.home} — Nabil Rizki Navisa`}>
+                <span class="brand-index" aria-hidden="true">00</span>
                 <span class="brand-user">nabil@nabilrn</span><span class="brand-path">:~</span>
             </a>
 
             <nav class="page-nav" aria-label={content.nav.ariaPageNavigation}>
                 <a href={homePath} class={isHomePage ? 'page-nav-item active' : 'page-nav-item'} aria-current={isHomePage ? 'page' : undefined}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.06 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75zm7.251 10.324l.004-5.073-.002-2.253A2.25 2.25 0 005.003 2.5H1.5v9h3.757a3.75 3.75 0 011.994.574zM8.755 4.75l-.004 7.322a3.752 3.752 0 011.992-.572H14.5v-9h-3.495a2.25 2.25 0 00-2.25 2.25z"></path></svg>
-                    {content.nav.overview}
+                    <span class="nav-index">01</span>
+                    <span>{content.nav.overview}</span>
                 </a>
                 <a href={blogPath} class={isBlogPage ? 'page-nav-item active' : 'page-nav-item'} aria-current={isBlogPage ? 'page' : undefined}>
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M11.93 8.5a4.002 4.002 0 01-7.86 0H.75a.75.75 0 010-1.5h3.32a4.002 4.002 0 017.86 0h3.32a.75.75 0 010 1.5zm-1.43-.75a2.5 2.5 0 10-5 0 2.5 2.5 0 005 0z"></path></svg>
-                    {content.nav.blog}
-                    <span class="page-nav-badge">{postCount}</span>
+                    <span class="nav-index">02</span>
+                    <span>{content.nav.blog}</span>
+                    <span class="page-nav-badge">[{String(postCount).padStart(2, '0')}]</span>
                 </a>
             </nav>
 
@@ -68,12 +69,13 @@ const activeLink = languageLinks.find((item) => item.active) ?? languageLinks[0]
                     <button type="button" class="lang-trigger" id="lang-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label={content.nav.ariaLanguageNavigation}>
                         <span class="lang-flag">{activeLink.flag}</span>
                         <span class="lang-label">{activeLink.label}</span>
-                        <svg class="lang-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <span class="lang-chevron" aria-hidden="true">↓</span>
                     </button>
                     <ul class="lang-menu" id="lang-menu" role="listbox" aria-label={content.nav.ariaLanguageNavigation}>
-                        {languageLinks.map((item) => (
+                        {languageLinks.map((item, index) => (
                             <li role="option" aria-selected={item.active ? 'true' : 'false'}>
                                 <a href={item.href} class={item.active ? 'lang-option active' : 'lang-option'}>
+                                    <span class="lang-option-index">0{index + 1}</span>
                                     <span class="lang-flag">{item.flag}</span>
                                     <span>{item.label}</span>
                                 </a>
@@ -94,231 +96,271 @@ const activeLink = languageLinks.find((item) => item.active) ?? languageLinks[0]
 <style>
     .full-shell {
         min-height: 100vh;
-        --content-gutter: clamp(16px, 4vw, 32px);
+        --content-gutter: clamp(14px, 2.4vw, 28px);
+        --shell-max: 1240px;
+        --shell-line: color-mix(in srgb, var(--border) 78%, var(--bg));
     }
 
     .full-header {
         position: sticky;
         top: 0;
         z-index: 20;
-        background: color-mix(in srgb, var(--bg) 90%, transparent);
-        backdrop-filter: blur(8px);
-        border-bottom: 1px solid var(--border);
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--shell-line);
     }
 
     .full-header-inner {
-        max-width: 1280px;
+        width: min(var(--shell-max), calc(100% - 28px));
+        min-height: 48px;
         margin: 0 auto;
-        padding: 0 var(--content-gutter);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: minmax(170px, 0.85fr) auto minmax(170px, 0.85fr);
+        align-items: stretch;
+        border-inline: 1px solid var(--shell-line);
+    }
+
+    .brand,
+    .page-nav-item,
+    .header-actions {
+        min-height: 48px;
     }
 
     .brand {
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-family: var(--font-mono);
-        font-size: 13px;
-        font-weight: 700;
+        font-size: 11px;
+        font-weight: 600;
         color: var(--text);
         white-space: nowrap;
-        border-radius: 6px;
+        border-right: 1px solid var(--shell-line);
     }
 
-    .brand-user { color: var(--accent); }
+    .brand-index,
+    .nav-index,
+    .lang-option-index {
+        color: var(--muted);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+    }
+
+    .brand-user { color: var(--text); }
     .brand-path { color: var(--muted); }
 
     .page-nav {
         display: flex;
-        overflow-x: auto;
+        min-width: 0;
     }
 
     .page-nav-item {
+        position: relative;
+        padding: 0 16px;
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 14px 14px 12px;
+        gap: 8px;
+        border-right: 1px solid var(--shell-line);
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         color: var(--muted);
-        text-decoration: none;
-        border-bottom: 2px solid transparent;
         white-space: nowrap;
-        transition: color 0.15s ease;
+        transition: color 140ms ease, background 140ms ease;
     }
 
-    .page-nav-item:hover { color: var(--text); }
+    .page-nav-item:first-child {
+        border-left: 0;
+    }
 
-    .brand:focus-visible,
-    .page-nav-item:focus-visible,
-    .lang-trigger:focus-visible {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
+    .page-nav-item::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 2px;
+        background: transparent;
+    }
+
+    .page-nav-item:hover,
+    .page-nav-item:focus-visible {
+        color: var(--text);
+        background: color-mix(in srgb, var(--surface) 72%, transparent);
     }
 
     .page-nav-item.active {
-        color: var(--accent);
-        border-bottom-color: var(--accent);
+        color: var(--text);
     }
 
-    .page-nav-item svg {
-        flex-shrink: 0;
-        opacity: 0.7;
+    .page-nav-item.active::after {
+        background: var(--text);
     }
 
     .page-nav-badge {
-        font-size: 11px;
-        background: var(--surface-2);
-        border-radius: 999px;
-        padding: 1px 7px;
         color: var(--muted);
+        font-size: 9px;
+        letter-spacing: 0;
     }
 
     .header-actions {
+        min-width: 0;
+        padding-left: 12px;
         display: flex;
         align-items: center;
-        gap: 12px;
         justify-content: flex-end;
-        padding-left: 16px;
+        gap: 8px;
     }
 
-    .language-dropdown { position: relative; }
+    .brand:focus-visible,
+    .page-nav-item:focus-visible,
+    .lang-trigger:focus-visible,
+    .lang-option:focus-visible {
+        outline: 1px solid var(--text);
+        outline-offset: -3px;
+    }
+
+    .language-dropdown {
+        position: relative;
+    }
 
     .lang-trigger {
+        min-height: 30px;
+        padding: 0 9px;
         display: flex;
         align-items: center;
-        gap: 6px;
-        padding: 5px 10px;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        background: var(--surface);
+        gap: 7px;
+        border: 1px solid var(--shell-line);
+        border-radius: 0;
+        background: var(--bg);
         color: var(--text);
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 9px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         cursor: pointer;
-        white-space: nowrap;
-        transition: border-color 0.15s ease, background 0.15s ease;
     }
 
     .lang-trigger:hover {
         border-color: var(--border-strong);
-        background: var(--surface-2);
+        background: var(--surface);
     }
 
     .lang-flag {
-        font-size: 14px;
-        line-height: 1;
+        color: var(--text);
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
     }
 
     .lang-label { color: var(--muted); }
-
-    .lang-chevron {
-        color: var(--muted);
-        transition: transform 0.2s ease;
-    }
-
+    .lang-chevron { color: var(--muted); transition: transform 140ms ease; }
     .language-dropdown.open .lang-chevron { transform: rotate(180deg); }
 
     .lang-menu {
         display: none;
         position: absolute;
-        top: calc(100% + 6px);
+        top: calc(100% + 5px);
         right: 0;
-        min-width: 160px;
-        padding: 4px;
+        min-width: 174px;
+        padding: 0;
         margin: 0;
         list-style: none;
-        background: var(--surface);
+        background: var(--bg);
         border: 1px solid var(--border-strong);
-        border-radius: 8px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        border-radius: 0;
+        box-shadow: none;
         z-index: 50;
     }
 
     .language-dropdown.open .lang-menu {
         display: block;
-        animation: lang-menu-in 0.15s ease;
     }
 
-    @keyframes lang-menu-in {
-        from { opacity: 0; transform: translateY(-4px); }
-        to { opacity: 1; transform: translateY(0); }
+    .lang-menu li + li {
+        border-top: 1px solid var(--shell-line);
     }
 
     .lang-option {
-        display: flex;
+        min-height: 34px;
+        padding: 0 9px;
+        display: grid;
+        grid-template-columns: 20px 22px 1fr;
         align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        border-radius: 5px;
+        gap: 5px;
+        border-radius: 0;
         font-family: var(--font-mono);
-        font-size: 12px;
+        font-size: 9px;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
         color: var(--muted);
-        text-decoration: none;
-        transition: background 0.12s ease, color 0.12s ease;
+        transition: background 120ms ease, color 120ms ease;
     }
 
     .lang-option:hover,
     .lang-option.active {
-        background: var(--surface-2);
+        background: var(--surface);
         color: var(--text);
     }
 
     .full-main {
-        max-width: 1280px;
+        width: min(var(--shell-max), calc(100% - 28px));
+        min-height: calc(100vh - 48px);
         margin: 0 auto;
-        padding: 28px var(--content-gutter) 96px;
+        padding: 0 var(--content-gutter) 88px;
+        border-inline: 1px solid var(--shell-line);
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 760px) {
         .full-header-inner {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-rows: auto auto;
-            align-items: center;
-            gap: 0;
+            width: calc(100% - 16px);
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-rows: 44px 39px;
+        }
+
+        .brand,
+        .header-actions {
+            min-height: 44px;
         }
 
         .brand {
-            grid-column: 1 / 2;
-            grid-row: 1 / 2;
-            padding: 12px 0;
+            grid-column: 1;
+            grid-row: 1;
+            border-right: 1px solid var(--shell-line);
         }
 
         .header-actions {
-            grid-column: 2 / 3;
-            grid-row: 1 / 2;
-            padding: 12px 0;
-            justify-content: flex-end;
-            gap: 12px;
+            grid-column: 2;
+            grid-row: 1;
+            padding: 0 7px;
         }
 
         .page-nav {
             grid-column: 1 / 3;
-            grid-row: 2 / 3;
-            margin: 0 calc(var(--content-gutter) * -1);
-            padding: 0 var(--content-gutter);
-            border-top: 1px solid var(--border);
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            grid-row: 2;
+            border-top: 1px solid var(--shell-line);
         }
 
-        .page-nav::-webkit-scrollbar { display: none; }
-
         .page-nav-item {
-            padding-top: 12px;
-            padding-bottom: 10px;
+            min-height: 39px;
+            padding-inline: 12px;
         }
 
         .full-main {
-            padding-top: 18px;
-            padding-bottom: 72px;
+            width: calc(100% - 16px);
+            min-height: calc(100vh - 83px);
+            padding-inline: 12px;
+            padding-bottom: 64px;
         }
     }
 
     @media (max-width: 480px) {
+        .brand-index,
         .lang-label { display: none; }
-        .lang-trigger { padding: 5px 8px; }
+        .brand { padding-inline: 10px; }
     }
 </style>
 

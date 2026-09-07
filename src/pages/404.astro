@@ -13,83 +13,184 @@ const page = content.notFound;
 	robots="noindex, nofollow"
 	ogImageAlt={page.ogImageAlt}
 >
-	<section class="error-wrap">
-		<p class="code">{page.code}</p>
-		<h1>{page.heading}</h1>
-		<p class="desc">
-			{page.body}
-		</p>
-		<div class="actions">
-			<a href="/" class="btn primary">{content.actions.portfolio}</a>
-			<a href="/blog/" class="btn">{content.actions.blog}</a>
+	<section class="error-sheet" aria-labelledby="error-title">
+		<div class="error-topline">
+			<span>ERR / ROUTE</span>
+			<span>HTTP {page.code}</span>
+		</div>
+
+		<div class="error-grid">
+			<div class="error-code" aria-hidden="true">{page.code}</div>
+			<div class="error-copy">
+				<p class="hand-note" aria-hidden="true">wrong turn ↘</p>
+				<div class="error-kicker">PAGE / NOT FOUND</div>
+				<h1 id="error-title">{page.heading}</h1>
+				<p class="desc">{page.body}</p>
+				<nav class="actions" aria-label="Recovery links">
+					<a href="/">
+						<span>01</span>
+						<strong>{content.actions.portfolio}</strong>
+						<i aria-hidden="true">↗</i>
+					</a>
+					<a href="/blog/">
+						<span>02</span>
+						<strong>{content.actions.blog}</strong>
+						<i aria-hidden="true">↗</i>
+					</a>
+				</nav>
+			</div>
 		</div>
 	</section>
 </Page>
 
 <style>
-	.error-wrap {
-		max-width: 760px;
-		margin: 12vh auto 0;
-		text-align: center;
-		padding: 30px 20px 26px;
+	.error-sheet {
+		--sheet-line: color-mix(in srgb, var(--border) 78%, var(--bg));
+		margin-inline: calc(var(--content-gutter) * -1);
+		border-bottom: 1px solid var(--sheet-line);
 	}
 
-	.code {
-		font-size: clamp(56px, 13vw, 90px);
-		font-weight: 700;
-		line-height: 0.95;
-		letter-spacing: -0.04em;
+	.error-topline {
+		min-height: 38px;
+		padding: 0 clamp(16px, 2.2vw, 26px);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		border-bottom: 1px solid var(--sheet-line);
+		font-family: var(--font-mono);
+		font-size: 8px;
+		letter-spacing: 0.08em;
+		color: var(--muted);
+	}
+
+	.error-grid {
+		min-height: min(620px, calc(100vh - 86px));
+		display: grid;
+		grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+	}
+
+	.error-code {
+		padding: clamp(28px, 5vw, 58px);
+		display: flex;
+		align-items: flex-end;
+		border-right: 2px solid var(--border);
+		font-family: var(--font-sans);
+		font-size: clamp(110px, 21vw, 280px);
+		font-weight: 600;
+		line-height: 0.72;
+		letter-spacing: -0.09em;
 		color: var(--text);
-		margin-bottom: 8px;
+		overflow: hidden;
+	}
+
+	.error-copy {
+		position: relative;
+		padding: clamp(42px, 8vw, 92px) clamp(24px, 7vw, 82px);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+
+	.hand-note {
+		position: absolute;
+		top: clamp(28px, 5vw, 52px);
+		right: clamp(22px, 5vw, 54px);
+		margin: 0;
+		font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+		font-size: 13px;
+		color: var(--muted);
+		transform: rotate(-3deg);
+	}
+
+	.error-kicker {
+		margin-bottom: 44px;
+		font-family: var(--font-mono);
+		font-size: 9px;
+		font-weight: 600;
+		letter-spacing: 0.09em;
+		color: var(--muted);
 	}
 
 	h1 {
-		font-size: clamp(25px, 4.2vw, 34px);
-		line-height: 1.2;
-		margin-bottom: 10px;
+		max-width: 12ch;
+		margin: 0 0 16px;
+		font-family: var(--font-sans);
+		font-size: clamp(38px, 5.5vw, 70px);
+		font-weight: 600;
+		line-height: 0.98;
+		letter-spacing: -0.055em;
 	}
 
 	.desc {
-		max-width: 560px;
-		margin: 0 auto;
-		font-size: 14px;
-		line-height: 1.65;
+		max-width: 58ch;
+		margin: 0;
+		font-family: var(--font-sans);
+		font-size: 15px;
+		line-height: 1.7;
 		color: var(--muted);
 	}
 
 	.actions {
-		margin-top: 20px;
-		display: flex;
-		gap: 10px;
-		justify-content: center;
-		flex-wrap: wrap;
+		margin-top: clamp(38px, 6vw, 68px);
+		border-top: 1px solid var(--sheet-line);
 	}
 
-	.btn {
-		display: inline-flex;
+	.actions a {
+		min-height: 54px;
+		display: grid;
+		grid-template-columns: 42px minmax(0, 1fr) auto;
 		align-items: center;
-		padding: 6px 12px;
-		border: 1px solid var(--border-strong);
-		border-radius: 6px;
-		color: var(--text);
+		gap: 12px;
+		border-bottom: 1px solid var(--sheet-line);
+		transition: background 140ms ease;
+	}
+
+	.actions a:hover,
+	.actions a:focus-visible {
 		background: var(--surface);
-		font-size: 13px;
+		outline: none;
 	}
 
-	.btn.primary {
-		border-color: var(--accent);
-		background: color-mix(in srgb, var(--accent) 22%, var(--bg));
-		color: var(--accent-hover);
+	.actions span {
+		font-family: var(--font-mono);
+		font-size: 8px;
+		color: var(--muted);
 	}
 
-	.btn:hover {
-		border-color: var(--accent);
+	.actions strong {
+		font-family: var(--font-sans);
+		font-size: 14px;
+		font-weight: 500;
 	}
 
-	@media (max-width: 768px) {
-		.error-wrap {
-			margin-top: 8vh;
-			padding: 24px 16px 20px;
+	.actions i {
+		font-style: normal;
+		font-size: 15px;
+		transition: transform 140ms ease;
+	}
+
+	.actions a:hover i,
+	.actions a:focus-visible i {
+		transform: translate(2px, -2px);
+	}
+
+	@media (max-width: 760px) {
+		.error-grid {
+			min-height: 0;
+			grid-template-columns: 1fr;
+		}
+
+		.error-code {
+			min-height: 210px;
+			align-items: flex-end;
+			border-right: 0;
+			border-bottom: 2px solid var(--border);
+			font-size: clamp(110px, 38vw, 190px);
+		}
+
+		.error-copy {
+			min-height: 420px;
 		}
 	}
 </style>
