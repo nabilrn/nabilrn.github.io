@@ -46,7 +46,7 @@ const commonSeo = {
     themeColor: '#0a0a0a',
 };
 
-const enContent = {
+const siteContent = {
     profile: {
         name: authorName,
         avatarAlt: authorName,
@@ -103,48 +103,29 @@ const enContent = {
         seoTitle: 'Blog | Nabil Rizki Navisa',
         seoDescription: 'Notes on software engineering, project lessons, and practical workflows by Nabil Rizki Navisa.',
         ogImageAlt: 'Nabil Rizki Navisa blog article listing in terminal-inspired dark style.',
-        eyebrow: 'Blog',
-        heading: 'Technical notes, shipped learnings, and practical guides.',
-        intro: 'A focused reading space with tutorials and engineering notes from real projects and homelab experiments.',
         searchLabel: 'Search articles',
         searchPlaceholder: 'Search articles',
         postsAria: 'Blog posts',
         noMatches: 'No matching articles found.',
         minRead: (minutes: number) => `${minutes} min read`,
         article: {
-            back: 'Back to all articles',
             updated: 'Updated',
-            engagementAria: 'Engagement actions',
             ogImageAlt: (title: string) => `Social preview card for article: ${title}`,
         },
     },
     engagement: {
         likePost: 'Like post',
-        like: 'Like',
-        copyLink: 'Copy link',
-        copy: 'Copy',
         linkCopied: 'Link copied',
-        copied: 'Copied',
-    },
-    theme: {
-        toggle: 'Toggle theme',
     },
     errors: {
         notFound: {
             title: '404 | Page Not Found',
             description: 'The page you are looking for cannot be found.',
             ogImageAlt: '404 page not found for portfolio.nabilrn.space.',
-            code: '404',
-            heading: 'Page not found.',
-            body: 'The link may be broken, moved, or removed. Use one of the options below to continue browsing.',
-        },
-        actions: {
-            portfolio: 'Go to portfolio',
-            blog: 'Read the blog',
         },
     },
 };
 
-export type SiteContent = typeof enContent;
+export type SiteContent = typeof siteContent;
 
-export const getSiteContent = (): SiteContent => enContent;
+export const getSiteContent = (): SiteContent => siteContent;
