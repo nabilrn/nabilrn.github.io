@@ -43,7 +43,7 @@ export const componentCategory = (path: string) => {
 const normalizeName = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
 
 const previewIds: Record<string, string> = {
-  'src/components/icons/VerifiedIcon.astro': 'verified-icon',
+  'src/components/home/VerifiedIcon.astro': 'verified-icon',
   'src/components/icons/UiIcon.astro': 'ui-icon',
   'src/components/icons/BrandIcon.astro': 'brand-icon',
   'src/components/home/HandwrittenNote.astro': 'handwritten-note',
