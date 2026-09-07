@@ -65,11 +65,11 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 </div>
             </div>
 
-            <div class="analytics-chart-wrap" aria-label="Pageviews during the last 24 hours">
+            <div class="analytics-chart-wrap" data-analytics-chart-wrap aria-label="Pageviews during the last 24 hours">
                 <div class="analytics-spark" data-analytics-spark role="list" aria-label="Hourly analytics during the last 24 hours"></div>
                 <div class="analytics-chart-caption">
-                    <span>24h ago</span>
-                    <span>now</span>
+                    <span data-analytics-caption-start>24h ago</span>
+                    <span data-analytics-caption-end>now</span>
                 </div>
             </div>
 
@@ -593,6 +593,18 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         visitors?: number;
     };
 
+    type LegacyDayPoint = {
+        date?: string;
+        views?: number;
+        visitors?: number;
+    };
+
+    type ChartPoint = {
+        label: string;
+        views: number;
+        visitors: number;
+    };
+
     const template = document.querySelector<HTMLTemplateElement>('[data-lower-sections-template]');
     const bottomLayout = document.querySelector<HTMLElement>('.bottom-layout');
     const oldBlogRegion = bottomLayout?.querySelector<HTMLElement>('.blog-region');
@@ -641,6 +653,9 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const topPageEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-top-page]');
     const sparkEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-spark]');
     const periodEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-period]');
+    const chartWrapEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-chart-wrap]');
+    const captionStartEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-caption-start]');
+    const captionEndEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-caption-end]');
 
     const analyticsTooltipClass = 'analytics-floating-tooltip';
     let analyticsTooltip = document.querySelector<HTMLElement>(`.${analyticsTooltipClass}`);
@@ -672,28 +687,42 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         analyticsTooltip.style.top = `${top}px`;
     };
 
-    const renderSpark = (values: HourPoint[]) => {
-        if (!sparkEl) return;
-        sparkEl.replaceChildren();
+    const buildHourlyPoints = (values: HourPoint[]): ChartPoint[] => {
         const safeValues: HourPoint[] = values.length === 24
             ? values
             : Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 }));
-        const viewValues = safeValues.map((item) => Number(item.views ?? 0));
-        const max = Math.max(1, ...viewValues);
 
-        safeValues.forEach((item, index) => {
+        return safeValues.map((item, index) => {
             const views = Number(item.views ?? 0);
             const visitors = Number(item.visitors ?? 0);
             const fallbackHour = new Date(Date.now() - (safeValues.length - 1 - index) * 3_600_000);
             const parsedHour = item.hour ? new Date(item.hour) : fallbackHour;
             const hourEnd = new Date(parsedHour.getTime() + 3_600_000);
             const validHour = !Number.isNaN(parsedHour.getTime());
-            const hourLabel = validHour
+            const label = validHour
                 ? `${chartDayFormatter.format(parsedHour)} · ${chartHourFormatter.format(parsedHour)}–${chartHourFormatter.format(hourEnd)}`
                 : 'Hour';
-            const detail = `${hourLabel} · ${exactNumberFormatter.format(views)} pageviews · ${exactNumberFormatter.format(visitors)} visitors`;
+            return { label, views, visitors };
+        });
+    };
+
+    const buildLegacyDailyPoints = (values: LegacyDayPoint[]): ChartPoint[] => values.map((item) => {
+        const views = Number(item.views ?? 0);
+        const visitors = Number(item.visitors ?? 0);
+        const parsedDate = item.date ? new Date(`${item.date}T00:00:00`) : new Date(Number.NaN);
+        const label = Number.isNaN(parsedDate.getTime()) ? 'Day' : chartDayFormatter.format(parsedDate);
+        return { label, views, visitors };
+    });
+
+    const renderSpark = (points: ChartPoint[]) => {
+        if (!sparkEl) return;
+        sparkEl.replaceChildren();
+        const max = Math.max(1, ...points.map((item) => item.views));
+
+        points.forEach((item) => {
+            const detail = `${item.label} · ${exactNumberFormatter.format(item.views)} pageviews · ${exactNumberFormatter.format(item.visitors)} visitors`;
             const bar = document.createElement('span');
-            const normalized = views <= 0 ? 2 : Math.max(10, (views / max) * 100);
+            const normalized = item.views <= 0 ? 2 : Math.max(10, (item.views / max) * 100);
 
             bar.style.height = `${normalized}%`;
             bar.tabIndex = 0;
@@ -708,24 +737,45 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         });
     };
 
+    const setChartMode = (mode: '24h' | '30d', preview = false) => {
+        const hourly = mode === '24h';
+        if (periodEl) periodEl.textContent = preview ? 'preview · 24h' : hourly ? 'last 24h' : 'last 30d';
+        if (captionStartEl) captionStartEl.textContent = hourly ? '24h ago' : '30 days ago';
+        if (captionEndEl) captionEndEl.textContent = hourly ? 'now' : 'today';
+        if (chartWrapEl) chartWrapEl.setAttribute('aria-label', hourly ? 'Pageviews during the last 24 hours' : 'Pageviews during the last 30 days');
+        if (sparkEl) sparkEl.setAttribute('aria-label', hourly ? 'Hourly analytics during the last 24 hours' : 'Daily analytics during the last 30 days');
+    };
+
     const renderAnalytics = (summary: {
         visitors?: number;
         pageviews?: number;
         topPage?: { path?: string } | string;
         last24Hours?: HourPoint[];
+        last30Days?: LegacyDayPoint[];
     }, preview = false) => {
         const visitors = Number(summary.visitors ?? 0);
         const pageviews = Number(summary.pageviews ?? 0);
         const topPage = typeof summary.topPage === 'string' ? summary.topPage : summary.topPage?.path || '/';
+        const hasHourlyData = Array.isArray(summary.last24Hours) && summary.last24Hours.length === 24;
+        const hasLegacyData = Array.isArray(summary.last30Days) && summary.last30Days.length > 0;
 
         if (visitorsEl) visitorsEl.textContent = numberFormatter.format(visitors);
         if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(pageviews);
         if (topPageEl) topPageEl.textContent = topPage;
-        if (periodEl) periodEl.textContent = preview ? 'preview · 24h' : 'last 24h';
-        renderSpark(summary.last24Hours ?? []);
+
+        if (hasHourlyData || preview) {
+            setChartMode('24h', preview);
+            renderSpark(buildHourlyPoints(summary.last24Hours ?? []));
+        } else if (hasLegacyData) {
+            setChartMode('30d');
+            renderSpark(buildLegacyDailyPoints(summary.last30Days ?? []));
+        } else {
+            setChartMode('24h');
+            renderSpark(buildHourlyPoints([]));
+        }
     };
 
-    renderSpark(Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 })));
+    renderSpark(buildHourlyPoints([]));
 
     void (async () => {
         try {
@@ -736,6 +786,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 pageviews?: number;
                 topPage?: { path?: string; views?: number };
                 last24Hours?: HourPoint[];
+                last30Days?: LegacyDayPoint[];
             };
 
             const hasHourlyData = Array.isArray(summary.last24Hours) && summary.last24Hours.length === 24;
