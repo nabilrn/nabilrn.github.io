@@ -1,11 +1,10 @@
 ---
-import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import { getSiteContent } from '../data/siteContent';
 import HandwrittenNote from './home/HandwrittenNote.astro';
 import { getGitHubContributions } from '../lib/githubContributions';
 
 interface Props {
     username?: string;
-    locale?: SiteLocale;
 }
 
 interface ContributionDay {
@@ -15,9 +14,8 @@ interface ContributionDay {
     isFuture: boolean;
 }
 
-const { username = 'nabilrn', locale: rawLocale } = Astro.props;
-const locale = normalizeLocale(rawLocale);
-const copy = getSiteContent(locale).home.contributions;
+const { username = 'nabilrn' } = Astro.props;
+const copy = getSiteContent().home.contributions;
 
 // Geometry and information hierarchy are adapted from ChanhDai's MIT-licensed
 // GitHub Contributions component, which credits Kibo UI's contribution graph.
@@ -85,7 +83,7 @@ const formatFigureDate = (date: string) => {
 };
 const formatTooltipDate = (date: string) => {
     const value = new Date(`${date}T00:00:00Z`);
-    return new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-GB', {
+    return new Intl.DateTimeFormat('en-GB', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',

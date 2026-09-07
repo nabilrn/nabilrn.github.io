@@ -4,60 +4,40 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import avatar from '../../assets/profile-anime.webp';
 import BlogArticleDock from '../../components/blog/BlogArticleDock.astro';
 import Page from '../../components/Page.astro';
-import { authorName, getSiteContent, localeMeta, localizePath, normalizeLocale, siteUrl, type SiteLocale } from '../../data/siteContent';
-import { getBlogLocaleInfo, getTranslationVariants, type BlogLocale } from '../../utils/blogLocale';
+import { authorName, getSiteContent, siteUrl } from '../../data/siteContent';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
-	return posts
-		.filter((post) => getBlogLocaleInfo(post).locale === 'en')
-		.map((post) => ({ params: { slug: post.slug }, props: { post } }));
+	return posts.map((post) => ({ params: { slug: post.slug }, props: { post } }));
 }
 
-const { post, locale: rawUiLocale, path: rawPath } = Astro.props as {
-	post: CollectionEntry<'blog'>;
-	locale?: SiteLocale;
-	path?: string;
-};
-const allPosts = await getCollection('blog', ({ data }) => !data.draft);
+const { post } = Astro.props as { post: CollectionEntry<'blog'> };
+const allPosts = (await getCollection('blog', ({ data }) => !data.draft))
+	.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 const { Content } = await render(post);
-const localeInfo = getBlogLocaleInfo(post);
-const postLocale: BlogLocale = localeInfo.locale;
-const uiLocale = normalizeLocale(rawUiLocale ?? postLocale);
-const variants = getTranslationVariants(allPosts, localeInfo.translationKey);
-const blogLocales = ['en', 'id'] as const satisfies readonly BlogLocale[];
 const handle = '@NabilrizkiN';
 
 const words = post.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.ceil(words / 200));
-const dateLocale = localeMeta[postLocale].dateLocale;
+const dateLocale = 'en-US';
 const dateStr = post.data.pubDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' });
-const siteCopy = getSiteContent(uiLocale);
+const siteCopy = getSiteContent();
 const blogCopy = siteCopy.blog;
-const postPath = rawPath ?? localizePath(`/blog/${post.slug}/`, uiLocale);
+const postPath = `/blog/${post.slug}/`;
 const postUrl = new URL(postPath, siteUrl).toString();
 const ogImagePath = `/og/blog/${post.slug}.png`;
 const publishedTime = post.data.pubDate.toISOString();
 const modifiedTime = (post.data.updatedDate ?? post.data.pubDate).toISOString();
 
-const localizedSequence = allPosts
-	.filter((item) => getBlogLocaleInfo(item).locale === postLocale)
-	.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
-const currentIndex = localizedSequence.findIndex((item) => item.slug === post.slug);
-const nextPost = currentIndex >= 0 ? localizedSequence[currentIndex + 1] ?? null : null;
-
-const alternatePaths = Object.fromEntries(
-	blogLocales
-		.filter((optionLocale) => variants[optionLocale])
-		.map((optionLocale) => [optionLocale, localizePath(`/blog/${variants[optionLocale]!.slug}/`, optionLocale)])
-) as Partial<Record<SiteLocale, string>>;
+const currentIndex = allPosts.findIndex((item) => item.slug === post.slug);
+const nextPost = currentIndex >= 0 ? allPosts[currentIndex + 1] ?? null : null;
 
 const breadcrumbJson = JSON.stringify({
 	'@context': 'https://schema.org',
 	'@type': 'BreadcrumbList',
 	itemListElement: [
-		{ '@type': 'ListItem', position: 1, name: siteCopy.nav.home, item: new URL(localizePath('/', uiLocale), siteUrl).toString() },
-		{ '@type': 'ListItem', position: 2, name: siteCopy.nav.blog, item: new URL(localizePath('/blog/', uiLocale), siteUrl).toString() },
+		{ '@type': 'ListItem', position: 1, name: siteCopy.nav.home, item: new URL('/', siteUrl).toString() },
+		{ '@type': 'ListItem', position: 2, name: siteCopy.nav.blog, item: new URL('/blog/', siteUrl).toString() },
 		{ '@type': 'ListItem', position: 3, name: post.data.title, item: postUrl },
 	],
 });
@@ -70,7 +50,7 @@ const blogPostingJson = JSON.stringify({
 	image: `${siteUrl}${ogImagePath}`,
 	datePublished: publishedTime,
 	dateModified: modifiedTime,
-	inLanguage: postLocale,
+	inLanguage: 'en',
 	author: { '@type': 'Person', name: authorName, url: siteUrl },
 	publisher: { '@type': 'Person', name: authorName, url: siteUrl },
 	mainEntityOfPage: postUrl,
@@ -83,8 +63,6 @@ const blogPostingJson = JSON.stringify({
 	title={`${post.data.title} | ${authorName}`}
 	description={post.data.description}
 	path={postPath}
-	locale={uiLocale}
-	lang={postLocale}
 	ogImage={ogImagePath}
 	ogImageAlt={blogCopy.article.ogImageAlt(post.data.title)}
 	ogType="article"
@@ -94,7 +72,6 @@ const blogPostingJson = JSON.stringify({
 	articleTags={post.data.tags}
 	ogImageWidth={1200}
 	ogImageHeight={630}
-	alternatePaths={alternatePaths}
 >
 	<div class="article-page">
 		<header class="article-header">
@@ -114,7 +91,7 @@ const blogPostingJson = JSON.stringify({
 			<p class="article-deck">{post.data.description}</p>
 
 			<div class="article-submeta">
-				<span>{blogCopy.minReadByLocale[postLocale](readingTime)}</span>
+				<span>{blogCopy.minRead(readingTime)}</span>
 				{post.data.updatedDate && (
 					<><span aria-hidden="true">·</span><span>{blogCopy.article.updated} {post.data.updatedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span></>
 				)}
@@ -130,9 +107,9 @@ const blogPostingJson = JSON.stringify({
 		</article>
 
 		{nextPost && (
-			<nav class="next-entry" aria-label={uiLocale === 'id' ? 'Tulisan berikutnya' : 'Next article'}>
-				<span>{uiLocale === 'id' ? 'Berikutnya' : 'Next'}</span>
-				<a href={localizePath(`/blog/${nextPost.slug}/`, uiLocale)}>
+			<nav class="next-entry" aria-label="Next article">
+				<span>Next</span>
+				<a href={`/blog/${nextPost.slug}/`}>
 					<strong>{nextPost.data.title}</strong>
 					<span aria-hidden="true">→</span>
 				</a>
@@ -143,9 +120,8 @@ const blogPostingJson = JSON.stringify({
 	<BlogArticleDock
 		postId={post.slug}
 		title={post.data.title}
-		locale={uiLocale}
-		postsHref={localizePath('/blog/', uiLocale)}
-		homeHref={localizePath('/', uiLocale)}
+		postsHref="/blog/"
+		homeHref="/"
 	/>
 
 	<script is:inline type="application/ld+json" set:html={breadcrumbJson}></script>

@@ -2,24 +2,12 @@
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
 import SiteShell from './SiteShell.astro';
-import {
-  authorName,
-  getSiteContent,
-  localeMeta,
-  localizePath,
-  normalizeLocale,
-  siteUrl,
-  stripLocaleFromPath,
-  supportedLocales,
-  type SiteLocale,
-} from '../data/siteContent';
+import { authorName, getSiteContent, siteUrl } from '../data/siteContent';
 
 interface Props {
   title?: string;
   description?: string;
   path?: string;
-  locale?: SiteLocale;
-  lang?: string;
   robots?: string;
   ogImage?: string;
   ogImageAlt?: string;
@@ -30,15 +18,12 @@ interface Props {
   articleTags?: string[];
   ogImageWidth?: number;
   ogImageHeight?: number;
-  alternatePaths?: Partial<Record<SiteLocale, string>>;
 }
 
 const {
   title: pageTitle,
   description: pageDesc,
   path,
-  locale: pageLocale,
-  lang = 'en',
   robots = 'index, follow',
   ogImage: pageOgImage,
   ogImageAlt,
@@ -49,31 +34,21 @@ const {
   articleTags = [],
   ogImageWidth,
   ogImageHeight,
-  alternatePaths,
 } = Astro.props;
 
-const contentLocale = normalizeLocale(pageLocale ?? lang);
-const content = getSiteContent(contentLocale);
+const content = getSiteContent();
 const defaultTitle = content.seo.defaultTitle;
 const defaultDescription = content.seo.defaultDescription;
 const defaultOgImage = '/og/default-og.png';
+const htmlLang = 'en';
+const ogLocale = 'en_US';
 
 const title = pageTitle || defaultTitle;
 const description = pageDesc || defaultDescription;
 const currentUrl = path ? new URL(path, siteUrl).toString() : siteUrl;
-const unlocalizedPath = stripLocaleFromPath(path ?? '/');
-const isHomePageForSchema = unlocalizedPath === '/';
-const htmlLang = localeMeta[contentLocale].htmlLang;
+const normalizedPath = path ?? '/';
+const isHomePageForSchema = normalizedPath === '/';
 const ogImageUrl = new URL(pageOgImage ?? defaultOgImage, siteUrl).toString();
-const ogLocale = localeMeta[contentLocale].ogLocale;
-const alternateUrls = supportedLocales.map((localeOption) => ({
-  hreflang: localeMeta[localeOption].htmlLang,
-  href: new URL(alternatePaths?.[localeOption] ?? localizePath(unlocalizedPath, localeOption), siteUrl).toString(),
-}));
-const alternateOgLocales = supportedLocales
-  .filter((localeOption) => localeOption !== contentLocale)
-  .map((localeOption) => localeMeta[localeOption].ogLocale);
-const xDefaultPath = alternatePaths?.en ?? unlocalizedPath;
 const personEntity = {
   '@type': 'Person',
   '@id': `${siteUrl}/#person`,
@@ -159,13 +134,13 @@ const siteNavigationJson = JSON.stringify({
       '@type': 'SiteNavigationElement',
       position: 1,
       name: content.nav.overview,
-      url: new URL(localizePath('/', contentLocale), siteUrl).toString(),
+      url: new URL('/', siteUrl).toString(),
     },
     {
       '@type': 'SiteNavigationElement',
       position: 2,
       name: content.nav.blog,
-      url: new URL(localizePath('/blog/', contentLocale), siteUrl).toString(),
+      url: new URL('/blog/', siteUrl).toString(),
     },
   ],
 });
@@ -200,8 +175,6 @@ const siteNavigationJson = JSON.stringify({
     <link rel="canonical" href={currentUrl} />
     <link rel="home" href={siteUrl} />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-    {alternateUrls.map((item) => <link rel="alternate" hreflang={item.hreflang} href={item.href} />)}
-    <link rel="alternate" hreflang="x-default" href={new URL(xDefaultPath, siteUrl).toString()} />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={ogType} />
@@ -215,7 +188,6 @@ const siteNavigationJson = JSON.stringify({
     {ogImageHeight && <meta property="og:image:height" content={String(ogImageHeight)} />}
     <meta property="og:site_name" content={content.seo.ogSiteName} />
     <meta property="og:locale" content={ogLocale} />
-    {alternateOgLocales.map((alternateLocale) => <meta property="og:locale:alternate" content={alternateLocale} />)}
     {ogType === 'article' && publishedTime && <meta property="article:published_time" content={publishedTime} />}
     {ogType === 'article' && modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
     {ogType === 'article' &&
@@ -246,7 +218,7 @@ const siteNavigationJson = JSON.stringify({
     <script is:inline type="application/ld+json" set:html={siteNavigationJson}></script>
 </head>
 <body>
-    <SiteShell currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
+    <SiteShell currentPath={path}>
         <slot />
     </SiteShell>
 </body>

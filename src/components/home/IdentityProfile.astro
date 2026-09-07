@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
-import type { SiteLocale } from '../../data/siteContent';
 import EducationOverlay from './EducationOverlay.astro';
 import HandwrittenNote from './HandwrittenNote.astro';
 import RoleFlip from './RoleFlip.astro';
@@ -10,12 +9,11 @@ import SocialBrandIcon from './SocialBrandIcon.astro';
 import VerifiedIcon from './VerifiedIcon.astro';
 
 interface Props {
-    locale: SiteLocale;
     name: string;
     avatarAlt: string;
 }
 
-const { locale, name, avatarAlt } = Astro.props;
+const { name, avatarAlt } = Astro.props;
 const contactHref = 'mailto:nabilrizkinavisa@gmail.com';
 
 const flipSentences = [
@@ -34,7 +32,7 @@ const socialLinks = [
 ] as const;
 ---
 
-<div class="identity-profile" data-locale={locale}>
+<div class="identity-profile">
     <div class="avatar-stage">
         <div class="avatar-contact-cluster">
             <div class="avatar-wrap">

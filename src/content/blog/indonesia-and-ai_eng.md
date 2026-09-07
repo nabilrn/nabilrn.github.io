@@ -5,8 +5,6 @@ pubDate: 2026-04-21
 tags: ["ai", "indonesia", "technology", "society"]
 featured: false
 draft: false
-locale: "en"
-translationKey: "indonesia-and-ai"
 ---
 
 I use AI a lot, enough that I no longer think the interesting question is whether people in Indonesia use it.

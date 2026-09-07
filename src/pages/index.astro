@@ -9,12 +9,7 @@ import NRMark from '../components/home/NRMark.astro';
 import BrandIcon from '../components/icons/BrandIcon.astro';
 import UiIcon from '../components/icons/UiIcon.astro';
 import { webProjects } from '../data/projects';
-import { getSiteContent, localizePath, normalizeLocale, type SiteLocale } from '../data/siteContent';
-
-interface Props {
-    locale?: SiteLocale;
-    path?: string;
-}
+import { getSiteContent } from '../data/siteContent';
 
 type DuolingoResponse = {
     users?: Array<{
@@ -22,21 +17,17 @@ type DuolingoResponse = {
     }>;
 };
 
-const locale = normalizeLocale(Astro.props.locale);
-const pagePath = Astro.props.path ?? localizePath('/', locale);
-const content = getSiteContent(locale);
+const pagePath = '/';
+const content = getSiteContent();
 const home = content.home;
 
 const selectedProjects = webProjects.slice(0, 3);
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const localizedPosts = allPosts.filter((post) => (post.data.locale ?? 'en') === locale);
-const fallbackPosts = allPosts.filter((post) => (post.data.locale ?? 'en') === 'en');
-const latestPosts = (localizedPosts.length > 0 ? localizedPosts : fallbackPosts)
+const latestPosts = [...allPosts]
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
     .slice(0, 3);
 
-const blogPath = localizePath('/blog/', locale);
-const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
+const blogPath = '/blog/';
 const education = home.education;
 
 const DUOLINGO_USERNAME = 'bilcikiwir';
@@ -69,14 +60,14 @@ try {
 }
 ---
 
-<Page title={home.seoTitle} description={home.seoDescription} path={pagePath} locale={locale}>
+<Page title={home.seoTitle} description={home.seoDescription} path={pagePath}>
     <div class="home-redesign" data-home-redesign>
-        <HomeHeader locale={locale} />
+        <HomeHeader />
 
         <main class="portfolio-board">
             <div class="top-layout">
                 <section class="identity-board" aria-labelledby="hero-name">
-                    <IdentityProfile locale={locale} name={content.profile.name} avatarAlt={content.profile.avatarAlt} />
+                    <IdentityProfile name={content.profile.name} avatarAlt={content.profile.avatarAlt} />
 
                     <div class="contribution-region">
                         <div class="region-heading">
@@ -89,7 +80,7 @@ try {
                                 <UiIcon name="arrow-up-right" size={11} strokeWidth={1.5} />
                             </a>
                         </div>
-                        <GitHubContributionGrid username="nabilrn" locale={locale} />
+                        <GitHubContributionGrid username="nabilrn" />
                     </div>
 
                     <div class="location-region compact-region" aria-label="Padang local time and timezone comparison">
@@ -192,11 +183,11 @@ try {
 
                     <div class="index-list">
                         {latestPosts.map((post, index) => (
-                            <a class="index-item" href={localizePath(`/blog/${post.slug}/`, locale)}>
+                            <a class="index-item" href={`/blog/${post.slug}/`}>
                                 <span class="index-number">0{index + 1}</span>
                                 <span class="index-copy">
                                     <strong>{post.data.title}</strong>
-                                    <span>{post.data.pubDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                                    <span>{post.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                                 </span>
                                 <span class="index-arrow" aria-hidden="true">
                                     <UiIcon name="arrow-up-right" size={13} strokeWidth={1.5} />
