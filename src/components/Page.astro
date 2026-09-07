@@ -179,7 +179,7 @@ const siteNavigationJson = JSON.stringify({
     <script is:inline>
       (() => {
         try {
-          const stored = localStorage.getItem('starlight-theme');
+          const stored = localStorage.getItem('portfolio-theme');
           const theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
           document.documentElement.dataset.theme = theme;
         } catch {
@@ -291,12 +291,6 @@ const siteNavigationJson = JSON.stringify({
         --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
         --font-display: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
         --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
-        --sl-color-hairline: var(--border);
-        --sl-color-gray-2: var(--text-body);
-        --sl-color-gray-3: var(--muted);
-        --sl-color-gray-4: var(--border-strong);
-        --sl-color-white: var(--text);
-        --sl-color-text-accent: var(--accent);
     }
 
     html[data-theme='light'] {
@@ -325,12 +319,6 @@ const siteNavigationJson = JSON.stringify({
         --contrib-2: #9a9a9a;
         --contrib-3: #5c5c5c;
         --contrib-4: #262626;
-        --sl-color-hairline: var(--border);
-        --sl-color-gray-2: var(--text-body);
-        --sl-color-gray-3: var(--muted);
-        --sl-color-gray-4: var(--border-strong);
-        --sl-color-white: var(--text);
-        --sl-color-text-accent: var(--accent);
     }
 
     html {

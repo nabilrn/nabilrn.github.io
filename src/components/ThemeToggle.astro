@@ -75,7 +75,7 @@ const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 
 		setTheme(theme: string) {
 			document.documentElement.dataset.theme = theme;
-			localStorage.setItem('starlight-theme', theme);
+			localStorage.setItem('portfolio-theme', theme);
 			this.syncButtonState();
 		}
 
