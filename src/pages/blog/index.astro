@@ -1,5 +1,8 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
+import avatar from '../../assets/profile-anime.webp';
+import EngagementBar from '../../components/EngagementBarNew.astro';
 import Page from '../../components/Page.astro';
 import { authorName, getSiteContent, localeMeta, localizePath, normalizeLocale, siteUrl, type SiteLocale } from '../../data/siteContent';
 import { getBlogLocaleInfo } from '../../utils/blogLocale';
@@ -13,6 +16,8 @@ const locale = normalizeLocale(Astro.props.locale);
 const pagePath = Astro.props.path ?? localizePath('/blog/', locale);
 const content = getSiteContent(locale).blog;
 const siteCopy = getSiteContent(locale);
+const homePath = localizePath('/', locale);
+const handle = '@NabilrizkiN';
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
@@ -28,6 +33,10 @@ const cards = localePosts.map((post) => {
 		searchText: [post.data.title, post.data.description, ...post.data.tags].join(' ').toLowerCase(),
 		readingLabel: content.minReadByLocale[info.locale](readingTime),
 		date: post.data.pubDate.toLocaleDateString(localeMeta[info.locale].dateLocale, {
+			month: 'short',
+			day: 'numeric',
+		}),
+		dateFull: post.data.pubDate.toLocaleDateString(localeMeta[info.locale].dateLocale, {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric',
@@ -84,38 +93,65 @@ const blogCollectionJson = JSON.stringify({
 	locale={locale}
 	ogImageAlt={content.ogImageAlt}
 >
-	<div class="blog-page" data-blog-locale-root>
-		<header class="blog-header">
+	<div class="blog-feed" data-blog-locale-root>
+		<header class="feed-header">
 			<div>
-				<p class="hand-label">my blog</p>
 				<h1>Blog</h1>
-			</div>
-			<div class="blog-tools">
-				<span class="post-count">{cards.length} posts</span>
-				<label class="search-field">
-					<span class="visually-hidden">{content.searchLabel}</span>
-					<input id="blog-search" type="search" placeholder={content.searchPlaceholder} data-blog-search />
-				</label>
+				<p>{cards.length} {cards.length === 1 ? 'post' : 'posts'}</p>
 			</div>
 		</header>
 
-		<section class="blog-list" aria-label={content.postsAria}>
-			{cards.map((item, index) => (
-				<article class="post-row" data-post-search={item.searchText}>
-					<a href={item.link} class="post-link">
-						<span class="post-number">{String(index + 1).padStart(2, '0')}</span>
-						<div class="post-copy">
+		<div class="search-row">
+			<label class="search-field">
+				<span class="visually-hidden">{content.searchLabel}</span>
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+					<circle cx="11" cy="11" r="6.5" />
+					<path d="m16 16 4 4" />
+				</svg>
+				<input id="blog-search" type="search" placeholder={content.searchPlaceholder} data-blog-search />
+			</label>
+		</div>
+
+		<section class="feed-list" aria-label={content.postsAria}>
+			{cards.map((item) => (
+				<article class="feed-post" data-post-search={item.searchText}>
+					<div class="avatar-column">
+						<a href={homePath} aria-label={`${authorName} — ${siteCopy.nav.home}`}>
+							<Image src={avatar} alt="" width={80} height={80} />
+						</a>
+					</div>
+
+					<div class="feed-post-body">
+						<div class="post-author-line">
+							<a href={homePath} class="author-name">{authorName}</a>
+							<span class="author-handle">{handle}</span>
+							<span aria-hidden="true">·</span>
+							<time datetime={item.post.data.pubDate.toISOString()} title={item.dateFull}>{item.date}</time>
+						</div>
+
+						<a href={item.link} class="post-content-link">
 							<h2>{item.post.data.title}</h2>
 							<p>{item.post.data.description}</p>
-						</div>
-						<div class="post-meta">
-							<time datetime={item.post.data.pubDate.toISOString()}>{item.date}</time>
+						</a>
+
+						<div class="post-submeta">
 							<span>{item.readingLabel}</span>
-							<span aria-hidden="true">↗</span>
+							{item.post.data.tags.slice(0, 3).map((tag) => <span>#{tag.toLowerCase().replace(/\s+/g, '-')}</span>)}
 						</div>
-					</a>
+
+						<div class="post-actions">
+							<EngagementBar
+								postId={item.post.slug}
+								title={item.post.data.title}
+								variant="feed"
+								locale={locale}
+								trackView={false}
+							/>
+						</div>
+					</div>
 				</article>
 			))}
+
 			<p class="empty-state" data-locale-empty hidden>{content.noMatches}</p>
 		</section>
 	</div>
@@ -125,74 +161,78 @@ const blogCollectionJson = JSON.stringify({
 </Page>
 
 <style>
-	.blog-page {
-		width: min(1120px, 100%);
+	.blog-feed {
+		width: min(720px, 100%);
 		margin: 0 auto;
 		border-inline: 1px solid var(--sheet-line, var(--border));
 		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
-	.blog-header {
-		min-height: 150px;
-		padding: 34px clamp(18px, 3vw, 34px) 28px;
+	.feed-header {
+		min-height: 72px;
+		padding: 14px 18px;
 		display: flex;
-		align-items: flex-end;
-		justify-content: space-between;
-		gap: 24px;
+		align-items: center;
 		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
-	.hand-label {
-		margin: 0 0 6px;
-		font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
-		font-size: 14px;
-		line-height: 1;
-		color: var(--muted);
-		transform: rotate(-1.5deg);
-		transform-origin: left center;
-	}
-
-	h1 {
+	.feed-header h1 {
 		margin: 0;
 		font-family: var(--font-sans);
-		font-size: clamp(34px, 4vw, 48px);
-		font-weight: 600;
-		line-height: 1;
-		letter-spacing: -0.045em;
+		font-size: 20px;
+		font-weight: 650;
+		line-height: 1.2;
+		letter-spacing: -0.025em;
 	}
 
-	.blog-tools {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-	}
-
-	.post-count {
-		font-family: var(--font-mono);
-		font-size: 9px;
+	.feed-header p {
+		margin: 3px 0 0;
+		font-family: var(--font-sans);
+		font-size: 12px;
+		line-height: 1.2;
 		color: var(--muted);
-		white-space: nowrap;
+	}
+
+	.search-row {
+		padding: 10px 16px;
+		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
 	.search-field {
-		width: min(260px, 34vw);
-		border-bottom: 1px solid var(--border-strong);
+		height: 40px;
+		padding: 0 13px;
+		display: grid;
+		grid-template-columns: 18px minmax(0, 1fr);
+		align-items: center;
+		gap: 9px;
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--surface) 72%, transparent);
+		color: var(--muted);
+		transition: border-color 130ms ease, background 130ms ease, color 130ms ease;
 	}
 
 	.search-field:focus-within {
-		border-bottom-color: var(--text);
+		border-color: var(--border-strong);
+		background: var(--bg);
+		color: var(--text);
+	}
+
+	.search-field svg {
+		width: 17px;
+		height: 17px;
 	}
 
 	.search-field input {
 		width: 100%;
-		height: 34px;
+		height: 100%;
 		padding: 0;
 		border: 0;
 		outline: 0;
 		background: transparent;
 		color: var(--text);
-		font-family: var(--font-mono);
-		font-size: 10px;
+		font-family: var(--font-sans);
+		font-size: 13px;
 	}
 
 	.search-field input::placeholder { color: var(--muted); }
@@ -209,118 +249,154 @@ const blogCollectionJson = JSON.stringify({
 		border: 0;
 	}
 
-	.post-row {
-		border-bottom: 1px solid var(--sheet-line, var(--border));
-	}
-
-	.post-row:last-of-type { border-bottom: 0; }
-
-	.post-link {
-		min-height: 118px;
-		padding: 24px clamp(18px, 3vw, 34px);
+	.feed-post {
+		padding: 14px 16px 10px;
 		display: grid;
-		grid-template-columns: 42px minmax(0, 1fr) 150px;
-		gap: 18px;
-		align-items: start;
+		grid-template-columns: 42px minmax(0, 1fr);
+		gap: 10px;
+		border-bottom: 1px solid var(--sheet-line, var(--border));
 		transition: background 130ms ease;
 	}
 
-	.post-link:hover,
-	.post-link:focus-visible {
-		background: color-mix(in srgb, var(--surface) 58%, transparent);
+	.feed-post:last-of-type { border-bottom: 0; }
+
+	.feed-post:hover {
+		background: color-mix(in srgb, var(--surface) 46%, transparent);
+	}
+
+	.avatar-column a,
+	.avatar-column img {
+		display: block;
+		width: 40px;
+		height: 40px;
+	}
+
+	.avatar-column img {
+		border: 1px solid var(--border);
+		border-radius: 50%;
+		object-fit: cover;
+	}
+
+	.feed-post-body {
+		min-width: 0;
+	}
+
+	.post-author-line {
+		min-width: 0;
+		display: flex;
+		align-items: baseline;
+		gap: 4px;
+		font-family: var(--font-sans);
+		font-size: 13px;
+		line-height: 1.35;
+		color: var(--muted);
+	}
+
+	.author-name {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--text);
+		font-weight: 650;
+	}
+
+	.author-name:hover,
+	.author-name:focus-visible {
+		text-decoration: underline;
+		text-underline-offset: 2px;
 		outline: none;
 	}
 
-	.post-link:focus-visible {
-		box-shadow: inset 0 0 0 1px var(--text);
+	.author-handle {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
-	.post-number,
-	.post-meta {
-		font-family: var(--font-mono);
-		font-size: 9px;
-		color: var(--muted);
+	.post-author-line time { white-space: nowrap; }
+
+	.post-content-link {
+		display: block;
+		margin-top: 2px;
+		color: inherit;
 	}
 
-	.post-number { padding-top: 5px; }
+	.post-content-link:focus-visible {
+		outline: 1px solid var(--border-strong);
+		outline-offset: 3px;
+	}
 
-	.post-copy h2 {
-		max-width: 32ch;
-		margin: 0 0 7px;
+	.post-content-link h2 {
+		margin: 0 0 5px;
 		font-family: var(--font-sans);
-		font-size: clamp(19px, 2vw, 24px);
-		font-weight: 600;
-		line-height: 1.18;
-		letter-spacing: -0.025em;
-	}
-
-	.post-copy p {
-		max-width: 70ch;
-		margin: 0;
-		font-family: var(--font-sans);
-		font-size: 13px;
-		line-height: 1.55;
-		color: var(--muted);
-	}
-
-	.post-meta {
-		display: grid;
-		grid-template-columns: 1fr auto;
-		gap: 6px 12px;
-		align-items: start;
-	}
-
-	.post-meta time,
-	.post-meta span:nth-child(2) {
-		grid-column: 1;
-	}
-
-	.post-meta span:last-child {
-		grid-column: 2;
-		grid-row: 1 / 3;
-		font-size: 13px;
+		font-size: 16px;
+		font-weight: 650;
+		line-height: 1.3;
+		letter-spacing: -0.015em;
 		color: var(--text);
 	}
 
+	.post-content-link p {
+		margin: 0;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 3;
+		overflow: hidden;
+		font-family: var(--font-sans);
+		font-size: 14px;
+		line-height: 1.45;
+		color: color-mix(in srgb, var(--text) 84%, var(--muted));
+	}
+
+	.post-submeta {
+		margin-top: 7px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px 10px;
+		font-family: var(--font-sans);
+		font-size: 11px;
+		line-height: 1.35;
+		color: var(--muted);
+	}
+
+	.post-actions {
+		margin-top: 5px;
+		max-width: 390px;
+	}
+
 	.empty-state {
-		padding: 28px clamp(18px, 3vw, 34px);
+		margin: 0;
+		padding: 28px 18px;
+		font-family: var(--font-sans);
 		font-size: 13px;
 		color: var(--muted);
 	}
 
 	@media (max-width: 720px) {
-		.blog-page { border-inline: 0; }
+		.blog-feed { border-inline: 0; }
+		.feed-post { padding-inline: 14px; }
+		.search-row { padding-inline: 12px; }
+	}
 
-		.blog-header {
-			min-height: 128px;
-			align-items: flex-start;
-			flex-direction: column;
+	@media (max-width: 440px) {
+		.feed-post {
+			grid-template-columns: 38px minmax(0, 1fr);
+			gap: 9px;
 		}
 
-		.blog-tools,
-		.search-field {
-			width: 100%;
+		.avatar-column a,
+		.avatar-column img {
+			width: 36px;
+			height: 36px;
 		}
 
-		.post-link {
-			grid-template-columns: 30px minmax(0, 1fr);
-			gap: 12px;
-		}
-
-		.post-meta {
-			grid-column: 2;
-			grid-template-columns: auto auto 1fr;
-			justify-content: start;
-		}
-
-		.post-meta time,
-		.post-meta span:nth-child(2),
-		.post-meta span:last-child {
-			grid-column: auto;
-			grid-row: auto;
-		}
-
-		.post-meta span:last-child { margin-left: auto; }
+		.post-author-line { font-size: 12px; }
+		.author-name { max-width: 145px; }
+		.author-handle { max-width: 104px; }
+		.post-content-link h2 { font-size: 15px; }
+		.post-content-link p { font-size: 13.5px; }
 	}
 </style>
 
