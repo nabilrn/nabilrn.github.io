@@ -21,8 +21,6 @@ interface Props {
   locale?: SiteLocale;
   lang?: string;
   robots?: string;
-  /** @deprecated All pages now use the shared SiteShell. */
-  layoutVariant?: 'portfolio' | 'portfolio-full' | 'blog-full';
   ogImage?: string;
   ogImageAlt?: string;
   ogType?: 'website' | 'article';
@@ -242,10 +240,10 @@ const siteNavigationJson = JSON.stringify({
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 
     <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json" set:html={personJson}></script>
-    {isHomePageForSchema && <script type="application/ld+json" set:html={websiteJson}></script>}
-    <script type="application/ld+json" set:html={webPageJson}></script>
-    <script type="application/ld+json" set:html={siteNavigationJson}></script>
+    <script is:inline type="application/ld+json" set:html={personJson}></script>
+    {isHomePageForSchema && <script is:inline type="application/ld+json" set:html={websiteJson}></script>}
+    <script is:inline type="application/ld+json" set:html={webPageJson}></script>
+    <script is:inline type="application/ld+json" set:html={siteNavigationJson}></script>
 </head>
 <body>
     <SiteShell currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
