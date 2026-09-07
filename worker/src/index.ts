@@ -41,7 +41,8 @@ type EngagementPayload = {
 };
 
 const ANALYTICS_PREFIX = 'analytics:';
-const DAILY_VISITOR_TTL_SECONDS = 35 * 24 * 60 * 60;
+const HOURLY_VISITOR_TTL_SECONDS = 30 * 60 * 60;
+const HOURLY_COUNTER_TTL_SECONDS = 72 * 60 * 60;
 
 function allowedOrigins(env: Env) {
   return (env.ALLOWED_ORIGIN ?? '*')
@@ -107,13 +108,12 @@ function normalizeVisitorId(input?: string) {
   return visitorId.slice(0, 128);
 }
 
-function jakartaDateKey(date = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
+function utcHourKey(date = new Date()) {
+  return date.toISOString().slice(0, 13);
+}
+
+function utcHourStart(hour: string) {
+  return `${hour}:00:00.000Z`;
 }
 
 async function getMetrics(kv: KVNamespace, postId: string) {
@@ -138,10 +138,10 @@ async function getEngagementState(kv: KVNamespace, postId: string, visitorInput?
   return { ...metrics, liked };
 }
 
-async function increment(kv: KVNamespace, key: string, delta = 1) {
+async function increment(kv: KVNamespace, key: string, delta = 1, options?: KVPutOptions) {
   const current = Number((await kv.get(key)) ?? '0');
   const next = Math.max(0, current + delta);
-  await kv.put(key, String(next));
+  await kv.put(key, String(next), options);
   return next;
 }
 
@@ -150,20 +150,25 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
   const visitorId = normalizeVisitorId(visitorInput);
   if (!visitorId) throw new Error('Missing visitorId for analytics view.');
 
-  const day = jakartaDateKey();
+  const hour = utcHourKey();
   const encodedPath = encodeURIComponent(path);
   const allTimeVisitorKey = `${ANALYTICS_PREFIX}visitor:${visitorId}`;
-  const dailyVisitorKey = `${ANALYTICS_PREFIX}day:${day}:visitor:${visitorId}`;
+  const hourlyVisitorKey = `${ANALYTICS_PREFIX}hour:${hour}:visitor:${visitorId}`;
 
-  const [knownVisitor, knownToday] = await Promise.all([
+  const [knownVisitor, knownThisHour] = await Promise.all([
     kv.get(allTimeVisitorKey),
-    kv.get(dailyVisitorKey),
+    kv.get(hourlyVisitorKey),
   ]);
 
   await Promise.all([
     increment(kv, `${ANALYTICS_PREFIX}pageviews`),
     increment(kv, `${ANALYTICS_PREFIX}page:${encodedPath}:views`),
-    increment(kv, `${ANALYTICS_PREFIX}day:${day}:views`),
+    increment(
+      kv,
+      `${ANALYTICS_PREFIX}hour:${hour}:views`,
+      1,
+      { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
+    ),
   ]);
 
   const uniqueWrites: Promise<unknown>[] = [];
@@ -173,10 +178,15 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
       increment(kv, `${ANALYTICS_PREFIX}visitors`),
     );
   }
-  if (!knownToday) {
+  if (!knownThisHour) {
     uniqueWrites.push(
-      kv.put(dailyVisitorKey, '1', { expirationTtl: DAILY_VISITOR_TTL_SECONDS }),
-      increment(kv, `${ANALYTICS_PREFIX}day:${day}:visitors`),
+      kv.put(hourlyVisitorKey, '1', { expirationTtl: HOURLY_VISITOR_TTL_SECONDS }),
+      increment(
+        kv,
+        `${ANALYTICS_PREFIX}hour:${hour}:visitors`,
+        1,
+        { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
+      ),
     );
   }
   if (uniqueWrites.length) await Promise.all(uniqueWrites);
@@ -204,20 +214,22 @@ async function getAnalyticsSummary(kv: KVNamespace) {
     listKeysByPrefix(kv, `${ANALYTICS_PREFIX}page:`),
   ]);
 
-  const now = new Date();
-  const days = Array.from({ length: 30 }, (_, index) => {
-    const date = new Date(now.getTime() - (29 - index) * 86_400_000);
-    return jakartaDateKey(date);
+  const currentHour = new Date();
+  currentHour.setUTCMinutes(0, 0, 0);
+  const hours = Array.from({ length: 24 }, (_, index) => {
+    const date = new Date(currentHour);
+    date.setUTCHours(date.getUTCHours() - (23 - index));
+    return utcHourKey(date);
   });
 
-  const dailyValues = await Promise.all(
-    days.map(async (date) => {
+  const hourlyValues = await Promise.all(
+    hours.map(async (hour) => {
       const [views, visitors] = await Promise.all([
-        kv.get(`${ANALYTICS_PREFIX}day:${date}:views`),
-        kv.get(`${ANALYTICS_PREFIX}day:${date}:visitors`),
+        kv.get(`${ANALYTICS_PREFIX}hour:${hour}:views`),
+        kv.get(`${ANALYTICS_PREFIX}hour:${hour}:visitors`),
       ]);
       return {
-        date,
+        hour: utcHourStart(hour),
         views: Number(views ?? '0'),
         visitors: Number(visitors ?? '0'),
       };
@@ -244,7 +256,7 @@ async function getAnalyticsSummary(kv: KVNamespace) {
     visitors: Number(visitorsRaw ?? '0'),
     pageviews: Number(pageviewsRaw ?? '0'),
     topPage,
-    last30Days: dailyValues,
+    last24Hours: hourlyValues,
   };
 }
 
