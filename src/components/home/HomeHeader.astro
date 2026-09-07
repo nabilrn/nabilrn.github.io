@@ -10,14 +10,21 @@ import {
     type SiteLocale,
 } from '../../data/siteContent';
 
+type HeaderSection = 'overview' | 'blog' | 'none';
+
 interface Props {
     locale?: SiteLocale;
+    activeSection?: HeaderSection;
+    languageTargets?: Partial<Record<SiteLocale, string>>;
 }
 
 const locale = normalizeLocale(Astro.props.locale);
+const activeSection = Astro.props.activeSection ?? 'overview';
+const languageTargets = Astro.props.languageTargets ?? {};
 const content = getSiteContent(locale);
 const homePath = localizePath('/', locale);
 const blogPath = localizePath('/blog/', locale);
+const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath('/', item);
 ---
 
 <header class="home-header">
@@ -44,8 +51,20 @@ const blogPath = localizePath('/blog/', locale);
         </a>
 
         <nav class="home-nav" aria-label={content.nav.ariaPageNavigation}>
-            <a href={homePath} class="home-nav-link is-active" aria-current="page">{content.nav.overview}</a>
-            <a href={blogPath} class="home-nav-link">{content.nav.blog}</a>
+            <a
+                href={homePath}
+                class:list={['home-nav-link', { 'is-active': activeSection === 'overview' }]}
+                aria-current={activeSection === 'overview' ? 'page' : undefined}
+            >
+                {content.nav.overview}
+            </a>
+            <a
+                href={blogPath}
+                class:list={['home-nav-link', { 'is-active': activeSection === 'blog' }]}
+                aria-current={activeSection === 'blog' ? 'page' : undefined}
+            >
+                {content.nav.blog}
+            </a>
         </nav>
 
         <div class="home-actions">
@@ -65,7 +84,7 @@ const blogPath = localizePath('/blog/', locale);
                     {supportedLocales.map((item) => (
                         <a
                             class:list={['home-language-option', { 'is-active': item === locale }]}
-                            href={localizePath('/', item)}
+                            href={languageHref(item)}
                         >
                             <span>{item.toUpperCase()}</span>
                             <span>{localeMeta[item].label}</span>

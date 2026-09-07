@@ -20,23 +20,20 @@ const unlocalizedPath = stripLocaleFromPath(currentPath || '/');
 const normalizedPath = unlocalizedPath.endsWith('/') ? unlocalizedPath : `${unlocalizedPath}/`;
 const isHomePage = normalizedPath === '/';
 const isBlogPage = normalizedPath.startsWith('/blog/');
+const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
 const languageTargets = {
     en: alternatePaths?.en ?? localizePath(unlocalizedPath, 'en'),
     id: alternatePaths?.id ?? localizePath(unlocalizedPath, 'id'),
 };
 ---
 
-<div
-    class="full-shell"
-    data-site-shell
-    data-section={isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none'}
-    data-lang-en={languageTargets.en}
-    data-lang-id={languageTargets.id}
->
+<div class="full-shell">
     {!isHomePage && (
-        <div class:list={['content-header', { 'is-blog': isBlogPage }]}>
-            <HomeHeader locale={locale} />
-        </div>
+        <HomeHeader
+            locale={locale}
+            activeSection={activeSection}
+            languageTargets={languageTargets}
+        />
     )}
 
     <main class="full-main">
@@ -60,14 +57,6 @@ const languageTargets = {
         padding: 0 0 72px;
     }
 
-    .content-header :global(.home-nav-link.is-active) {
-        color: var(--muted);
-    }
-
-    .content-header.is-blog :global(.home-nav-link[href$='/blog/']) {
-        color: var(--text);
-    }
-
     @media (max-width: 760px) {
         .full-shell {
             width: 100%;
@@ -79,26 +68,3 @@ const languageTargets = {
         }
     }
 </style>
-
-<script is:inline>
-    (() => {
-        const root = document.querySelector('[data-site-shell]');
-        if (!(root instanceof HTMLElement)) return;
-
-        const section = root.dataset.section || 'none';
-        const navLinks = root.querySelectorAll('.home-nav-link');
-        navLinks.forEach((link) => link.removeAttribute('aria-current'));
-
-        if (section === 'blog') {
-            const blogLink = Array.from(navLinks).find((link) => link.getAttribute('href')?.endsWith('/blog/'));
-            blogLink?.setAttribute('aria-current', 'page');
-        }
-
-        root.querySelectorAll('.home-language-option').forEach((link) => {
-            if (!(link instanceof HTMLAnchorElement)) return;
-            const code = link.querySelector('span')?.textContent?.trim().toLowerCase();
-            if (code === 'en' && root.dataset.langEn) link.href = root.dataset.langEn;
-            if (code === 'id' && root.dataset.langId) link.href = root.dataset.langId;
-        });
-    })();
-</script>
