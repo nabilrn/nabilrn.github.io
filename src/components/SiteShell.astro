@@ -2,41 +2,23 @@
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
-import {
-    localizePath,
-    normalizeLocale,
-    stripLocaleFromPath,
-    type SiteLocale,
-} from '../data/siteContent';
 
 interface Props {
     currentPath?: string;
-    locale?: SiteLocale;
-    alternatePaths?: Partial<Record<SiteLocale, string>>;
+    /** Temporary compatibility while Page.astro drops the old locale props. */
+    locale?: unknown;
+    alternatePaths?: unknown;
 }
 
 const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
-const locale = normalizeLocale(Astro.props.locale);
-const alternatePaths = Astro.props.alternatePaths;
-const unlocalizedPath = stripLocaleFromPath(currentPath || '/');
-const normalizedPath = unlocalizedPath.endsWith('/') ? unlocalizedPath : `${unlocalizedPath}/`;
+const normalizedPath = (currentPath || '/').endsWith('/') ? (currentPath || '/') : `${currentPath}/`;
 const isHomePage = normalizedPath === '/';
 const isBlogPage = normalizedPath.startsWith('/blog/');
 const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
-const languageTargets = {
-    en: alternatePaths?.en ?? localizePath(unlocalizedPath, 'en'),
-    id: alternatePaths?.id ?? localizePath(unlocalizedPath, 'id'),
-};
 ---
 
 <div class="full-shell">
-    {!isHomePage && (
-        <HomeHeader
-            locale={locale}
-            activeSection={activeSection}
-            languageTargets={languageTargets}
-        />
-    )}
+    {!isHomePage && <HomeHeader activeSection={activeSection} />}
 
     <main class="full-main">
         <slot />
