@@ -1,5 +1,4 @@
 ---
-import SiteSearch from '../SiteSearch.astro';
 import ThemeToggle from '../ThemeToggle.astro';
 import GitHubStars from './GitHubStars.astro';
 import {
@@ -50,12 +49,6 @@ const blogPath = localizePath('/blog/', locale);
         </nav>
 
         <div class="home-actions">
-            <span class="header-separator desktop-separator" aria-hidden="true"></span>
-
-            <div class="home-search">
-                <SiteSearch locale={locale} />
-            </div>
-
             <span class="header-separator desktop-separator" aria-hidden="true"></span>
 
             <GitHubStars repo="nabilrn/nabilrn.github.io" />
@@ -139,13 +132,8 @@ const blogPath = localizePath('/blog/', locale);
         pointer-events: none;
     }
 
-    .home-header-inner::before {
-        top: 0;
-    }
-
-    .home-header-inner::after {
-        bottom: 0;
-    }
+    .home-header-inner::before { top: 0; }
+    .home-header-inner::after { bottom: 0; }
 
     .home-intro {
         min-width: 0;
@@ -224,9 +212,7 @@ const blogPath = localizePath('/blog/', locale);
     }
 
     .design-reference:hover strong,
-    .design-reference:focus-visible strong {
-        color: var(--text);
-    }
+    .design-reference:focus-visible strong { color: var(--text); }
 
     .design-reference-tooltip {
         position: absolute;
@@ -283,9 +269,7 @@ const blogPath = localizePath('/blog/', locale);
     }
 
     .home-nav-link:hover,
-    .home-nav-link.is-active {
-        color: var(--text);
-    }
+    .home-nav-link.is-active { color: var(--text); }
 
     .home-actions {
         display: flex;
@@ -301,14 +285,7 @@ const blogPath = localizePath('/blog/', locale);
         background: var(--sheet-line, var(--border));
     }
 
-    .home-search {
-        display: flex;
-        align-items: center;
-    }
-
-    .home-language {
-        position: relative;
-    }
+    .home-language { position: relative; }
 
     .home-language summary {
         min-width: 28px;
@@ -328,9 +305,7 @@ const blogPath = localizePath('/blog/', locale);
         transition: color 140ms ease;
     }
 
-    .home-language summary::-webkit-details-marker {
-        display: none;
-    }
+    .home-language summary::-webkit-details-marker { display: none; }
 
     .home-language summary:hover,
     .home-language[open] summary {
@@ -370,53 +345,6 @@ const blogPath = localizePath('/blog/', locale);
         background: var(--surface-2);
     }
 
-    :global(.home-header .site-search-trigger) {
-        width: auto;
-        min-width: 0;
-        height: 30px;
-        min-height: 30px;
-        padding: 0 4px;
-        justify-content: center;
-        gap: 6px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: var(--muted);
-        font-family: var(--font-sans);
-        transition: color 140ms ease;
-    }
-
-    :global(.home-header .site-search-trigger:hover) {
-        background: transparent;
-        border-color: transparent;
-        color: var(--text);
-    }
-
-    :global(.home-header .site-search-trigger > span) {
-        display: none;
-    }
-
-    :global(.home-header .site-search-trigger > kbd) {
-        display: inline-flex;
-        align-items: center;
-        min-height: 18px;
-        padding: 1px 4px;
-        border: 1px solid var(--border-strong);
-        border-radius: 3px;
-        background: var(--surface);
-        color: var(--muted);
-        font-family: var(--font-sans);
-        font-size: 9px;
-        font-weight: 500;
-        line-height: 1;
-        box-shadow: none;
-    }
-
-    :global(.home-header .site-search-trigger svg) {
-        width: 13px;
-        height: 13px;
-    }
-
     :global(.home-header .theme-toggle) {
         width: 30px;
         min-width: 30px;
@@ -441,15 +369,11 @@ const blogPath = localizePath('/blog/', locale);
     }
 
     @media (max-width: 1020px) {
-        .design-reference {
-            display: none;
-        }
+        .design-reference { display: none; }
     }
 
     @media (max-width: 760px) {
-        .home-header {
-            height: 48px;
-        }
+        .home-header { height: 48px; }
 
         .home-header-inner {
             padding: 0 12px;
@@ -457,30 +381,19 @@ const blogPath = localizePath('/blog/', locale);
             border-inline: 0;
         }
 
-        .home-greeting {
-            font-size: 14px;
-        }
+        .home-greeting { font-size: 14px; }
 
         .home-nav,
-        .home-search,
         .desktop-separator {
             display: none;
         }
 
-        .home-spacer {
-            min-width: 0;
-        }
-
-        .home-actions {
-            gap: 5px;
-        }
+        .home-spacer { min-width: 0; }
+        .home-actions { gap: 5px; }
     }
 </style>
 
 <style is:global>
-    /* Homepage drawing-sheet coordinate system.
-       Content keeps its centered rails; selected horizontal structure escapes
-       that content box and is clipped only by the viewport. */
     html,
     body,
     .full-shell {
@@ -515,13 +428,8 @@ const blogPath = localizePath('/blog/', locale);
         background: var(--sheet-line);
     }
 
-    .home-redesign[data-home-redesign] .portfolio-board::before {
-        top: 0;
-    }
-
-    .home-redesign[data-home-redesign] .portfolio-board::after {
-        bottom: 0;
-    }
+    .home-redesign[data-home-redesign] .portfolio-board::before { top: 0; }
+    .home-redesign[data-home-redesign] .portfolio-board::after { bottom: 0; }
 
     .home-redesign[data-home-redesign] .top-layout {
         position: relative;
@@ -536,7 +444,6 @@ const blogPath = localizePath('/blog/', locale);
         background: var(--border);
     }
 
-    /* Final interaction affordances shared by the locked profile + NR area. */
     .home-redesign[data-home-redesign] .nr-hud-title strong::before {
         content: '♪ ';
         color: color-mix(in srgb, var(--muted) 82%, transparent);
