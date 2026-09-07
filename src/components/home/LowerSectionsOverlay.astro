@@ -675,7 +675,9 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const renderSpark = (values: HourPoint[]) => {
         if (!sparkEl) return;
         sparkEl.replaceChildren();
-        const safeValues = values.length === 24 ? values : Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 }));
+        const safeValues: HourPoint[] = values.length === 24
+            ? values
+            : Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 }));
         const viewValues = safeValues.map((item) => Number(item.views ?? 0));
         const max = Math.max(1, ...viewValues);
 
