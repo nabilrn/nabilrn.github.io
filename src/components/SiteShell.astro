@@ -1,5 +1,6 @@
 ---
 import HomeHeader from './home/HomeHeader.astro';
+import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
 import {
     localizePath,
@@ -42,6 +43,7 @@ const languageTargets = {
     </main>
 
     {isHomePage && <HomeResponsiveArchitecture />}
+    {isHomePage && <HomeLightModePolish />}
 </div>
 
 <style>
