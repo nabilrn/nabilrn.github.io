@@ -5,8 +5,6 @@ pubDate: 2026-04-04
 tags: ["github-actions", "ci-cd", "proxmox", "devops"]
 featured: true
 draft: false
-locale: "en"
-translationKey: "selfhost-github-actions-runner-on-proxmox"
 ---
 
 A self-hosted GitHub Actions runner is not complicated to install. The interesting part is deciding where that runner should live and how much trust I am willing to give it.
