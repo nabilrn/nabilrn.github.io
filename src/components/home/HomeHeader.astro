@@ -551,6 +551,44 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         transform: translateY(0);
     }
 
+    .home-redesign[data-home-redesign] .nr-song-credit {
+        align-items: center;
+        gap: 5px;
+        color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+        font-size: 9.5px;
+    }
+
+    .home-redesign[data-home-redesign] .nr-song-credit > span[aria-hidden='true'] {
+        display: none;
+    }
+
+    .home-redesign[data-home-redesign] .nr-song-credit::before {
+        content: '';
+        width: 14px;
+        height: 14px;
+        flex: none;
+        display: block;
+        background-color: color-mix(in srgb, var(--muted) 78%, var(--bg));
+        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12Z'/%3E%3C/svg%3E") center / contain no-repeat;
+        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12Z'/%3E%3C/svg%3E") center / contain no-repeat;
+        filter: grayscale(1);
+        opacity: .82;
+        transition: background-color 160ms ease, filter 160ms ease, opacity 160ms ease, transform 160ms ease;
+    }
+
+    .home-redesign[data-home-redesign] .nr-song-credit strong {
+        color: color-mix(in srgb, var(--text) 70%, var(--bg));
+        font-weight: 550;
+    }
+
+    .home-redesign[data-home-redesign] .nr-song-credit:hover::before,
+    .home-redesign[data-home-redesign] .nr-song-credit:focus-visible::before {
+        background-color: #ff0000;
+        filter: none;
+        opacity: 1;
+        transform: scale(1.06);
+    }
+
     .home-redesign[data-home-redesign] .nr-song-credit::after {
         content: "Visit Sharou's YouTube channel";
         position: absolute;
@@ -579,5 +617,16 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
     .home-redesign[data-home-redesign] .nr-song-credit:focus-visible::after {
         opacity: 1;
         transform: translateY(0);
+    }
+
+    .home-redesign[data-home-redesign] .blog-all-link > span[aria-hidden='true'],
+    .home-redesign[data-home-redesign] .tweet-read-link > span[aria-hidden='true'] {
+        display: none;
+    }
+
+    @media (max-width: 1099px) {
+        .home-redesign[data-home-redesign] .nr-song-credit {
+            font-size: 8.5px;
+        }
     }
 </style>
