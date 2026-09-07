@@ -37,6 +37,7 @@ type AnalyticsPayload = {
 type EngagementPayload = {
   action?: string;
   visitorId?: string;
+  liked?: boolean;
 };
 
 const ANALYTICS_PREFIX = 'analytics:';
@@ -126,6 +127,15 @@ async function getMetrics(kv: KVNamespace, postId: string) {
     likes: Number(likes ?? '0'),
     shares: Number(shares ?? '0'),
   };
+}
+
+async function getEngagementState(kv: KVNamespace, postId: string, visitorInput?: string) {
+  const metrics = await getMetrics(kv, postId);
+  const visitorId = normalizeVisitorId(visitorInput);
+  if (!visitorId) return metrics;
+
+  const liked = Boolean(await kv.get(`visitor:${postId}:${visitorId}:liked`));
+  return { ...metrics, liked };
 }
 
 async function increment(kv: KVNamespace, key: string, delta = 1) {
@@ -280,7 +290,8 @@ export default {
     if (!postId) return json(request, env, { error: 'Not found' }, { status: 404 });
 
     if (request.method === 'GET') {
-      return json(request, env, await getMetrics(env.METRICS, postId));
+      const visitorId = normalizeVisitorId(url.searchParams.get('visitorId') ?? undefined);
+      return json(request, env, await getEngagementState(env.METRICS, postId, visitorId ?? undefined));
     }
 
     if (request.method !== 'POST') {
@@ -312,30 +323,29 @@ export default {
 
       // Existing blog traffic also feeds the lightweight site analytics stream.
       await trackSiteView(kv, `/blog/${postId}/`, visitorId);
-      return json(request, env, await getMetrics(kv, postId));
+      return json(request, env, await getEngagementState(kv, postId, visitorId));
     }
 
     if (action === 'like') {
       if (!visitorId) return badRequest(request, env, 'Missing visitorId for like.');
       const likedKey = `visitor:${postId}:${visitorId}:liked`;
-      const already = await kv.get(likedKey);
-      let liked: boolean;
-      if (already) {
-        await kv.delete(likedKey);
-        await increment(kv, `metrics:${postId}:likes`, -1);
-        liked = false;
-      } else {
+      const already = Boolean(await kv.get(likedKey));
+      const desiredLiked = typeof payload.liked === 'boolean' ? payload.liked : !already;
+
+      if (desiredLiked && !already) {
         await kv.put(likedKey, '1');
         await increment(kv, `metrics:${postId}:likes`);
-        liked = true;
+      } else if (!desiredLiked && already) {
+        await kv.delete(likedKey);
+        await increment(kv, `metrics:${postId}:likes`, -1);
       }
-      const metrics = await getMetrics(kv, postId);
-      return json(request, env, { ...metrics, liked });
+
+      return json(request, env, await getEngagementState(kv, postId, visitorId));
     }
 
     if (action === 'share') {
       await increment(kv, `metrics:${postId}:shares`);
-      return json(request, env, await getMetrics(kv, postId));
+      return json(request, env, await getEngagementState(kv, postId, visitorId ?? undefined));
     }
 
     return badRequest(request, env, 'Unknown action.');
