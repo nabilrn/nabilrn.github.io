@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+
 const mapsHref = 'https://www.google.com/maps/search/?api=1&query=Universitas%20Andalas%2C%20Limau%20Manis%2C%20Pauh%2C%20Padang%2C%20Sumatera%20Barat';
 const universityHref = 'https://unand.ac.id/';
 const logoSrc = 'https://fti.unand.ac.id/en/informasi/berita-dan-peristiwa/item/download/25_1ba5358f423fd20c18051fec9e856b64.html';
@@ -24,7 +26,12 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
                     </svg>
                 </span>
                 <span class="education-map-pin education-map-pin-color" aria-hidden="true">
-                    <img src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico" alt="" />
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="#34A853" d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8Z"/>
+                        <path fill="#FBBC04" d="M12 2a8 8 0 0 0-7.3 4.7L12 12l7.3-5.3A8 8 0 0 0 12 2Z"/>
+                        <path fill="#EA4335" d="M4 10c0 2.2 1.5 5 3.4 7.3L12 12 4.7 6.7A8 8 0 0 0 4 10Z"/>
+                        <circle cx="12" cy="10" r="2.8" fill="#4285F4"/>
+                    </svg>
                 </span>
                 <span class="education-map-tooltip" role="tooltip">See on Google Maps</span>
             </a>
@@ -39,7 +46,14 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
                     rel="noopener"
                     aria-label="Visit Universitas Andalas official website"
                 >
-                    <img class="education-logo" src={logoSrc} alt="Universitas Andalas logo" />
+                    <Image
+                        class="education-logo"
+                        src={logoSrc}
+                        width={2158}
+                        height={2628}
+                        alt="Universitas Andalas logo"
+                        loading="lazy"
+                    />
                     <span class="education-visit-tooltip education-logo-tooltip" role="tooltip">Visit unand.ac.id</span>
                 </a>
 
@@ -60,7 +74,13 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
                 rel="noopener"
                 aria-label="Visit Universitas Andalas official website"
             >
-                <img src={campusSrc} alt="Universitas Andalas rectorate building" />
+                <Image
+                    src={campusSrc}
+                    width={545}
+                    height={307}
+                    alt="Universitas Andalas rectorate building"
+                    loading="lazy"
+                />
                 <span class="education-visit-tooltip education-photo-tooltip" role="tooltip">Visit unand.ac.id</span>
             </a>
         </div>
@@ -161,11 +181,10 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
         transform: scale(0.88);
     }
 
-    .home-redesign .education-map-pin-color img {
+    .home-redesign .education-map-pin-color svg {
         width: 16px;
         height: 16px;
         display: block;
-        object-fit: contain;
     }
 
     .home-redesign .education-map-link:hover .education-map-pin-mono,
@@ -411,7 +430,7 @@ const campusSrc = 'https://www.unand.ac.id/images/gedung%20rektorat.jpg';
             height: 13px;
         }
 
-        .home-redesign .education-map-pin-color img {
+        .home-redesign .education-map-pin-color svg {
             width: 15px;
             height: 15px;
         }
