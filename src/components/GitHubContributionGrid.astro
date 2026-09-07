@@ -126,20 +126,18 @@ const formatTooltipDate = (date: string) => {
                 </div>
             </div>
 
-            <div class="graph-footer">
-                <figcaption id="github-activity-caption" class="graph-caption">
-                    <span class="caption-copy">
-                        {copy.totalLabel(total)}, {formatFigureDate(firstDate)} — {formatFigureDate(lastDate)}. Source:{' '}
-                        <a href={`https://github.com/${username}`} target="_blank" rel="noopener">GitHub</a>.
-                    </span>
-                </figcaption>
+            <figcaption id="github-activity-caption" class="graph-footer">
+                <span class="graph-caption">
+                    {copy.totalLabel(total)}, {formatFigureDate(firstDate)} — {formatFigureDate(lastDate)}. Source:{' '}
+                    <a href={`https://github.com/${username}`} target="_blank" rel="noopener">GitHub</a>.
+                </span>
 
-                <div class="contribution-legend" aria-hidden="true">
+                <span class="contribution-legend" aria-hidden="true">
                     <span>{copy.less}</span>
                     {[0, 1, 2, 3, 4].map((level) => <span class="legend-cell" data-level={level}></span>)}
                     <span>{copy.more}</span>
-                </div>
-            </div>
+                </span>
+            </figcaption>
         </>
     ) : (
         <div class="contribution-fallback" role="status">
