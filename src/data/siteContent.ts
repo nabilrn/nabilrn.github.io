@@ -1,34 +1,27 @@
-export type SiteLocale = 'en' | 'id';
+export type SiteLocale = string;
 export type ActiveSiteLocale = SiteLocale;
 
 export const defaultLocale: SiteLocale = 'en';
-export const supportedLocales = ['en', 'id'] as const satisfies readonly SiteLocale[];
-export const localizedLocales = ['id'] as const satisfies readonly SiteLocale[];
+export const supportedLocales = ['en'] as const;
+export const localizedLocales = [] as const;
 export const siteUrl = 'https://portfolio.nabilrn.space';
 export const authorName = 'Nabil Rizki Navisa';
 
 export const localeMeta: Record<
-    SiteLocale,
+    string,
     { label: string; htmlLang: string; ogLocale: string; pathPrefix: string; dateLocale: string }
 > = {
     en: { label: 'English', htmlLang: 'en', ogLocale: 'en_US', pathPrefix: '', dateLocale: 'en-US' },
-    id: { label: 'Indonesia', htmlLang: 'id', ogLocale: 'id_ID', pathPrefix: '/id', dateLocale: 'id-ID' },
 };
 
-export const normalizeLocale = (locale?: string): SiteLocale => (locale === 'id' ? 'id' : defaultLocale);
+export const normalizeLocale = (_locale?: string): SiteLocale => defaultLocale;
 
 export const stripLocaleFromPath = (path = '/') => {
     const normalized = path.startsWith('/') ? path : `/${path}`;
-    // Strip retired prefixes too so old inbound URLs canonicalize to the active route surface.
-    const stripped = normalized.replace(/^\/(id|cn|jp|ar)(?=\/|$)/, '');
-    return stripped === '' ? '/' : stripped;
+    return normalized === '' ? '/' : normalized;
 };
 
-export const localizePath = (path: string, locale: SiteLocale = defaultLocale) => {
-    const normalizedPath = stripLocaleFromPath(path);
-    if (locale === defaultLocale) return normalizedPath;
-    return `${localeMeta[locale].pathPrefix}${normalizedPath === '/' ? '/' : normalizedPath}`;
-};
+export const localizePath = (path: string, _locale: SiteLocale = defaultLocale) => stripLocaleFromPath(path);
 
 const commonSchema = {
     alternateName: ['Nabil Navisa', 'Nabil Rizki', 'nabilrn', 'nabilrizkinavisa'],
@@ -142,13 +135,11 @@ const enContent = {
         noMatches: 'No matching articles found.',
         localeLabel: {
             en: 'English',
-            id: 'Indonesia',
-        },
+        } as Record<string, string>,
         minRead: (minutes: number) => `${minutes} min read`,
         minReadByLocale: {
             en: (minutes: number) => `${minutes} min read`,
-            id: (minutes: number) => `${minutes} menit baca`,
-        },
+        } as Record<string, (minutes: number) => string>,
         article: {
             back: 'Back to all articles',
             updated: 'Updated',
@@ -183,118 +174,6 @@ const enContent = {
     },
 };
 
-type SiteContent = typeof enContent;
+export type SiteContent = typeof enContent;
 
-const idContent: SiteContent = {
-    ...enContent,
-    profile: {
-        ...enContent.profile,
-    },
-    seo: {
-        ...enContent.seo,
-        defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Lulusan Sistem Informasi',
-        defaultDescription:
-            'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
-    },
-    schema: {
-        ...enContent.schema,
-        personDescription:
-            'Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berbasis di Indonesia dan berfokus pada pengembangan web, mobile, workflow AI agent, DevOps, dan infrastruktur TI.',
-        degreeName: 'Sarjana Sistem Informasi',
-        credentialCategory: 'Gelar sarjana',
-        educationalLevel: 'Sarjana',
-        graduationDate: 'Juni 2026',
-        worksFor: 'Freelance / Terbuka untuk peluang kerja',
-        nationality: 'Indonesia',
-    },
-    nav: {
-        ariaPageNavigation: 'Navigasi halaman',
-        ariaLanguageNavigation: 'Pilihan bahasa',
-        home: 'Beranda',
-        overview: 'Ringkasan',
-        projects: 'Proyek',
-        blog: 'Blog',
-    },
-    home: {
-        seoTitle: 'Nabil Rizki Navisa | Software Engineer & Lulusan Sistem Informasi',
-        seoDescription:
-            'Portfolio Nabil Rizki Navisa - Software Engineer dan lulusan Sistem Informasi Universitas Andalas dengan IPK 3.71. Berfokus pada AI agent, web, mobile, dan infrastruktur TI.',
-        education: {
-            heading: 'Pendidikan',
-            degree: 'Sarjana Sistem Informasi',
-            institution: 'Universitas Andalas',
-            period: 'Lulus Juni 2026',
-            gpa: 'IPK 3.71/4.00',
-        },
-        experiences: {
-            heading: 'Pengalaman',
-        },
-        contributions: {
-            heading: 'Kontribusi',
-            chartAlt: 'Grafik kontribusi GitHub',
-            totalLabel: (total: number) => `${total} kontribusi dalam setahun terakhir`,
-            contributionLabel: (count: number, date: string) => `${count} kontribusi pada ${date}`,
-            less: 'Lebih sedikit',
-            more: 'Lebih banyak',
-        },
-    },
-    blog: {
-        seoTitle: 'Blog | Nabil Rizki Navisa',
-        seoDescription: 'Catatan tentang software engineering, pembelajaran proyek, dan workflow praktis oleh Nabil Rizki Navisa.',
-        ogImageAlt: 'Daftar artikel blog Nabil Rizki Navisa dalam gaya gelap terminal.',
-        eyebrow: 'Blog',
-        heading: 'Catatan teknis, pelajaran dari proyek, dan panduan praktis.',
-        intro: 'Ruang baca ringkas berisi tutorial dan catatan engineering dari proyek nyata dan eksperimen homelab.',
-        searchLabel: 'Cari artikel',
-        searchPlaceholder: 'Cari artikel',
-        postsAria: 'Posting blog',
-        noMatches: 'Tidak ada artikel yang cocok.',
-        localeLabel: {
-            en: 'Inggris',
-            id: 'Indonesia',
-        },
-        minRead: (minutes: number) => `${minutes} menit baca`,
-        minReadByLocale: {
-            en: (minutes: number) => `${minutes} min read`,
-            id: (minutes: number) => `${minutes} menit baca`,
-        },
-        article: {
-            back: 'Kembali ke semua artikel',
-            updated: 'Diperbarui',
-            engagementAria: 'Aksi engagement',
-            ogImageAlt: (title: string) => `Kartu pratinjau sosial untuk artikel: ${title}`,
-        },
-    },
-    engagement: {
-        likePost: 'Sukai posting',
-        like: 'Suka',
-        copyLink: 'Salin tautan',
-        copy: 'Salin',
-        linkCopied: 'Tautan disalin',
-        copied: 'Disalin',
-    },
-    theme: {
-        toggle: 'Ganti tema',
-    },
-    errors: {
-        notFound: {
-            title: '404 | Halaman Tidak Ditemukan',
-            description: 'Halaman yang Anda cari tidak dapat ditemukan.',
-            ogImageAlt: 'Halaman 404 untuk portfolio.nabilrn.space.',
-            code: '404',
-            heading: 'Halaman tidak ditemukan.',
-            body: 'Tautan mungkin rusak, dipindahkan, atau dihapus. Gunakan salah satu opsi di bawah untuk melanjutkan.',
-        },
-        actions: {
-            portfolio: 'Ke portfolio',
-            blog: 'Baca blog',
-        },
-    },
-};
-
-const localizedSiteContent: Record<SiteLocale, SiteContent> = {
-    en: enContent,
-    id: idContent,
-};
-
-export const getSiteContent = (locale: SiteLocale = defaultLocale): SiteContent => localizedSiteContent[locale];
+export const getSiteContent = (_locale: SiteLocale = defaultLocale): SiteContent => enContent;
