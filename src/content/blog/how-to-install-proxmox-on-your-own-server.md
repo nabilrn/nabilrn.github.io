@@ -5,8 +5,6 @@ pubDate: 2026-04-01
 tags: ["proxmox", "homelab", "virtualization", "linux"]
 featured: true
 draft: false
-locale: "en"
-translationKey: "how-to-install-proxmox-on-your-own-server"
 ---
 
 The first time I installed Proxmox, I expected the installer itself to be the difficult part. It was not.
