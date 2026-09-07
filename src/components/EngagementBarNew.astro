@@ -34,8 +34,6 @@ const shareCopy = locale === 'id'
 		close: 'Tutup dialog bagikan',
 		link: 'Tautan tulisan',
 		platformPrefix: 'Bagikan ke',
-		more: 'Lainnya',
-		shared: 'Dibagikan',
 	}
 	: {
 		share: 'Share',
@@ -45,8 +43,6 @@ const shareCopy = locale === 'id'
 		close: 'Close share dialog',
 		link: 'Post link',
 		platformPrefix: 'Share on',
-		more: 'More',
-		shared: 'Shared',
 	};
 ---
 
@@ -179,20 +175,6 @@ const shareCopy = locale === 'id'
 				</span>
 				<span>Telegram</span>
 			</a>
-
-			<button
-				type="button"
-				class="platform-action native-share"
-				data-native-share
-				data-tooltip={shareCopy.more}
-				aria-label={shareCopy.more}
-				hidden
-			>
-				<span class="platform-icon" aria-hidden="true">
-					<svg viewBox="0 0 24 24" fill="none"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12.5V20h14v-7.5" /></svg>
-				</span>
-				<span>{shareCopy.more}</span>
-			</button>
 		</div>
 
 		<div class="copy-link-row">
@@ -386,7 +368,7 @@ const shareCopy = locale === 'id'
 	.share-platforms {
 		padding: 22px 18px 18px;
 		display: grid;
-		grid-template-columns: repeat(6, minmax(58px, 1fr));
+		grid-template-columns: repeat(5, minmax(58px, 1fr));
 		gap: 10px;
 		border-bottom: 1px solid var(--border);
 	}
@@ -438,14 +420,6 @@ const shareCopy = locale === 'id'
 		width: 22px;
 		height: 22px;
 		fill: currentColor;
-	}
-
-	.native-share .platform-icon svg {
-		fill: none;
-		stroke: currentColor;
-		stroke-width: 1.7;
-		stroke-linecap: round;
-		stroke-linejoin: round;
 	}
 
 	.platform-action:hover,
@@ -638,14 +612,12 @@ const shareCopy = locale === 'id'
 	is:inline
 	data-root-id={rootId}
 	data-link-copied-message={content.linkCopied}
-	data-shared-message={shareCopy.shared}
 	data-copy-label={shareCopy.copy}
 	data-copied-label={shareCopy.copied}
 >
 	const script = document.currentScript;
 	const rootId = script?.dataset.rootId || '';
 	const linkCopiedMessage = script?.dataset.linkCopiedMessage || 'Link copied';
-	const sharedMessage = script?.dataset.sharedMessage || 'Shared';
 	const copyLabel = script?.dataset.copyLabel || 'Copy';
 	const copiedLabel = script?.dataset.copiedLabel || 'Copied';
 	const root = rootId ? document.getElementById(rootId) : null;
@@ -670,7 +642,6 @@ const shareCopy = locale === 'id'
 		const closeBtn = dialog?.querySelector('[data-share-close]');
 		const copyBtn = dialog?.querySelector('[data-share-copy]');
 		const urlInput = dialog?.querySelector('[data-share-url]');
-		const nativeShareBtn = dialog?.querySelector('[data-native-share]');
 		const platformLinks = Array.from(dialog?.querySelectorAll('[data-share-platform]') || []);
 		const toast = dialog?.nextElementSibling instanceof HTMLElement && dialog.nextElementSibling.id === `${rootId}-toast`
 			? dialog.nextElementSibling
@@ -837,10 +808,6 @@ const shareCopy = locale === 'id'
 				if (platform === 'facebook') option.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
 				if (platform === 'telegram') option.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
 			}
-
-			if (nativeShareBtn instanceof HTMLButtonElement) {
-				nativeShareBtn.hidden = typeof navigator.share !== 'function';
-			}
 		}
 
 		function openShareDialog() {
@@ -894,18 +861,6 @@ const shareCopy = locale === 'id'
 				closeShareDialog({ restoreFocus: false });
 			});
 		}
-
-		nativeShareBtn?.addEventListener('click', async () => {
-			if (typeof navigator.share !== 'function') return;
-			try {
-				await navigator.share({ title, text: title, url: window.location.href });
-				recordShare();
-				showToast(sharedMessage);
-				closeShareDialog({ restoreFocus: false });
-			} catch (error) {
-				if (error instanceof DOMException && error.name === 'AbortError') return;
-			}
-		});
 
 		dialog?.addEventListener('click', (event) => {
 			if (event.target === dialog) closeShareDialog();
