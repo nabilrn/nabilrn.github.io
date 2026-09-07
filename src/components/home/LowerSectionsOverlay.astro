@@ -72,7 +72,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
             </div>
 
             <div class="analytics-chart-wrap" aria-label="Pageviews during the last 30 days">
-                <div class="analytics-spark" data-analytics-spark aria-hidden="true"></div>
+                <div class="analytics-spark" data-analytics-spark role="list" aria-label="Daily analytics during the last 30 days"></div>
                 <div class="analytics-chart-caption">
                     <span>30 days ago</span>
                     <span>today</span>
@@ -284,13 +284,50 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
         height: 2px;
         background: color-mix(in srgb, var(--text) 58%, var(--muted));
         opacity: 0.7;
+        outline: none;
         transform-origin: bottom;
-        transition: height 260ms ease, opacity 160ms ease;
+        transition: height 260ms ease, opacity 160ms ease, background-color 160ms ease, transform 160ms ease;
     }
 
     .home-redesign .analytics-spark > span:last-child {
         background: var(--text);
         opacity: 1;
+    }
+
+    .home-redesign .analytics-spark > span:hover,
+    .home-redesign .analytics-spark > span:focus-visible {
+        z-index: 2;
+        background: var(--text);
+        opacity: 1;
+        transform: scaleY(1.035);
+    }
+
+    .analytics-floating-tooltip {
+        position: fixed;
+        z-index: 1200;
+        left: 0;
+        top: 0;
+        width: max-content;
+        max-width: min(240px, calc(100vw - 16px));
+        padding: 5px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        box-shadow: 0 6px 18px color-mix(in srgb, #000 14%, transparent);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        line-height: 1.25;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, calc(-100% - 6px));
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .analytics-floating-tooltip.is-visible {
+        opacity: 1;
+        transform: translate(-50%, calc(-100% - 9px));
     }
 
     .home-redesign .analytics-chart-caption {
@@ -546,6 +583,13 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
             min-height: 260px;
         }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-redesign .analytics-spark > span,
+        .analytics-floating-tooltip {
+            transition: none;
+        }
+    }
 </style>
 
 <script>
@@ -559,6 +603,11 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
 
     const apiBase = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
     const numberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+    const exactNumberFormatter = new Intl.NumberFormat('en-US');
+    const chartDateFormatter = new Intl.DateTimeFormat(document.documentElement.lang.startsWith('id') ? 'id-ID' : 'en-GB', {
+        day: '2-digit',
+        month: 'short',
+    });
     const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
     const previewAnalytics = {
@@ -584,35 +633,81 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const sparkEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-spark]');
     const periodEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-period]');
 
-    const renderSpark = (values: number[]) => {
+    const analyticsTooltipClass = 'analytics-floating-tooltip';
+    let analyticsTooltip = document.querySelector<HTMLElement>(`.${analyticsTooltipClass}`);
+    if (!analyticsTooltip) {
+        analyticsTooltip = document.createElement('div');
+        analyticsTooltip.className = analyticsTooltipClass;
+        analyticsTooltip.setAttribute('role', 'tooltip');
+        document.body.appendChild(analyticsTooltip);
+    }
+
+    const hideAnalyticsTooltip = () => analyticsTooltip?.classList.remove('is-visible');
+    const showAnalyticsTooltip = (bar: HTMLElement) => {
+        if (!analyticsTooltip) return;
+        const label = bar.dataset.analyticsTooltip;
+        if (!label) return;
+
+        analyticsTooltip.textContent = label;
+        analyticsTooltip.style.left = '0px';
+        analyticsTooltip.style.top = '0px';
+        analyticsTooltip.classList.add('is-visible');
+
+        const rect = bar.getBoundingClientRect();
+        const tooltipRect = analyticsTooltip.getBoundingClientRect();
+        const half = tooltipRect.width / 2;
+        const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
+        const top = Math.max(tooltipRect.height + 12, rect.top);
+
+        analyticsTooltip.style.left = `${left}px`;
+        analyticsTooltip.style.top = `${top}px`;
+    };
+
+    const renderSpark = (values: Array<{ date?: string; views?: number; visitors?: number } | number>) => {
         if (!sparkEl) return;
         sparkEl.replaceChildren();
         const safeValues = values.length ? values : Array.from({ length: 30 }, () => 0);
-        const max = Math.max(1, ...safeValues);
-        for (const value of safeValues) {
+        const viewValues = safeValues.map((item) => typeof item === 'number' ? item : Number(item.views ?? 0));
+        const max = Math.max(1, ...viewValues);
+
+        safeValues.forEach((item, index) => {
+            const views = typeof item === 'number' ? Number(item) : Number(item.views ?? 0);
+            const visitors = typeof item === 'number' ? Math.round(views * 0.62) : Number(item.visitors ?? 0);
+            const fallbackDate = new Date(Date.now() - (safeValues.length - 1 - index) * 86_400_000);
+            const parsedDate = typeof item === 'number' || !item.date ? fallbackDate : new Date(`${item.date}T00:00:00`);
+            const dateLabel = Number.isNaN(parsedDate.getTime()) ? '' : chartDateFormatter.format(parsedDate);
+            const detail = `${dateLabel} · ${exactNumberFormatter.format(views)} pageviews · ${exactNumberFormatter.format(visitors)} visitors`;
             const bar = document.createElement('span');
-            const normalized = value <= 0 ? 2 : Math.max(8, (value / max) * 100);
+            const normalized = views <= 0 ? 2 : Math.max(8, (views / max) * 100);
+
             bar.style.height = `${normalized}%`;
+            bar.tabIndex = 0;
+            bar.setAttribute('role', 'listitem');
+            bar.setAttribute('aria-label', detail);
+            bar.dataset.analyticsTooltip = detail;
+            bar.addEventListener('pointerenter', () => showAnalyticsTooltip(bar));
+            bar.addEventListener('pointerleave', hideAnalyticsTooltip);
+            bar.addEventListener('focus', () => showAnalyticsTooltip(bar));
+            bar.addEventListener('blur', hideAnalyticsTooltip);
             sparkEl.appendChild(bar);
-        }
+        });
     };
 
     const renderAnalytics = (summary: {
         visitors?: number;
         pageviews?: number;
         topPage?: { path?: string } | string;
-        last30Days?: Array<{ views?: number }> | number[];
+        last30Days?: Array<{ date?: string; views?: number; visitors?: number }> | number[];
     }, preview = false) => {
         const visitors = Number(summary.visitors ?? 0);
         const pageviews = Number(summary.pageviews ?? 0);
         const topPage = typeof summary.topPage === 'string' ? summary.topPage : summary.topPage?.path || '/';
-        const values = (summary.last30Days ?? []).map((item) => typeof item === 'number' ? item : Number(item.views ?? 0));
 
         if (visitorsEl) visitorsEl.textContent = numberFormatter.format(visitors);
         if (pageviewsEl) pageviewsEl.textContent = numberFormatter.format(pageviews);
         if (topPageEl) topPageEl.textContent = topPage;
         if (periodEl) periodEl.textContent = preview ? 'preview · 30d' : 'last 30d';
-        renderSpark(values);
+        renderSpark(summary.last30Days ?? []);
     };
 
     renderSpark(Array.from({ length: 30 }, () => 0));
@@ -625,7 +720,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
                 visitors?: number;
                 pageviews?: number;
                 topPage?: { path?: string; views?: number };
-                last30Days?: Array<{ views?: number }>;
+                last30Days?: Array<{ date?: string; views?: number; visitors?: number }>;
             };
 
             const empty = Number(summary.visitors ?? 0) === 0 && Number(summary.pageviews ?? 0) === 0;
@@ -669,4 +764,6 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
             }
         })();
     });
+
+    window.addEventListener('blur', hideAnalyticsTooltip);
 </script>
