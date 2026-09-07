@@ -1,5 +1,6 @@
 ---
 import GlobalSearch from './GlobalSearch.astro';
+import BlogSearchBridge from './blog/BlogSearchBridge.astro';
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
@@ -23,6 +24,7 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
     </main>
 
     <GlobalSearch />
+    {isBlogPage && <BlogSearchBridge />}
 
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
