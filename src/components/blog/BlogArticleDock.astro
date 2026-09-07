@@ -15,16 +15,10 @@ const copy = locale === 'id'
     ? {
         posts: 'Kembali ke daftar tulisan',
         home: 'Beranda',
-        views: 'Tayangan',
-        like: 'Suka',
-        share: 'Bagikan',
     }
     : {
         posts: 'Back to posts',
         home: 'Home',
-        views: 'Views',
-        like: 'Like',
-        share: 'Share',
     };
 ---
 
@@ -50,24 +44,36 @@ const copy = locale === 'id'
 <style>
     .article-dock {
         position: fixed;
-        left: 50%;
+        left: 0;
+        right: 0;
         bottom: max(16px, env(safe-area-inset-bottom));
         z-index: 120;
+        width: max-content;
         min-height: 50px;
+        margin-inline: auto;
         padding: 4px 5px;
         display: flex;
         align-items: center;
         gap: 2px;
         border: 1px solid color-mix(in srgb, var(--border-strong) 82%, transparent);
         border-radius: 999px;
-        background: color-mix(in srgb, var(--bg) 84%, transparent);
+        background: transparent;
         box-shadow:
             0 10px 34px color-mix(in srgb, #000 16%, transparent),
             inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
+        isolation: isolate;
+    }
+
+    .article-dock::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        background: color-mix(in srgb, var(--bg) 84%, transparent);
         backdrop-filter: blur(16px) saturate(1.08);
         -webkit-backdrop-filter: blur(16px) saturate(1.08);
-        transform: translateX(-50%);
-        isolation: isolate;
+        pointer-events: none;
     }
 
     .dock-action {
@@ -196,17 +202,19 @@ const copy = locale === 'id'
         transform: translate(-50%, 0);
     }
 
-    :global(.article-dock + .share-backdrop + .engage-toast),
-    :global(.article-dock ~ .engage-toast) {
+    :global(.article-dock .engage-toast) {
         bottom: max(78px, calc(env(safe-area-inset-bottom) + 66px));
     }
 
     :global(html[data-theme='light']) .article-dock {
         border-color: color-mix(in srgb, var(--text) 18%, var(--border));
-        background: color-mix(in srgb, #fff 90%, transparent);
         box-shadow:
             0 10px 28px color-mix(in srgb, #000 11%, transparent),
             inset 0 1px 0 #fff;
+    }
+
+    :global(html[data-theme='light']) .article-dock::before {
+        background: color-mix(in srgb, #fff 90%, transparent);
     }
 
     @media (max-width: 520px) {
