@@ -1,0 +1,328 @@
+---
+import Page from '../../../components/Page.astro';
+import IsometricMark from '../../../components/IsometricMark.astro';
+import { GLYPH_PATTERNS } from '../../../lib/isometricGeometry';
+
+const characters = Object.keys(GLYPH_PATTERNS);
+---
+
+<Page
+  title="Isometric A–Z Generator — Nabil Rizki Navisa"
+  description="Generate modular technical-isometric A–Z marks and export Astro, SVG, or a runnable Astro project."
+  path="/components/isometric-generator/"
+>
+  <div class="generator-page" data-isometric-generator>
+    <header class="generator-header">
+      <div>
+        <span class="generator-eyebrow">COMPONENT LAB / A–Z</span>
+        <h1>Isometric Generator</h1>
+        <p>Modular polygon glyphs projected on one ±30° lattice. The portfolio NR hero remains independent and locked.</p>
+      </div>
+      <a href="/components/" class="back-link">← component explorer</a>
+    </header>
+
+    <div class="generator-layout">
+      <aside class="generator-controls">
+        <section class="control-section">
+          <div class="control-label"><span>CHARACTER</span><strong data-character-label>A</strong></div>
+          <div class="character-grid" role="group" aria-label="Choose a character">
+            {characters.map((character) => (
+              <button
+                type="button"
+                class:list={['character-button', { 'is-active': character === 'A' }]}
+                data-character={character}
+                aria-pressed={character === 'A' ? 'true' : 'false'}
+              >{character}</button>
+            ))}
+          </div>
+        </section>
+
+        <section class="control-section">
+          <label class="range-control">
+            <span class="control-label"><span>DEPTH</span><strong data-depth-label>28px</strong></span>
+            <input type="range" min="10" max="56" step="1" value="28" data-depth />
+          </label>
+        </section>
+
+        <section class="control-section toggle-stack">
+          <label class="toggle-control">
+            <span>Hatch</span>
+            <input type="checkbox" checked data-hatch />
+          </label>
+          <label class="toggle-control">
+            <span>Guides</span>
+            <input type="checkbox" checked data-guides />
+          </label>
+        </section>
+
+        <section class="construction-note">
+          <span>CONSTRUCTION</span>
+          <dl>
+            <div><dt>Grid</dt><dd>5 × 7</dd></div>
+            <div><dt>Axes</dt><dd>±30°</dd></div>
+            <div><dt>Surface</dt><dd>continuous boundary</dd></div>
+            <div><dt>Source</dt><dd>curated glyph registry</dd></div>
+          </dl>
+        </section>
+      </aside>
+
+      <main class="generator-workspace">
+        <div class="preview-head">
+          <div>
+            <span class="generator-eyebrow">LIVE PREVIEW</span>
+            <strong data-preview-title>ISOMETRIC / A</strong>
+          </div>
+          <span class="preview-state" data-preview-state>depth 28 · hatch · guides</span>
+        </div>
+
+        <div class="generator-preview" data-generator-preview>
+          <div class="initial-mark"><IsometricMark character="A" depth={28} hatch={true} guides={true} /></div>
+        </div>
+
+        <div class="export-panel">
+          <div class="export-head">
+            <div>
+              <span class="generator-eyebrow">EXPORT</span>
+              <strong>Portable output</strong>
+            </div>
+            <span data-export-status aria-live="polite">ready</span>
+          </div>
+          <div class="export-actions">
+            <button type="button" data-copy-astro>Copy Astro</button>
+            <button type="button" data-copy-svg>Copy SVG</button>
+            <button type="button" data-download-svg>Download SVG</button>
+            <button type="button" data-download-zip>Download ZIP</button>
+          </div>
+          <p class="export-note">ZIP output is a real minimal Astro project. Run <code>pnpm install</code> then <code>pnpm dev</code>.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+</Page>
+
+<script>
+  import { renderIsometricSvg, type IsometricCharacter } from '../../../lib/isometricGeometry';
+  import { buildStoredZip } from '../../../lib/zip';
+
+  const root = document.querySelector('[data-isometric-generator]');
+  if (root instanceof HTMLElement) {
+    const preview = root.querySelector('[data-generator-preview]');
+    const characterButtons = Array.from(root.querySelectorAll('[data-character]'));
+    const depthInput = root.querySelector('[data-depth]');
+    const hatchInput = root.querySelector('[data-hatch]');
+    const guidesInput = root.querySelector('[data-guides]');
+    const characterLabel = root.querySelector('[data-character-label]');
+    const depthLabel = root.querySelector('[data-depth-label]');
+    const previewTitle = root.querySelector('[data-preview-title]');
+    const previewState = root.querySelector('[data-preview-state]');
+    const exportStatus = root.querySelector('[data-export-status]');
+
+    let character: IsometricCharacter = 'A';
+    let depth = 28;
+    let hatch = true;
+    let guides = true;
+
+    const currentSvg = (themeAware = false) => renderIsometricSvg({ character, depth, hatch, guides, themeAware });
+
+    const componentSource = () => {
+      const svg = currentSvg(false);
+      return `---\n// Generated by nabilrn portfolio Isometric Generator.\n// Character: ${character} · depth: ${depth}px · hatch: ${hatch} · guides: ${guides}\n---\n\n<div class="generated-isometric-mark">\n${svg}\n</div>\n\n<style>\n  .generated-isometric-mark {\n    width: min(100%, 720px);\n    margin: 0 auto;\n  }\n</style>\n`;
+    };
+
+    const setStatus = (message: string) => {
+      if (exportStatus) exportStatus.textContent = message;
+      window.setTimeout(() => {
+        if (exportStatus?.textContent === message) exportStatus.textContent = 'ready';
+      }, 1500);
+    };
+
+    const render = () => {
+      if (preview instanceof HTMLElement) preview.innerHTML = currentSvg(true);
+      if (characterLabel) characterLabel.textContent = character;
+      if (depthLabel) depthLabel.textContent = `${depth}px`;
+      if (previewTitle) previewTitle.textContent = `ISOMETRIC / ${character}`;
+      if (previewState) {
+        previewState.textContent = `depth ${depth} · ${hatch ? 'hatch' : 'no hatch'} · ${guides ? 'guides' : 'no guides'}`;
+      }
+      for (const button of characterButtons) {
+        const active = button.getAttribute('data-character') === character;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+      }
+    };
+
+    for (const button of characterButtons) {
+      button.addEventListener('click', () => {
+        const next = button.getAttribute('data-character');
+        if (next && /^[A-Z]$/.test(next)) character = next as IsometricCharacter;
+        render();
+      });
+    }
+
+    if (depthInput instanceof HTMLInputElement) {
+      depthInput.addEventListener('input', () => {
+        depth = Number(depthInput.value) || 28;
+        render();
+      });
+    }
+    if (hatchInput instanceof HTMLInputElement) {
+      hatchInput.addEventListener('change', () => { hatch = hatchInput.checked; render(); });
+    }
+    if (guidesInput instanceof HTMLInputElement) {
+      guidesInput.addEventListener('change', () => { guides = guidesInput.checked; render(); });
+    }
+
+    const copy = async (value: string, label: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        setStatus(`${label} copied`);
+      } catch {
+        setStatus('copy failed');
+      }
+    };
+
+    const download = (blob: Blob, filename: string) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    };
+
+    root.querySelector('[data-copy-astro]')?.addEventListener('click', () => copy(componentSource(), 'Astro'));
+    root.querySelector('[data-copy-svg]')?.addEventListener('click', () => copy(currentSvg(false), 'SVG'));
+    root.querySelector('[data-download-svg]')?.addEventListener('click', () => {
+      download(new Blob([currentSvg(false)], { type: 'image/svg+xml;charset=utf-8' }), `isometric-${character.toLowerCase()}.svg`);
+      setStatus('SVG downloaded');
+    });
+    root.querySelector('[data-download-zip]')?.addEventListener('click', () => {
+      const component = componentSource();
+      const files = {
+        'package.json': JSON.stringify({
+          name: `generated-isometric-${character.toLowerCase()}`,
+          type: 'module',
+          version: '0.0.1',
+          scripts: { dev: 'astro dev', build: 'astro build', preview: 'astro preview' },
+          dependencies: { astro: '^5.6.1' },
+        }, null, 2) + '\n',
+        'astro.config.mjs': "import { defineConfig } from 'astro/config';\n\nexport default defineConfig({});\n",
+        'tsconfig.json': JSON.stringify({ extends: 'astro/tsconfigs/strict' }, null, 2) + '\n',
+        'src/components/IsometricMark.astro': component,
+        'src/pages/index.astro': `---\nimport IsometricMark from '../components/IsometricMark.astro';\n---\n\n<html lang="en">\n  <head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>Isometric ${character}</title></head>\n  <body style="margin:0;min-height:100vh;display:grid;place-items:center;background:#0a0a0a;padding:32px;box-sizing:border-box">\n    <IsometricMark />\n  </body>\n</html>\n`,
+        'README.md': `# Generated Isometric ${character}\n\nGenerated from the portfolio A–Z technical-isometric generator.\n\n## Run\n\n\`\`\`bash\npnpm install\npnpm dev\n\`\`\`\n`,
+      };
+      download(buildStoredZip(files), `isometric-${character.toLowerCase()}-astro.zip`);
+      setStatus('ZIP downloaded');
+    });
+
+    render();
+  }
+</script>
+
+<style>
+  .generator-page {
+    min-height: calc(100dvh - 52px);
+    border-inline: 1px solid var(--sheet-line, var(--border));
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+  }
+
+  .generator-header {
+    min-height: 112px;
+    padding: 20px clamp(16px, 2vw, 28px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+  }
+  .generator-header h1 { margin: 0; font-family: var(--font-sans); font-size: 26px; letter-spacing: -.035em; }
+  .generator-header p { max-width: 650px; margin: 7px 0 0; font-family: var(--font-sans); font-size: 12px; line-height: 1.5; color: var(--muted); }
+  .generator-eyebrow { display: block; margin-bottom: 6px; color: var(--muted); font-size: 9px; line-height: 1; letter-spacing: .12em; }
+  .back-link { flex: none; color: var(--muted); font-family: var(--font-sans); font-size: 11px; }
+  .back-link:hover { color: var(--text); }
+
+  .generator-layout { display: grid; grid-template-columns: minmax(240px, 310px) minmax(0, 1fr); }
+  .generator-controls { border-right: 1px solid var(--sheet-line, var(--border)); }
+  .control-section { padding: 18px; border-bottom: 1px solid var(--sheet-line, var(--border)); }
+  .control-label { margin-bottom: 11px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 9px; letter-spacing: .09em; }
+  .control-label strong { color: var(--text); font-size: 10px; font-weight: 500; letter-spacing: 0; }
+
+  .character-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  .character-button {
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font: 11px/1 var(--font-mono);
+    cursor: pointer;
+  }
+  .character-button:hover { border-color: var(--border-strong); color: var(--text); }
+  .character-button.is-active { border-color: var(--text); background: var(--text); color: var(--bg); }
+
+  .range-control { display: block; }
+  .range-control input { width: 100%; accent-color: var(--text); }
+  .toggle-stack { display: grid; gap: 1px; }
+  .toggle-control { min-height: 38px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-body); font-family: var(--font-sans); font-size: 12px; }
+  .toggle-control input { width: 15px; height: 15px; accent-color: var(--text); }
+
+  .construction-note { padding: 18px; color: var(--muted); }
+  .construction-note > span { font-size: 9px; letter-spacing: .1em; }
+  .construction-note dl { margin: 12px 0 0; display: grid; gap: 7px; }
+  .construction-note dl div { display: flex; justify-content: space-between; gap: 12px; font-size: 10px; }
+  .construction-note dt, .construction-note dd { margin: 0; }
+  .construction-note dd { color: var(--text-body); text-align: right; }
+
+  .generator-workspace { min-width: 0; }
+  .preview-head,
+  .export-head { min-height: 56px; padding: 0 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--sheet-line, var(--border)); }
+  .preview-head strong, .export-head strong { font-family: var(--font-sans); font-size: 13px; font-weight: 600; }
+  .preview-state, .export-head > span { color: var(--muted); font-size: 9px; }
+
+  .generator-preview {
+    min-height: 520px;
+    padding: clamp(24px, 5vw, 72px);
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+  }
+  .generator-preview :global(svg), .initial-mark { width: min(680px, 86%); }
+
+  .export-panel { border-bottom: 1px solid var(--sheet-line, var(--border)); }
+  .export-actions { padding: 14px 18px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+  .export-actions button {
+    min-height: 40px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-body);
+    font: 11px/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .export-actions button:hover { border-color: var(--border-strong); background: color-mix(in srgb, var(--surface) 55%, transparent); color: var(--text); }
+  .export-note { margin: 0; padding: 0 18px 16px; color: var(--muted); font-family: var(--font-sans); font-size: 10px; }
+  .export-note code { color: var(--text-body); }
+
+  @media (max-width: 840px) {
+    .generator-layout { grid-template-columns: 230px minmax(0, 1fr); }
+    .character-grid { grid-template-columns: repeat(5, 1fr); }
+    .generator-preview { min-height: 420px; padding: 28px; }
+    .export-actions { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 680px) {
+    .generator-header { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .generator-layout { display: block; }
+    .generator-controls { border-right: 0; border-bottom: 1px solid var(--sheet-line, var(--border)); }
+    .character-grid { grid-template-columns: repeat(7, 1fr); }
+    .generator-preview { min-height: 340px; padding: 20px 8px; }
+    .preview-state { display: none; }
+  }
+</style>
