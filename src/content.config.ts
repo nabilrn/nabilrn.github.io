@@ -10,8 +10,6 @@ const blog = defineCollection({
 		tags: z.array(z.string()).default([]),
 		featured: z.boolean().default(false),
 		draft: z.boolean().default(false),
-		// Temporary bridge for two homepage consumers; all surviving posts are English.
-		locale: z.literal('en').default('en'),
 	}),
 });
 
