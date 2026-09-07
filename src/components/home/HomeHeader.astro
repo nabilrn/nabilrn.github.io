@@ -8,9 +8,6 @@ type HeaderSection = 'overview' | 'blog' | 'none';
 
 interface Props {
     activeSection?: HeaderSection;
-    /** Temporary compatibility while callers are collapsed to the single-language API. */
-    locale?: string;
-    languageTargets?: unknown;
 }
 
 const activeSection = Astro.props.activeSection ?? 'overview';
