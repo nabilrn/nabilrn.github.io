@@ -18,6 +18,7 @@ const content = getSiteContent(locale).blog;
 const siteCopy = getSiteContent(locale);
 const homePath = localizePath('/', locale);
 const handle = '@NabilrizkiN';
+const avatarAlt = locale === 'id' ? `Foto profil ${authorName}` : `${authorName} profile picture`;
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
@@ -117,7 +118,7 @@ const blogCollectionJson = JSON.stringify({
 				<article class="feed-post" data-post-search={item.searchText}>
 					<div class="avatar-column">
 						<a href={homePath} aria-label={`${authorName} — ${siteCopy.nav.home}`}>
-							<Image src={avatar} alt="" width={80} height={80} />
+							<Image src={avatar} alt={avatarAlt} width={80} height={80} />
 						</a>
 					</div>
 
