@@ -8,9 +8,6 @@ interface Props {
   title?: string;
   description?: string;
   path?: string;
-  /** Temporary compatibility for the homepage while its old locale props are removed. */
-  locale?: unknown;
-  lang?: string;
   robots?: string;
   ogImage?: string;
   ogImageAlt?: string;
@@ -21,7 +18,6 @@ interface Props {
   articleTags?: string[];
   ogImageWidth?: number;
   ogImageHeight?: number;
-  alternatePaths?: unknown;
 }
 
 const {
