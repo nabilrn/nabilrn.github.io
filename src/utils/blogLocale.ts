@@ -1,11 +1,13 @@
 import type { CollectionEntry } from 'astro:content';
 
-export type BlogLocale = 'en';
+// Compatibility alias while the article page drops its old locale-shaped props.
+// Runtime blog content is English-only.
+export type BlogLocale = string;
 type BlogEntry = CollectionEntry<'blog'>;
 
 const legacyEnglishSuffixPattern = /([-_])(en|eng)$/i;
 
-export const getLocaleFromSlug = (_slug: string): BlogLocale => 'en';
+export const getLocaleFromSlug = (_slug: string): 'en' => 'en';
 
 export const getTranslationKeyFromSlug = (slug: string): string =>
 	slug.replace(legacyEnglishSuffixPattern, '');
