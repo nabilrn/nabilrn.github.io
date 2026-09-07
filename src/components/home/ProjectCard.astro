@@ -14,6 +14,10 @@ const domain = project.liveUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
 const tabIndex = duplicate ? -1 : undefined;
 const ignoredStackItems = new Set(['Localization', 'Globe.GL']);
 const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)).slice(0, 5);
+const projectImageWidths = [...new Set([320, 640, 960, 1280, project.screenshot.width])]
+    .filter((width) => width <= project.screenshot.width)
+    .sort((a, b) => a - b);
+const projectImageSizes = '(max-width: 720px) 218px, (max-width: 1099px) 260px, 276px';
 ---
 
 <article class="project-card" aria-hidden={duplicate ? 'true' : undefined}>
@@ -44,9 +48,13 @@ const visibleStack = project.stack.filter((item) => !ignoredStackItems.has(item)
         <div class="project-image-wrap">
             <Image
                 src={project.screenshot}
-                alt={`${project.name} website preview`}
+                alt={duplicate ? '' : `${project.name} website preview`}
                 class="project-image"
+                widths={projectImageWidths}
+                sizes={projectImageSizes}
                 loading="lazy"
+                decoding="async"
+                fetchpriority={duplicate ? 'low' : 'auto'}
             />
         </div>
     </a>
