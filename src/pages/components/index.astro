@@ -1,0 +1,558 @@
+---
+import Page from '../../components/Page.astro';
+import BrandIcon from '../../components/icons/BrandIcon.astro';
+import UiIcon from '../../components/icons/UiIcon.astro';
+import HandwrittenNote from '../../components/home/HandwrittenNote.astro';
+import ProjectCard from '../../components/home/ProjectCard.astro';
+import VerifiedIcon from '../../components/home/VerifiedIcon.astro';
+import { webProjects } from '../../data/projects';
+import { buildComponentCatalog } from '../../lib/componentCatalog';
+
+const catalog = buildComponentCatalog();
+const categories = [...new Set(catalog.map((entry) => entry.category))];
+const initial = catalog[0];
+const serializedCatalog = JSON.stringify(catalog)
+  .replace(/</g, '\\u003c')
+  .replace(/>/g, '\\u003e')
+  .replace(/&/g, '\\u0026');
+---
+
+<Page
+  title="Components — Nabil Rizki Navisa"
+  description="Build-time component explorer for the portfolio design system and implementation primitives."
+  path="/components/"
+>
+  <div class="component-explorer" data-component-explorer>
+    <aside class="component-sidebar" aria-label="Component catalog">
+      <div class="sidebar-head">
+        <div>
+          <span class="eyebrow">SYSTEM / COMPONENTS</span>
+          <h1>Components</h1>
+        </div>
+        <span class="component-count">{catalog.length}</span>
+      </div>
+
+      <label class="component-filter">
+        <span class="visually-hidden">Filter components</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="m16 16 4 4" />
+        </svg>
+        <input type="search" placeholder="Filter components..." autocomplete="off" data-component-filter />
+      </label>
+
+      <nav class="component-nav" aria-label="Available components">
+        {categories.map((category) => (
+          <section class="component-group" data-component-group>
+            <h2>{category}</h2>
+            <div class="component-links">
+              {catalog.filter((entry) => entry.category === category).map((entry) => (
+                <button
+                  type="button"
+                  class="component-link"
+                  data-component-id={entry.id}
+                  data-component-search={`${entry.name} ${entry.path} ${entry.category}`.toLowerCase()}
+                >
+                  <span>{entry.name}</span>
+                  {entry.previewId
+                    ? <span class="preview-dot" title="Live preview available" aria-label="Live preview available"></span>
+                    : null}
+                </button>
+              ))}
+            </div>
+          </section>
+        ))}
+        <p class="component-empty" data-component-empty hidden>No matching component.</p>
+      </nav>
+    </aside>
+
+    <section class="component-workspace" aria-live="polite">
+      <header class="workspace-head">
+        <div class="workspace-title">
+          <span class="eyebrow" data-component-category>{initial?.category ?? 'Component'}</span>
+          <h2 data-component-name>{initial?.name ?? 'Component'}</h2>
+          <code data-component-path>{initial?.path ?? ''}</code>
+        </div>
+        <div class="workspace-actions">
+          <a href="#source" class="compact-action">source</a>
+          <button type="button" class="compact-action" data-copy-source>copy</button>
+        </div>
+      </header>
+
+      <div class="preview-shell" data-preview-shell>
+        <div class="preview-label">
+          <span>LIVE PREVIEW</span>
+          <span data-preview-status>source only</span>
+        </div>
+
+        <div class="preview-canvas" data-preview-canvas>
+          <div class="preview-instance" data-preview-pane="verified-icon" hidden>
+            <div class="icon-preview"><VerifiedIcon size={42} /></div>
+          </div>
+
+          <div class="preview-instance" data-preview-pane="ui-icon" hidden>
+            <div class="icon-row">
+              <UiIcon name="briefcase" size={30} />
+              <UiIcon name="graduation-cap" size={30} />
+              <UiIcon name="map-pin" size={30} />
+            </div>
+          </div>
+
+          <div class="preview-instance" data-preview-pane="brand-icon" hidden>
+            <div class="icon-row brand-row">
+              <BrandIcon name="github" size={30} />
+              <BrandIcon name="docker" size={30} />
+              <BrandIcon name="cloudflare" size={30} />
+              <BrandIcon name="go" size={30} />
+            </div>
+          </div>
+
+          <div class="preview-instance handwritten-preview" data-preview-pane="handwritten-note" hidden>
+            <HandwrittenNote text="component note" showArrow={true} arrowVariant="shallow" />
+          </div>
+
+          <div class="preview-instance project-preview" data-preview-pane="project-card" hidden>
+            <ProjectCard project={webProjects[0]} />
+          </div>
+
+          <div class="source-only-preview" data-source-only-preview>
+            <span class="source-only-mark" aria-hidden="true">◇</span>
+            <strong>Source-only component</strong>
+            <p>This component depends on page orchestration, runtime state, or a larger layout context. Its implementation is still fully inspectable below.</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="source-shell" id="source">
+        <div class="source-tabs" role="tablist" aria-label="Component source views">
+          <button type="button" role="tab" aria-selected="false" data-source-tab="preview">Preview</button>
+          <button type="button" role="tab" aria-selected="true" data-source-tab="astro">Astro</button>
+          <button type="button" role="tab" aria-selected="false" data-source-tab="typescript">TypeScript</button>
+          <button type="button" role="tab" aria-selected="false" data-source-tab="css">CSS</button>
+        </div>
+        <div class="source-meta">
+          <span data-source-label>Astro source</span>
+          <span data-script-count></span>
+        </div>
+        <pre class="source-code"><code data-source-output>{initial?.source ?? ''}</code></pre>
+      </section>
+    </section>
+  </div>
+
+  <script type="application/json" id="component-catalog-data" set:html={serializedCatalog}></script>
+</Page>
+
+<script is:inline>
+  (() => {
+    const root = document.querySelector('[data-component-explorer]');
+    const dataNode = document.getElementById('component-catalog-data');
+    if (!(root instanceof HTMLElement) || !dataNode?.textContent) return;
+
+    let catalog;
+    try {
+      catalog = JSON.parse(dataNode.textContent);
+    } catch {
+      return;
+    }
+    if (!Array.isArray(catalog) || catalog.length === 0) return;
+
+    const links = Array.from(root.querySelectorAll('[data-component-id]'));
+    const groups = Array.from(root.querySelectorAll('[data-component-group]'));
+    const filter = root.querySelector('[data-component-filter]');
+    const empty = root.querySelector('[data-component-empty]');
+    const name = root.querySelector('[data-component-name]');
+    const category = root.querySelector('[data-component-category]');
+    const path = root.querySelector('[data-component-path]');
+    const output = root.querySelector('[data-source-output]');
+    const label = root.querySelector('[data-source-label]');
+    const scriptCount = root.querySelector('[data-script-count]');
+    const previewStatus = root.querySelector('[data-preview-status]');
+    const sourceOnly = root.querySelector('[data-source-only-preview]');
+    const previewPanes = Array.from(root.querySelectorAll('[data-preview-pane]'));
+    const tabs = Array.from(root.querySelectorAll('[data-source-tab]'));
+    const copyButton = root.querySelector('[data-copy-source]');
+
+    let selected = catalog[0];
+    let activeTab = 'astro';
+
+    const sourceFor = (entry, tab) => {
+      if (tab === 'typescript') {
+        if (!entry.scripts?.length) return '// No companion TypeScript file for this component.';
+        return entry.scripts.map((script) => `// ${script.path}\n\n${script.source}`).join('\n\n// ------------------------------------------------------------\n\n');
+      }
+      if (tab === 'css') return entry.css || '/* No component-scoped CSS block. */';
+      if (tab === 'preview') {
+        return entry.previewId
+          ? `Live preview fixture: ${entry.previewId}\n\nRendered above with the real Astro component.`
+          : 'This component is source-only because it depends on a larger page or runtime context.';
+      }
+      return entry.source;
+    };
+
+    const renderPreview = (entry) => {
+      for (const pane of previewPanes) {
+        pane.hidden = pane.getAttribute('data-preview-pane') !== entry.previewId;
+      }
+      if (sourceOnly instanceof HTMLElement) sourceOnly.hidden = Boolean(entry.previewId);
+      if (previewStatus) previewStatus.textContent = entry.previewId ? 'rendered component' : 'source only';
+    };
+
+    const renderSource = () => {
+      if (output) output.textContent = sourceFor(selected, activeTab);
+      if (label) {
+        label.textContent = activeTab === 'typescript'
+          ? 'Companion TypeScript'
+          : activeTab === 'css'
+            ? 'Extracted CSS'
+            : activeTab === 'preview'
+              ? 'Preview fixture'
+              : 'Full Astro source';
+      }
+      if (scriptCount) {
+        scriptCount.textContent = selected.scripts?.length
+          ? `${selected.scripts.length} companion ${selected.scripts.length === 1 ? 'file' : 'files'}`
+          : '';
+      }
+      for (const tab of tabs) {
+        const isActive = tab.getAttribute('data-source-tab') === activeTab;
+        tab.setAttribute('aria-selected', String(isActive));
+      }
+    };
+
+    const select = (id, updateUrl = true) => {
+      const next = catalog.find((entry) => entry.id === id) ?? catalog[0];
+      selected = next;
+      for (const link of links) {
+        link.classList.toggle('is-active', link.getAttribute('data-component-id') === next.id);
+      }
+      if (name) name.textContent = next.name;
+      if (category) category.textContent = next.category;
+      if (path) path.textContent = next.path;
+      renderPreview(next);
+      renderSource();
+
+      if (updateUrl) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('component', next.id);
+        history.replaceState(null, '', url);
+      }
+    };
+
+    for (const link of links) {
+      link.addEventListener('click', () => select(link.getAttribute('data-component-id')));
+    }
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => {
+        activeTab = tab.getAttribute('data-source-tab') || 'astro';
+        renderSource();
+        if (activeTab === 'preview') root.querySelector('[data-preview-shell]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    }
+
+    if (filter instanceof HTMLInputElement) {
+      filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLowerCase();
+        let visible = 0;
+        for (const link of links) {
+          const haystack = link.getAttribute('data-component-search') || '';
+          const matches = !query || haystack.includes(query);
+          link.hidden = !matches;
+          if (matches) visible++;
+        }
+        for (const group of groups) {
+          group.hidden = !group.querySelector('[data-component-id]:not([hidden])');
+        }
+        if (empty instanceof HTMLElement) empty.hidden = visible > 0;
+      });
+    }
+
+    if (copyButton instanceof HTMLButtonElement) {
+      copyButton.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(sourceFor(selected, activeTab));
+          const previous = copyButton.textContent;
+          copyButton.textContent = 'copied';
+          window.setTimeout(() => { copyButton.textContent = previous || 'copy'; }, 1200);
+        } catch {
+          copyButton.textContent = 'failed';
+        }
+      });
+    }
+
+    const requested = new URL(window.location.href).searchParams.get('component');
+    select(requested || catalog[0].id, false);
+  })();
+</script>
+
+<style>
+  .component-explorer {
+    min-height: calc(100dvh - 52px);
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    border-inline: 1px solid var(--sheet-line, var(--border));
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+  }
+
+  .component-sidebar {
+    min-height: calc(100dvh - 52px);
+    border-right: 1px solid var(--sheet-line, var(--border));
+    background: var(--bg);
+  }
+
+  .sidebar-head,
+  .workspace-head {
+    min-height: 82px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+  }
+
+  .eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: .11em;
+  }
+
+  .sidebar-head h1,
+  .workspace-title h2 {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 20px;
+    font-weight: 650;
+    line-height: 1.15;
+    letter-spacing: -.025em;
+  }
+
+  .component-count {
+    min-width: 28px;
+    height: 24px;
+    padding: 0 7px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .component-filter {
+    height: 42px;
+    margin: 12px;
+    padding: 0 11px;
+    display: grid;
+    grid-template-columns: 16px minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .component-filter:focus-within {
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+
+  .component-filter svg { width: 16px; height: 16px; }
+  .component-filter input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 12px;
+  }
+
+  .component-nav {
+    max-height: calc(100dvh - 190px);
+    padding: 2px 12px 28px;
+    overflow-y: auto;
+  }
+
+  .component-group { margin-top: 16px; }
+  .component-group h2 {
+    margin: 0 0 5px 8px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .component-links { display: grid; gap: 1px; }
+  .component-link {
+    width: 100%;
+    min-height: 34px;
+    padding: 0 8px;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .component-link:hover,
+  .component-link.is-active {
+    background: color-mix(in srgb, var(--surface) 58%, transparent);
+    color: var(--text);
+  }
+
+  .preview-dot {
+    width: 5px;
+    height: 5px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+
+  .component-empty {
+    margin: 18px 8px;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .component-workspace { min-width: 0; }
+  .workspace-head { min-height: 82px; }
+  .workspace-title { min-width: 0; }
+  .workspace-title code {
+    margin-top: 6px;
+    display: block;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .workspace-actions { display: flex; align-items: center; gap: 6px; }
+  .compact-action {
+    min-height: 30px;
+    padding: 0 9px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font: 10px/28px var(--font-mono);
+    cursor: pointer;
+  }
+  .compact-action:hover { border-color: var(--border-strong); color: var(--text); }
+
+  .preview-shell { padding: clamp(14px, 2vw, 28px); border-bottom: 1px solid var(--sheet-line, var(--border)); }
+  .preview-label,
+  .source-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 9px;
+    letter-spacing: .08em;
+  }
+
+  .preview-canvas {
+    min-height: 300px;
+    margin-top: 10px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+  }
+
+  .preview-instance { width: min(760px, calc(100% - 40px)); }
+  .icon-preview { display: grid; place-items: center; color: var(--text); }
+  .icon-row { display: flex; align-items: center; justify-content: center; gap: 28px; color: var(--text); }
+  .brand-row { gap: 34px; }
+  .handwritten-preview { height: 130px; position: relative; }
+  .handwritten-preview :global(.handwritten-note) { left: 50%; top: 30%; transform: translateX(-50%); }
+  .project-preview { max-width: 560px; }
+
+  .source-only-preview {
+    width: min(440px, calc(100% - 40px));
+    text-align: center;
+  }
+  .source-only-mark { display: block; margin-bottom: 9px; color: var(--muted); font-size: 28px; }
+  .source-only-preview strong { font-family: var(--font-sans); font-size: 14px; }
+  .source-only-preview p { margin: 7px 0 0; font-family: var(--font-sans); font-size: 12px; line-height: 1.5; }
+
+  .source-shell { min-width: 0; }
+  .source-tabs {
+    min-height: 42px;
+    padding: 0 14px;
+    display: flex;
+    align-items: end;
+    gap: 2px;
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+  }
+  .source-tabs button {
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font: 11px/40px var(--font-sans);
+    cursor: pointer;
+  }
+  .source-tabs button[aria-selected='true'] { border-bottom-color: var(--text); color: var(--text); }
+
+  .source-meta { min-height: 34px; padding: 0 16px; align-items: center; border-bottom: 1px solid var(--border); }
+  .source-code {
+    height: min(48dvh, 520px);
+    margin: 0;
+    padding: 18px;
+    overflow: auto;
+    background: color-mix(in srgb, var(--surface) 46%, var(--bg));
+    color: color-mix(in srgb, var(--text) 88%, var(--muted));
+    font: 11px/1.65 var(--font-mono);
+    tab-size: 2;
+    white-space: pre;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 900px) {
+    .component-explorer { grid-template-columns: 210px minmax(0, 1fr); }
+    .workspace-head { padding-inline: 14px; }
+    .preview-canvas { min-height: 240px; }
+  }
+
+  @media (max-width: 700px) {
+    .component-explorer { display: block; }
+    .component-sidebar { min-height: auto; border-right: 0; border-bottom: 1px solid var(--sheet-line, var(--border)); }
+    .component-nav { max-height: 220px; }
+    .workspace-actions { display: none; }
+    .preview-shell { padding: 12px; }
+    .preview-canvas { min-height: 220px; }
+    .source-tabs { padding-inline: 8px; overflow-x: auto; }
+    .source-tabs button { padding-inline: 9px; }
+    .source-code { height: 420px; font-size: 10px; }
+  }
+</style>
