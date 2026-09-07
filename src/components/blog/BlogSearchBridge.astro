@@ -1,0 +1,56 @@
+<script>
+  import type { SearchEntry } from '../../lib/search';
+
+  interface SearchIndexPayload {
+    entries: SearchEntry[];
+  }
+
+  const root = document.querySelector('[data-blog-feed-root]');
+  const input = root?.querySelector('[data-blog-search]');
+
+  if (root instanceof HTMLElement && input instanceof HTMLInputElement) {
+    let hydrated = false;
+    let hydratePromise: Promise<void> | null = null;
+
+    const hydrate = () => {
+      if (hydrated) return Promise.resolve();
+      if (hydratePromise) return hydratePromise;
+
+      hydratePromise = fetch('/search-index.json', {
+        headers: { Accept: 'application/json' },
+        credentials: 'same-origin',
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error(`Search index request failed: ${response.status}`);
+          const payload = await response.json() as SearchIndexPayload;
+          const blogEntries = (payload.entries ?? []).filter((entry) => entry.kind === 'blog');
+          const byHref = new Map(blogEntries.map((entry) => [entry.href, entry.searchText]));
+
+          root.querySelectorAll<HTMLElement>('[data-post-search]').forEach((card) => {
+            const link = card.querySelector<HTMLAnchorElement>('.post-content-link');
+            if (!link) return;
+
+            const pathname = new URL(link.href, window.location.origin).pathname;
+            const searchText = byHref.get(pathname);
+            if (searchText) card.dataset.postSearch = searchText;
+          });
+
+          hydrated = true;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        })
+        .catch((error) => {
+          console.error('Unable to hydrate full-text blog search.', error);
+        })
+        .finally(() => {
+          hydratePromise = null;
+        });
+
+      return hydratePromise;
+    };
+
+    input.addEventListener('focus', () => { void hydrate(); }, { once: true });
+    input.addEventListener('input', () => {
+      if (!hydrated) void hydrate();
+    }, { once: true });
+  }
+</script>
