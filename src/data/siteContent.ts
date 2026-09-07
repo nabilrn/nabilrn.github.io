@@ -92,7 +92,6 @@ const enContent = {
     },
     nav: {
         ariaPageNavigation: 'Page navigation',
-        ariaLanguageNavigation: 'Language selection',
         home: 'Home',
         overview: 'Overview',
         projects: 'Projects',
@@ -133,13 +132,7 @@ const enContent = {
         searchPlaceholder: 'Search articles',
         postsAria: 'Blog posts',
         noMatches: 'No matching articles found.',
-        localeLabel: {
-            en: 'English',
-        } as Record<string, string>,
         minRead: (minutes: number) => `${minutes} min read`,
-        minReadByLocale: {
-            en: (minutes: number) => `${minutes} min read`,
-        } as Record<string, (minutes: number) => string>,
         article: {
             back: 'Back to all articles',
             updated: 'Updated',
