@@ -1,12 +1,8 @@
 ---
 type UiIconName =
     | 'arrow-up-right'
-    | 'badge-check'
     | 'briefcase'
-    | 'clock'
-    | 'download'
     | 'graduation-cap'
-    | 'mail'
     | 'map-pin';
 
 interface Props {
@@ -23,8 +19,8 @@ const {
     class: className,
 } = Astro.props;
 
-// Keep the legacy name temporarily so older call sites remain type-safe while
-// the visual system no longer renders generic diagonal external-link arrows.
+// The legacy arrow key remains temporarily for old fallback markup. It renders
+// nothing and can be removed with those call sites in the larger home refactor.
 const shouldRender = name !== 'arrow-up-right';
 ---
 
@@ -42,13 +38,6 @@ const shouldRender = name !== 'arrow-up-right';
         aria-hidden="true"
         focusable="false"
     >
-        {name === 'badge-check' && (
-            <>
-                <path d="M12 2.75 14.2 4l2.5-.15 1.2 2.2 2.2 1.2-.15 2.5L21.25 12l-1.3 2.25.15 2.5-2.2 1.2-1.2 2.2-2.5-.15L12 21.25 9.8 20l-2.5.15-1.2-2.2-2.2-1.2.15-2.5L2.75 12l1.3-2.25-.15-2.5 2.2-1.2 1.2-2.2 2.5.15L12 2.75Z" />
-                <path d="m8.75 12 2.05 2.05 4.45-4.45" />
-            </>
-        )}
-
         {name === 'briefcase' && (
             <>
                 <rect x="3" y="7" width="18" height="13" rx="2" />
@@ -58,33 +47,11 @@ const shouldRender = name !== 'arrow-up-right';
             </>
         )}
 
-        {name === 'clock' && (
-            <>
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 2" />
-            </>
-        )}
-
-        {name === 'download' && (
-            <>
-                <path d="M12 3v12" />
-                <path d="m7 10 5 5 5-5" />
-                <path d="M5 21h14" />
-            </>
-        )}
-
         {name === 'graduation-cap' && (
             <>
                 <path d="m2 10 10-5 10 5-10 5L2 10Z" />
                 <path d="M6 12.5V17c2.7 2 9.3 2 12 0v-4.5" />
                 <path d="M22 10v6" />
-            </>
-        )}
-
-        {name === 'mail' && (
-            <>
-                <rect x="3" y="5" width="18" height="14" rx="2" />
-                <path d="m3 7 9 6 9-6" />
             </>
         )}
 
