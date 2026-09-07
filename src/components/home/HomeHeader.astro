@@ -249,11 +249,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         display: grid;
         place-items: center;
         margin-left: 1px;
-        color: #f4c430;
-        filter:
-            drop-shadow(0 0 3px rgb(244 196 48 / 68%))
-            drop-shadow(0 0 7px rgb(244 196 48 / 30%));
-        animation: design-reference-gold-pulse 2.8s ease-in-out infinite;
+        color: #ffad1f;
     }
 
     .design-reference:hover,
@@ -421,11 +417,6 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
         54%, 100% { background-position: -115% 0; }
     }
 
-    @keyframes design-reference-gold-pulse {
-        0%, 100% { opacity: .88; transform: scale(.97); }
-        50% { opacity: 1; transform: scale(1.04); }
-    }
-
     @media (max-width: 1020px) {
         .design-reference { display: none; }
     }
@@ -452,8 +443,7 @@ const languageHref = (item: SiteLocale) => languageTargets[item] ?? localizePath
 
     @media (prefers-reduced-motion: reduce) {
         .design-reference-copy,
-        .design-reference strong,
-        .design-reference-verified {
+        .design-reference strong {
             animation: none;
         }
     }
