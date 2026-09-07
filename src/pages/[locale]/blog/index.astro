@@ -1,9 +1,11 @@
 ---
 import BlogIndexPage from '../../blog/index.astro';
-import { localizedLocales, localizePath, type SiteLocale } from '../../../data/siteContent';
+import { localizePath, type SiteLocale } from '../../../data/siteContent';
+
+const localizedBlogLocales = ['id'] as const;
 
 export function getStaticPaths() {
-    return localizedLocales.map((locale) => ({
+    return localizedBlogLocales.map((locale) => ({
         params: { locale },
         props: {
             locale,
