@@ -8,7 +8,7 @@ export async function GET() {
 		kicker: 'nabilrn / portfolio',
 	});
 
-	const png = await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toBuffer();
+	const png = await sharp(new TextEncoder().encode(svg)).png({ compressionLevel: 9 }).toBuffer();
 
 	return new Response(new Uint8Array(png), {
 		headers: {
