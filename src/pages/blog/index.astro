@@ -4,40 +4,31 @@ import { getCollection } from 'astro:content';
 import avatar from '../../assets/profile-anime.webp';
 import EngagementBar from '../../components/EngagementBarNew.astro';
 import Page from '../../components/Page.astro';
-import { authorName, getSiteContent, localeMeta, localizePath, normalizeLocale, siteUrl, type SiteLocale } from '../../data/siteContent';
-import { getBlogLocaleInfo } from '../../utils/blogLocale';
+import { authorName, getSiteContent, siteUrl } from '../../data/siteContent';
 
-interface Props {
-	locale?: SiteLocale;
-	path?: string;
-}
-
-const locale = normalizeLocale(Astro.props.locale);
-const pagePath = Astro.props.path ?? localizePath('/blog/', locale);
-const content = getSiteContent(locale).blog;
-const siteCopy = getSiteContent(locale);
-const homePath = localizePath('/', locale);
+const pagePath = '/blog/';
+const content = getSiteContent().blog;
+const siteCopy = getSiteContent();
+const homePath = '/';
 const handle = '@NabilrizkiN';
-const avatarAlt = locale === 'id' ? `Foto profil ${authorName}` : `${authorName} profile picture`;
+const avatarAlt = `${authorName} profile picture`;
 const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
-const localePosts = posts.filter((post) => getBlogLocaleInfo(post).locale === locale);
 
 const getReadingTime = (raw: string) => Math.max(1, Math.ceil(raw.trim().split(/\s+/).length / 200));
-const cards = localePosts.map((post) => {
-	const info = getBlogLocaleInfo(post);
+const cards = posts.map((post) => {
 	const readingTime = getReadingTime(post.body);
 	return {
 		post,
-		link: localizePath(`/blog/${post.slug}/`, locale),
+		link: `/blog/${post.slug}/`,
 		searchText: [post.data.title, post.data.description, ...post.data.tags].join(' ').toLowerCase(),
-		readingLabel: content.minReadByLocale[info.locale](readingTime),
-		date: post.data.pubDate.toLocaleDateString(localeMeta[info.locale].dateLocale, {
+		readingLabel: content.minRead(readingTime),
+		date: post.data.pubDate.toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
 		}),
-		dateFull: post.data.pubDate.toLocaleDateString(localeMeta[info.locale].dateLocale, {
+		dateFull: post.data.pubDate.toLocaleDateString('en-US', {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric',
@@ -53,13 +44,13 @@ const breadcrumbJson = JSON.stringify({
 			'@type': 'ListItem',
 			position: 1,
 			name: siteCopy.nav.home,
-			item: new URL(localizePath('/', locale), siteUrl).toString(),
+			item: new URL('/', siteUrl).toString(),
 		},
 		{
 			'@type': 'ListItem',
 			position: 2,
 			name: siteCopy.nav.blog,
-			item: new URL(localizePath('/blog/', locale), siteUrl).toString(),
+			item: new URL('/blog/', siteUrl).toString(),
 		},
 	],
 });
@@ -68,19 +59,19 @@ const blogCollectionJson = JSON.stringify({
 	'@type': 'CollectionPage',
 	name: content.seoTitle,
 	description: content.seoDescription,
-	url: new URL(localizePath('/blog/', locale), siteUrl).toString(),
+	url: new URL('/blog/', siteUrl).toString(),
 	mainEntity: {
 		'@type': 'Blog',
 		name: `${authorName} blog`,
-		url: new URL(localizePath('/blog/', locale), siteUrl).toString(),
+		url: new URL('/blog/', siteUrl).toString(),
 		blogPost: cards.map((item) => ({
 			'@type': 'BlogPosting',
 			headline: item.post.data.title,
 			description: item.post.data.description,
-			url: new URL(localizePath(`/blog/${item.post.slug}/`, locale), siteUrl).toString(),
+			url: new URL(item.link, siteUrl).toString(),
 			datePublished: item.post.data.pubDate.toISOString(),
 			dateModified: (item.post.data.updatedDate ?? item.post.data.pubDate).toISOString(),
-			inLanguage: locale,
+			inLanguage: 'en',
 			keywords: item.post.data.tags,
 		})),
 	},
@@ -91,7 +82,6 @@ const blogCollectionJson = JSON.stringify({
 	title={content.seoTitle}
 	description={content.seoDescription}
 	path={pagePath}
-	locale={locale}
 	ogImageAlt={content.ogImageAlt}
 >
 	<div class="blog-feed" data-blog-locale-root>
@@ -145,7 +135,6 @@ const blogCollectionJson = JSON.stringify({
 								postId={item.post.slug}
 								title={item.post.data.title}
 								variant="feed"
-								locale={locale}
 								trackView={false}
 							/>
 						</div>
