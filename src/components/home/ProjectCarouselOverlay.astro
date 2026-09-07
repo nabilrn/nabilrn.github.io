@@ -127,11 +127,6 @@ import ProjectCard from './ProjectCard.astro';
         align-self: stretch;
     }
 
-    .home-redesign .project-carousel-panel:hover .project-carousel-track,
-    .home-redesign .project-carousel-panel:focus-within .project-carousel-track {
-        animation-play-state: paused;
-    }
-
     @keyframes home-project-carousel {
         from { transform: translate3d(0, 0, 0); }
         to { transform: translate3d(var(--project-carousel-offset), 0, 0); }
