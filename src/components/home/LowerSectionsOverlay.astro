@@ -2,15 +2,11 @@
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
-import { getSiteContent, localizePath, type ActiveSiteLocale } from '../../data/siteContent';
+import { getSiteContent } from '../../data/siteContent';
 import VerifiedIcon from './VerifiedIcon.astro';
 
-const pathname = Astro.url.pathname;
-const firstSegment = pathname.split('/').filter(Boolean)[0];
-const locale = (firstSegment === 'id' ? 'id' : 'en') as ActiveSiteLocale;
-const content = getSiteContent(locale);
-const blogPath = localizePath('/blog/', locale);
-const dateLocale = locale === 'id' ? 'id-ID' : 'en-US';
+const content = getSiteContent();
+const blogPath = '/blog/';
 
 const cleanMarkdown = (value: string) => value
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
@@ -36,17 +32,15 @@ const narrativeExcerpt = (body: string, fallback: string) => {
 };
 
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
-const localePosts = allPosts.filter((post) => (post.data.locale ?? 'en') === locale);
-const fallbackPosts = allPosts.filter((post) => (post.data.locale ?? 'en') === 'en');
-const feedPosts = [...(localePosts.length ? localePosts : fallbackPosts)]
+const feedPosts = [...allPosts]
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
     .slice(0, 2)
     .map((post) => ({
         id: post.slug,
         title: post.data.title,
         excerpt: narrativeExcerpt(post.body, post.data.description),
-        href: localizePath(`/blog/${post.slug}/`, locale),
-        date: post.data.pubDate.toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' }),
+        href: `/blog/${post.slug}/`,
+        date: post.data.pubDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     }));
 
 const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
@@ -604,7 +598,7 @@ const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
     const apiBase = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
     const numberFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
     const exactNumberFormatter = new Intl.NumberFormat('en-US');
-    const chartDateFormatter = new Intl.DateTimeFormat(document.documentElement.lang.startsWith('id') ? 'id-ID' : 'en-GB', {
+    const chartDateFormatter = new Intl.DateTimeFormat('en-GB', {
         day: '2-digit',
         month: 'short',
     });
