@@ -180,8 +180,17 @@ const content = getSiteContent(normalizeLocale(rawLocale)).engagement;
 	}
 </style>
 
-<script is:inline define:vars={{ rootId, linkCopiedMessage: content.linkCopied, copiedMessage: content.copied }}>
-	const root = document.getElementById(rootId);
+<script
+	is:inline
+	data-root-id={rootId}
+	data-link-copied-message={content.linkCopied}
+	data-copied-message={content.copied}
+>
+	const script = document.currentScript;
+	const rootId = script?.dataset.rootId || '';
+	const linkCopiedMessage = script?.dataset.linkCopiedMessage || 'Link copied';
+	const copiedMessage = script?.dataset.copiedMessage || 'Copied';
+	const root = rootId ? document.getElementById(rootId) : null;
 	(function () {
 		const el = root;
 		if (!el) return;
