@@ -161,7 +161,7 @@ const blogPostingJson = JSON.stringify({
 	}
 
 	.back-row {
-		height: 46px;
+		height: 40px;
 		padding: 0 18px;
 		display: flex;
 		align-items: center;
@@ -170,7 +170,7 @@ const blogPostingJson = JSON.stringify({
 
 	.back-row a {
 		font-family: var(--font-sans);
-		font-size: 13px;
+		font-size: 12px;
 		font-weight: 500;
 		color: var(--text);
 	}
@@ -183,20 +183,20 @@ const blogPostingJson = JSON.stringify({
 	}
 
 	.article-header {
-		padding: 20px 20px 14px;
+		padding: 16px 20px 11px;
 		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
 	.author-row {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		margin-bottom: 20px;
+		gap: 9px;
+		margin-bottom: 13px;
 	}
 
 	.author-row img {
-		width: 44px;
-		height: 44px;
+		width: 40px;
+		height: 40px;
 		border: 1px solid var(--border);
 		border-radius: 50%;
 		object-fit: cover;
@@ -209,38 +209,38 @@ const blogPostingJson = JSON.stringify({
 
 	.author-copy strong {
 		display: block;
-		font-size: 14px;
+		font-size: 13px;
 		font-weight: 650;
-		line-height: 1.25;
+		line-height: 1.2;
 		color: var(--text);
 	}
 
 	.author-copy > div {
-		margin-top: 2px;
+		margin-top: 1px;
 		display: flex;
 		flex-wrap: wrap;
 		gap: 4px;
-		font-size: 12px;
-		line-height: 1.3;
+		font-size: 11px;
+		line-height: 1.25;
 		color: var(--muted);
 	}
 
 	h1 {
-		max-width: 19ch;
-		margin: 0 0 10px;
+		max-width: 20ch;
+		margin: 0 0 7px;
 		font-family: var(--font-sans);
-		font-size: clamp(32px, 5vw, 46px);
+		font-size: clamp(30px, 4.4vw, 42px);
 		font-weight: 650;
-		line-height: 1.05;
-		letter-spacing: -0.045em;
+		line-height: 1.03;
+		letter-spacing: -0.04em;
 	}
 
 	.article-deck {
 		max-width: 64ch;
 		margin: 0;
 		font-family: var(--font-sans);
-		font-size: 15px;
-		line-height: 1.55;
+		font-size: 14px;
+		line-height: 1.45;
 		color: color-mix(in srgb, var(--text) 82%, var(--muted));
 	}
 
@@ -248,56 +248,56 @@ const blogPostingJson = JSON.stringify({
 	.article-tags {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 5px 9px;
+		gap: 4px 8px;
 		font-family: var(--font-sans);
-		font-size: 12px;
-		line-height: 1.35;
+		font-size: 11px;
+		line-height: 1.3;
 		color: var(--muted);
 	}
 
-	.article-submeta { margin-top: 12px; }
-	.article-tags { margin-top: 7px; }
+	.article-submeta { margin-top: 9px; }
+	.article-tags { margin-top: 5px; }
 
 	.article-engagement {
-		margin-top: 12px;
-		padding-top: 8px;
+		margin-top: 9px;
+		padding-top: 6px;
 		border-top: 1px solid var(--sheet-line, var(--border));
 	}
 
 	.post-content {
-		max-width: 700px;
+		max-width: 680px;
 		margin: 0 auto;
-		padding: 34px 20px 72px;
+		padding: 24px 20px 52px;
 	}
 
 	.post-content :global(p),
 	.post-content :global(li) {
 		font-family: var(--font-sans);
-		font-size: 17px;
-		line-height: 1.78;
+		font-size: 16px;
+		line-height: 1.62;
 		color: var(--text-body);
 	}
 
-	.post-content :global(p) { margin: 0 0 1.15em; }
+	.post-content :global(p) { margin: 0 0 0.85em; }
 	.post-content :global(ul),
-	.post-content :global(ol) { margin: 0 0 1.25em; padding-left: 1.35em; }
-	.post-content :global(li) { margin-bottom: 0.35em; }
+	.post-content :global(ol) { margin: 0 0 0.95em; padding-left: 1.35em; }
+	.post-content :global(li) { margin-bottom: 0.25em; }
 
 	.post-content :global(h2) {
-		margin: 2em 0 0.7em;
+		margin: 1.55em 0 0.45em;
 		font-family: var(--font-sans);
-		font-size: clamp(25px, 3vw, 30px);
+		font-size: clamp(23px, 2.8vw, 27px);
 		font-weight: 650;
-		line-height: 1.22;
-		letter-spacing: -0.03em;
+		line-height: 1.16;
+		letter-spacing: -0.025em;
 	}
 
 	.post-content :global(h3) {
-		margin: 1.7em 0 0.6em;
+		margin: 1.35em 0 0.4em;
 		font-family: var(--font-sans);
-		font-size: 21px;
+		font-size: 20px;
 		font-weight: 650;
-		line-height: 1.3;
+		line-height: 1.22;
 	}
 
 	.post-content :global(a) {
@@ -307,24 +307,24 @@ const blogPostingJson = JSON.stringify({
 	}
 
 	.post-content :global(blockquote) {
-		margin: 1.5em 0;
-		padding: 0.1em 0 0.1em 16px;
-		border-left: 3px solid var(--border-strong);
+		margin: 1.1em 0;
+		padding: 0.05em 0 0.05em 14px;
+		border-left: 2px solid var(--border-strong);
 		color: var(--muted);
 	}
 
 	.post-content :global(blockquote p:last-child) { margin-bottom: 0; }
 
 	.post-content :global(pre) {
-		margin: 1.5em 0;
-		padding: 16px;
+		margin: 1.15em 0;
+		padding: 14px;
 		overflow-x: auto;
 		border: 1px solid var(--border);
 		border-radius: 0;
 		background: var(--surface);
 	}
 
-	.post-content :global(code) { font-size: 14px; }
+	.post-content :global(code) { font-size: 13px; }
 
 	.post-content :global(p code),
 	.post-content :global(li code) {
@@ -343,43 +343,43 @@ const blogPostingJson = JSON.stringify({
 	}
 
 	.post-content :global(img) {
-		margin: 1.5em 0;
+		margin: 1.15em 0;
 		border: 1px solid var(--border);
 		border-radius: 0;
 	}
 
 	.post-content :global(hr) {
-		margin: 2em 0;
+		margin: 1.4em 0;
 		border: 0;
 		border-top: 1px solid var(--border);
 	}
 
 	.post-content :global(table) {
 		width: 100%;
-		margin: 1.5em 0;
+		margin: 1.15em 0;
 		border-collapse: collapse;
 		font-family: var(--font-sans);
-		font-size: 14px;
+		font-size: 13px;
 	}
 
 	.post-content :global(th),
 	.post-content :global(td) {
-		padding: 9px 10px;
+		padding: 8px 9px;
 		border: 1px solid var(--border);
 		text-align: left;
 		vertical-align: top;
 	}
 
 	.next-entry {
-		padding: 18px 20px 24px;
+		padding: 14px 20px 18px;
 		border-top: 1px solid var(--sheet-line, var(--border));
 	}
 
 	.next-entry > span {
 		display: block;
-		margin-bottom: 6px;
+		margin-bottom: 4px;
 		font-family: var(--font-sans);
-		font-size: 12px;
+		font-size: 11px;
 		color: var(--muted);
 	}
 
@@ -401,16 +401,16 @@ const blogPostingJson = JSON.stringify({
 
 	.next-entry strong {
 		font-family: var(--font-sans);
-		font-size: 16px;
+		font-size: 15px;
 		font-weight: 600;
-		line-height: 1.35;
+		line-height: 1.3;
 	}
 
 	@media (max-width: 720px) {
 		.article-page { border-inline: 0; }
 		.article-header { padding-inline: 16px; }
-		.post-content { padding-inline: 16px; }
+		.post-content { padding: 22px 16px 44px; }
 		.post-content :global(p),
-		.post-content :global(li) { font-size: 16px; line-height: 1.75; }
+		.post-content :global(li) { font-size: 15.5px; line-height: 1.65; }
 	}
 </style>
