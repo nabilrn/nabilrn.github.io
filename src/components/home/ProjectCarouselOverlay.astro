@@ -200,6 +200,7 @@ import ProjectCard from './ProjectCard.astro';
 
     const panel = region?.querySelector<HTMLElement>('.project-carousel-panel');
     const sourceGroup = panel?.querySelector<HTMLElement>('[data-project-carousel-source]');
+    const duplicateGroup = panel?.querySelector<HTMLElement>('.project-carousel-group--duplicate');
     const viewport = panel?.querySelector<HTMLElement>('.project-carousel-viewport');
 
     if (panel && sourceGroup && viewport) {
@@ -208,6 +209,37 @@ import ProjectCard from './ProjectCard.astro';
 
         const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
         const mobileQuery = window.matchMedia('(max-width: 720px)');
+
+        /* The duplicate rail needs the same pixels for the seamless loop, but it
+           does not need a second set of image elements. Reuse each source image's
+           browser-selected currentSrc after it loads; by the time a duplicate
+           card reaches the viewport, its source card has already passed through
+           the viewport and populated the browser cache. */
+        if (duplicateGroup) {
+            const sourceImages = Array.from(
+                sourceGroup.querySelectorAll<HTMLImageElement>('[data-project-source-image]'),
+            );
+            const cloneSurfaces = Array.from(
+                duplicateGroup.querySelectorAll<HTMLElement>('[data-project-clone-image]'),
+            );
+
+            sourceImages.forEach((image, index) => {
+                const cloneSurface = cloneSurfaces[index];
+                if (!cloneSurface) return;
+
+                const syncCloneSurface = () => {
+                    const source = image.currentSrc || image.src;
+                    if (!source) return;
+                    cloneSurface.style.backgroundImage = `url("${source.replace(/"/g, '\\"')}")`;
+                };
+
+                if (image.complete && image.naturalWidth > 0) {
+                    syncCloneSurface();
+                }
+
+                image.addEventListener('load', syncCloneSurface);
+            });
+        }
 
         const measure = () => {
             scheduledFrame = 0;
