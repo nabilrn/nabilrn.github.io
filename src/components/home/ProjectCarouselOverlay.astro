@@ -209,37 +209,28 @@ import ProjectCard from './ProjectCard.astro';
 
         const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
         const mobileQuery = window.matchMedia('(max-width: 720px)');
+        const sourceImages = Array.from(
+            sourceGroup.querySelectorAll<HTMLImageElement>('[data-project-source-image]'),
+        );
+        const cloneSurfaces = duplicateGroup
+            ? Array.from(duplicateGroup.querySelectorAll<HTMLElement>('[data-project-clone-image]'))
+            : [];
 
-        /* The duplicate rail needs the same pixels for the seamless loop, but it
-           does not need a second set of image elements. Reuse each source image's
-           browser-selected currentSrc after it loads; by the time a duplicate
-           card reaches the viewport, its source card has already passed through
-           the viewport and populated the browser cache. */
-        if (duplicateGroup) {
-            const sourceImages = Array.from(
-                sourceGroup.querySelectorAll<HTMLImageElement>('[data-project-source-image]'),
-            );
-            const cloneSurfaces = Array.from(
-                duplicateGroup.querySelectorAll<HTMLElement>('[data-project-clone-image]'),
-            );
+        const cloneRailReady = () =>
+            !duplicateGroup ||
+            cloneSurfaces.length === sourceImages.length &&
+            cloneSurfaces.every((surface) => surface.dataset.projectCloneReady === 'true');
 
-            sourceImages.forEach((image, index) => {
-                const cloneSurface = cloneSurfaces[index];
-                if (!cloneSurface) return;
+        const syncCloneSurface = (image: HTMLImageElement, index: number) => {
+            const cloneSurface = cloneSurfaces[index];
+            if (!cloneSurface || image.naturalWidth <= 0) return;
 
-                const syncCloneSurface = () => {
-                    const source = image.currentSrc || image.src;
-                    if (!source) return;
-                    cloneSurface.style.backgroundImage = `url("${source.replace(/"/g, '\\"')}")`;
-                };
+            const source = image.currentSrc || image.src;
+            if (!source) return;
 
-                if (image.complete && image.naturalWidth > 0) {
-                    syncCloneSurface();
-                }
-
-                image.addEventListener('load', syncCloneSurface);
-            });
-        }
+            cloneSurface.style.backgroundImage = `url("${source.replace(/"/g, '\\"')}")`;
+            cloneSurface.dataset.projectCloneReady = 'true';
+        };
 
         const measure = () => {
             scheduledFrame = 0;
@@ -248,6 +239,15 @@ import ProjectCard from './ProjectCard.astro';
                 panel.dataset.carouselReady = 'false';
                 panel.style.removeProperty('--project-carousel-offset');
                 panel.style.removeProperty('--project-carousel-duration');
+                return;
+            }
+
+            /* Do not start the moving rail while clone surfaces are blank. The
+               desktop carousel promotes its source screenshots to eager/low
+               priority first, then starts only after the browser has decoded the
+               exact responsive currentSrc used to paint the duplicate rail. */
+            if (!cloneRailReady()) {
+                panel.dataset.carouselReady = 'false';
                 return;
             }
 
@@ -279,15 +279,37 @@ import ProjectCard from './ProjectCard.astro';
             scheduledFrame = requestAnimationFrame(measure);
         };
 
+        const configureImageLoading = () => {
+            const shouldAnimate = !motionQuery.matches && !mobileQuery.matches;
+
+            sourceImages.forEach((image, index) => {
+                image.loading = shouldAnimate ? 'eager' : 'lazy';
+                image.setAttribute('fetchpriority', shouldAnimate ? 'low' : 'auto');
+
+                if (image.complete && image.naturalWidth > 0) {
+                    syncCloneSurface(image, index);
+                }
+            });
+
+            scheduleMeasure();
+        };
+
+        sourceImages.forEach((image, index) => {
+            image.addEventListener('load', () => {
+                syncCloneSurface(image, index);
+                scheduleMeasure();
+            });
+        });
+
         const resizeObserver = new ResizeObserver(scheduleMeasure);
         resizeObserver.observe(sourceGroup);
         resizeObserver.observe(viewport);
 
-        motionQuery.addEventListener('change', scheduleMeasure);
-        mobileQuery.addEventListener('change', scheduleMeasure);
+        motionQuery.addEventListener('change', configureImageLoading);
+        mobileQuery.addEventListener('change', configureImageLoading);
         window.addEventListener('load', scheduleMeasure, { once: true });
 
-        scheduleMeasure();
+        configureImageLoading();
         document.fonts?.ready.then(scheduleMeasure);
     }
 </script>
