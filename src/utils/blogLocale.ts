@@ -1,38 +1,21 @@
 import type { CollectionEntry } from 'astro:content';
 
-export type BlogLocale = 'en' | 'id';
+export type BlogLocale = 'en';
 type BlogEntry = CollectionEntry<'blog'>;
 
-const slugSuffixPattern = /([-_])(id|en|eng)$/i;
+const legacyEnglishSuffixPattern = /([-_])(en|eng)$/i;
 
-const normalizeLocale = (value?: string): BlogLocale | undefined => {
-	if (!value) return undefined;
-	const normalized = value.toLowerCase();
-	if (normalized === 'id') return 'id';
-	if (normalized === 'en' || normalized === 'eng') return 'en';
-	return undefined;
-};
+export const getLocaleFromSlug = (_slug: string): BlogLocale => 'en';
 
-export const getLocaleFromSlug = (slug: string): BlogLocale => {
-	const match = slug.match(slugSuffixPattern);
-	if (!match) return 'en';
-	return normalizeLocale(match[2]) ?? 'en';
-};
+export const getTranslationKeyFromSlug = (slug: string): string =>
+	slug.replace(legacyEnglishSuffixPattern, '');
 
-export const getTranslationKeyFromSlug = (slug: string): string => slug.replace(slugSuffixPattern, '');
-
-export const getBlogLocaleInfo = (post: BlogEntry) => {
-	const locale = normalizeLocale(post.data.locale) ?? getLocaleFromSlug(post.slug);
-	const translationKey = post.data.translationKey?.trim() || getTranslationKeyFromSlug(post.slug);
-	return { locale, translationKey };
-};
+export const getBlogLocaleInfo = (post: BlogEntry) => ({
+	locale: 'en' as const,
+	translationKey: post.data.translationKey?.trim() || getTranslationKeyFromSlug(post.slug),
+});
 
 export const getTranslationVariants = (posts: BlogEntry[], translationKey: string) => {
-	const variants: Partial<Record<BlogLocale, BlogEntry>> = {};
-	for (const candidate of posts) {
-		const info = getBlogLocaleInfo(candidate);
-		if (info.translationKey !== translationKey) continue;
-		variants[info.locale] = candidate;
-	}
-	return variants;
+	const candidate = posts.find((post) => getBlogLocaleInfo(post).translationKey === translationKey);
+	return candidate ? { en: candidate } : {};
 };
