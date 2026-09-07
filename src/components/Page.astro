@@ -1,8 +1,7 @@
 ---
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
-import PortfolioLayout from './PortfolioLayout.astro';
-import PortfolioFullLayout from './PortfolioFullLayout.astro';
+import SiteShell from './SiteShell.astro';
 import {
   authorName,
   getSiteContent,
@@ -22,7 +21,6 @@ interface Props {
   locale?: SiteLocale;
   lang?: string;
   robots?: string;
-  layoutVariant?: 'portfolio' | 'portfolio-full' | 'blog-full';
   ogImage?: string;
   ogImageAlt?: string;
   ogType?: 'website' | 'article';
@@ -42,7 +40,6 @@ const {
   locale: pageLocale,
   lang = 'en',
   robots = 'index, follow',
-  layoutVariant = 'portfolio',
   ogImage: pageOgImage,
   ogImageAlt,
   ogType = 'website',
@@ -130,14 +127,6 @@ const websiteJson = JSON.stringify({
   publisher: {
     '@id': `${siteUrl}/#person`,
   },
-  potentialAction: {
-    '@type': 'SearchAction',
-    target: {
-      '@type': 'EntryPoint',
-      urlTemplate: `${siteUrl}${localizePath('/blog/', contentLocale)}?q={search_term_string}`,
-    },
-    'query-input': 'required name=search_term_string',
-  },
 });
 const webPageJson = JSON.stringify({
   '@context': 'https://schema.org',
@@ -175,12 +164,6 @@ const siteNavigationJson = JSON.stringify({
     {
       '@type': 'SiteNavigationElement',
       position: 2,
-      name: content.nav.projects,
-      url: new URL(localizePath('/projects/', contentLocale), siteUrl).toString(),
-    },
-    {
-      '@type': 'SiteNavigationElement',
-      position: 3,
       name: content.nav.blog,
       url: new URL(localizePath('/blog/', contentLocale), siteUrl).toString(),
     },
@@ -196,7 +179,7 @@ const siteNavigationJson = JSON.stringify({
     <script is:inline>
       (() => {
         try {
-          const stored = localStorage.getItem('starlight-theme');
+          const stored = localStorage.getItem('portfolio-theme');
           const theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
           document.documentElement.dataset.theme = theme;
         } catch {
@@ -257,21 +240,15 @@ const siteNavigationJson = JSON.stringify({
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 
     <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json" set:html={personJson}></script>
-    {isHomePageForSchema && <script type="application/ld+json" set:html={websiteJson}></script>}
-    <script type="application/ld+json" set:html={webPageJson}></script>
-    <script type="application/ld+json" set:html={siteNavigationJson}></script>
+    <script is:inline type="application/ld+json" set:html={personJson}></script>
+    {isHomePageForSchema && <script is:inline type="application/ld+json" set:html={websiteJson}></script>}
+    <script is:inline type="application/ld+json" set:html={webPageJson}></script>
+    <script is:inline type="application/ld+json" set:html={siteNavigationJson}></script>
 </head>
 <body>
-    {layoutVariant === 'portfolio-full' || layoutVariant === 'blog-full' ? (
-        <PortfolioFullLayout currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
-            <slot />
-        </PortfolioFullLayout>
-    ) : (
-        <PortfolioLayout currentPath={path} locale={contentLocale}>
-            <slot />
-        </PortfolioLayout>
-    )}
+    <SiteShell currentPath={path} locale={contentLocale} alternatePaths={alternatePaths}>
+        <slot />
+    </SiteShell>
 </body>
 </html>
 
@@ -314,12 +291,6 @@ const siteNavigationJson = JSON.stringify({
         --font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
         --font-display: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
         --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
-        --sl-color-hairline: var(--border);
-        --sl-color-gray-2: var(--text-body);
-        --sl-color-gray-3: var(--muted);
-        --sl-color-gray-4: var(--border-strong);
-        --sl-color-white: var(--text);
-        --sl-color-text-accent: var(--accent);
     }
 
     html[data-theme='light'] {
@@ -348,12 +319,6 @@ const siteNavigationJson = JSON.stringify({
         --contrib-2: #9a9a9a;
         --contrib-3: #5c5c5c;
         --contrib-4: #262626;
-        --sl-color-hairline: var(--border);
-        --sl-color-gray-2: var(--text-body);
-        --sl-color-gray-3: var(--muted);
-        --sl-color-gray-4: var(--border-strong);
-        --sl-color-white: var(--text);
-        --sl-color-text-accent: var(--accent);
     }
 
     html {
@@ -382,9 +347,7 @@ const siteNavigationJson = JSON.stringify({
         height: 10px;
     }
 
-    ::-webkit-scrollbar-track {
-        background: var(--bg);
-    }
+    ::-webkit-scrollbar-track { background: var(--bg); }
 
     ::-webkit-scrollbar-thumb {
         background: var(--border-strong);
@@ -392,9 +355,7 @@ const siteNavigationJson = JSON.stringify({
         border-radius: 6px;
     }
 
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--muted);
-    }
+    ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
     a {
         color: inherit;
@@ -414,9 +375,7 @@ const siteNavigationJson = JSON.stringify({
         color: var(--text);
     }
 
-    code, kbd, pre, samp {
-        font-family: var(--font-mono);
-    }
+    code, kbd, pre, samp { font-family: var(--font-mono); }
 
     p {
         font-size: 14px;
@@ -442,9 +401,7 @@ const siteNavigationJson = JSON.stringify({
         margin: 0 0 6px 0;
     }
 
-    li::marker {
-        color: var(--muted);
-    }
+    li::marker { color: var(--muted); }
 
     hr {
         border: none;
@@ -452,7 +409,5 @@ const siteNavigationJson = JSON.stringify({
         margin: 24px 0;
     }
 
-    img {
-        max-width: 100%;
-    }
+    img { max-width: 100%; }
 </style>

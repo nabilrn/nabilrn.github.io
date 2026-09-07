@@ -1,7 +1,9 @@
 ---
+import { Image } from 'astro:assets';
 import { getCollection, render, type CollectionEntry } from 'astro:content';
+import avatar from '../../assets/profile-anime.webp';
+import BlogArticleDock from '../../components/blog/BlogArticleDock.astro';
 import Page from '../../components/Page.astro';
-import EngagementBar from '../../components/EngagementBarNew.astro';
 import { authorName, getSiteContent, localeMeta, localizePath, normalizeLocale, siteUrl, type SiteLocale } from '../../data/siteContent';
 import { getBlogLocaleInfo, getTranslationVariants, type BlogLocale } from '../../utils/blogLocale';
 
@@ -9,72 +11,54 @@ export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
 	return posts
 		.filter((post) => getBlogLocaleInfo(post).locale === 'en')
-		.map((post) => ({
-			params: { slug: post.slug },
-			props: { post },
-		}));
+		.map((post) => ({ params: { slug: post.slug }, props: { post } }));
 }
 
-const { post, locale: rawUiLocale, path: rawPath } = Astro.props as { post: CollectionEntry<'blog'>; locale?: SiteLocale; path?: string };
+const { post, locale: rawUiLocale, path: rawPath } = Astro.props as {
+	post: CollectionEntry<'blog'>;
+	locale?: SiteLocale;
+	path?: string;
+};
 const allPosts = await getCollection('blog', ({ data }) => !data.draft);
 const { Content } = await render(post);
 const localeInfo = getBlogLocaleInfo(post);
 const postLocale: BlogLocale = localeInfo.locale;
 const uiLocale = normalizeLocale(rawUiLocale ?? postLocale);
 const variants = getTranslationVariants(allPosts, localeInfo.translationKey);
-const blogLocales = ['en', 'id', 'cn', 'jp'] as const satisfies readonly BlogLocale[];
+const blogLocales = ['en', 'id'] as const satisfies readonly BlogLocale[];
+const handle = '@NabilrizkiN';
 
 const words = post.body.trim().split(/\s+/).length;
 const readingTime = Math.max(1, Math.ceil(words / 200));
 const dateLocale = localeMeta[postLocale].dateLocale;
 const dateStr = post.data.pubDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' });
-
 const siteCopy = getSiteContent(uiLocale);
 const blogCopy = siteCopy.blog;
 const postPath = rawPath ?? localizePath(`/blog/${post.slug}/`, uiLocale);
 const postUrl = new URL(postPath, siteUrl).toString();
 const ogImagePath = `/og/blog/${post.slug}.png`;
-const ogImageUrl = `${siteUrl}${ogImagePath}`;
 const publishedTime = post.data.pubDate.toISOString();
 const modifiedTime = (post.data.updatedDate ?? post.data.pubDate).toISOString();
 
-const labels = {
-	back: `← ${blogCopy.article.back}`,
-	minRead: blogCopy.minReadByLocale[postLocale](readingTime),
-	updated: blogCopy.article.updated,
-};
+const localizedSequence = allPosts
+	.filter((item) => getBlogLocaleInfo(item).locale === postLocale)
+	.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+const currentIndex = localizedSequence.findIndex((item) => item.slug === post.slug);
+const nextPost = currentIndex >= 0 ? localizedSequence[currentIndex + 1] ?? null : null;
 
 const alternatePaths = Object.fromEntries(
 	blogLocales
 		.filter((optionLocale) => variants[optionLocale])
-		.map((optionLocale) => [
-			optionLocale,
-			localizePath(`/blog/${variants[optionLocale]!.slug}/`, optionLocale),
-		])
+		.map((optionLocale) => [optionLocale, localizePath(`/blog/${variants[optionLocale]!.slug}/`, optionLocale)])
 ) as Partial<Record<SiteLocale, string>>;
 
 const breadcrumbJson = JSON.stringify({
 	'@context': 'https://schema.org',
 	'@type': 'BreadcrumbList',
 	itemListElement: [
-		{
-			'@type': 'ListItem',
-			position: 1,
-			name: siteCopy.nav.home,
-			item: new URL(localizePath('/', uiLocale), siteUrl).toString(),
-		},
-		{
-			'@type': 'ListItem',
-			position: 2,
-			name: siteCopy.nav.blog,
-			item: new URL(localizePath('/blog/', uiLocale), siteUrl).toString(),
-		},
-		{
-			'@type': 'ListItem',
-			position: 3,
-			name: post.data.title,
-			item: postUrl,
-		},
+		{ '@type': 'ListItem', position: 1, name: siteCopy.nav.home, item: new URL(localizePath('/', uiLocale), siteUrl).toString() },
+		{ '@type': 'ListItem', position: 2, name: siteCopy.nav.blog, item: new URL(localizePath('/blog/', uiLocale), siteUrl).toString() },
+		{ '@type': 'ListItem', position: 3, name: post.data.title, item: postUrl },
 	],
 });
 
@@ -83,20 +67,12 @@ const blogPostingJson = JSON.stringify({
 	'@type': 'BlogPosting',
 	headline: post.data.title,
 	description: post.data.description,
-	image: ogImageUrl,
+	image: `${siteUrl}${ogImagePath}`,
 	datePublished: publishedTime,
 	dateModified: modifiedTime,
 	inLanguage: postLocale,
-	author: {
-		'@type': 'Person',
-		name: authorName,
-		url: siteUrl,
-	},
-	publisher: {
-		'@type': 'Person',
-		name: authorName,
-		url: siteUrl,
-	},
+	author: { '@type': 'Person', name: authorName, url: siteUrl },
+	publisher: { '@type': 'Person', name: authorName, url: siteUrl },
 	mainEntityOfPage: postUrl,
 	url: postUrl,
 	keywords: post.data.tags,
@@ -109,7 +85,6 @@ const blogPostingJson = JSON.stringify({
 	path={postPath}
 	locale={uiLocale}
 	lang={postLocale}
-	layoutVariant="blog-full"
 	ogImage={ogImagePath}
 	ogImageAlt={blogCopy.article.ogImageAlt(post.data.title)}
 	ogType="article"
@@ -121,211 +96,296 @@ const blogPostingJson = JSON.stringify({
 	ogImageHeight={630}
 	alternatePaths={alternatePaths}
 >
-	<div class="post-layout">
-		<article class="post-main">
-			<div class="top-row">
-				<a href={localizePath('/blog/', uiLocale)} class="back-link" aria-label={labels.back}>{labels.back}</a>
+	<div class="article-page">
+		<header class="article-header">
+			<div class="author-row">
+				<Image src={avatar} alt={authorName} width={88} height={88} />
+				<div class="author-copy">
+					<strong>{authorName}</strong>
+					<div>
+						<span>{handle}</span>
+						<span aria-hidden="true">·</span>
+						<time datetime={publishedTime}>{dateStr}</time>
+					</div>
+				</div>
 			</div>
 
-			<header class="post-header">
-				<h1>{post.data.title}</h1>
-				<div class="post-meta">
-					<span>{dateStr}</span>
-					<span>{labels.minRead}</span>
-					{post.data.updatedDate && <span>{labels.updated} {post.data.updatedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span>}
-				</div>
-				<div class="post-tags">
-					{post.data.tags.map((tag: string) => (
-						<span class="tag">{tag}</span>
-					))}
-				</div>
-			</header>
+			<h1>{post.data.title}</h1>
+			<p class="article-deck">{post.data.description}</p>
 
-			<div class="post-content">
-				<Content />
+			<div class="article-submeta">
+				<span>{blogCopy.minReadByLocale[postLocale](readingTime)}</span>
+				{post.data.updatedDate && (
+					<><span aria-hidden="true">·</span><span>{blogCopy.article.updated} {post.data.updatedDate.toLocaleDateString(dateLocale, { year: 'numeric', month: 'short', day: 'numeric' })}</span></>
+				)}
 			</div>
+
+			<div class="article-tags">
+				{post.data.tags.map((tag: string) => <span>#{tag.toLowerCase().replace(/\s+/g, '-')}</span>)}
+			</div>
+		</header>
+
+		<article class="post-content">
+			<Content />
 		</article>
 
-		<aside class="post-rail" aria-label={blogCopy.article.engagementAria}>
-			<EngagementBar postId={post.slug} title={post.data.title} variant="floating" locale={uiLocale} />
-		</aside>
+		{nextPost && (
+			<nav class="next-entry" aria-label={uiLocale === 'id' ? 'Tulisan berikutnya' : 'Next article'}>
+				<span>{uiLocale === 'id' ? 'Berikutnya' : 'Next'}</span>
+				<a href={localizePath(`/blog/${nextPost.slug}/`, uiLocale)}>
+					<strong>{nextPost.data.title}</strong>
+					<span aria-hidden="true">→</span>
+				</a>
+			</nav>
+		)}
 	</div>
 
-	<script type="application/ld+json" set:html={breadcrumbJson}></script>
-	<script type="application/ld+json" set:html={blogPostingJson}></script>
+	<BlogArticleDock
+		postId={post.slug}
+		title={post.data.title}
+		locale={uiLocale}
+		postsHref={localizePath('/blog/', uiLocale)}
+		homeHref={localizePath('/', uiLocale)}
+	/>
+
+	<script is:inline type="application/ld+json" set:html={breadcrumbJson}></script>
+	<script is:inline type="application/ld+json" set:html={blogPostingJson}></script>
 </Page>
 
 <style>
-	.post-layout {
-		max-width: 1080px;
-		margin: 0;
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) 88px;
-		gap: 30px;
-		align-items: start;
+	.article-page {
+		width: min(760px, 100%);
+		margin: 0 auto 86px;
+		border-inline: 1px solid var(--sheet-line, var(--border));
+		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
-	.post-main {
-		max-width: 780px;
-		min-width: 0;
+	.article-header {
+		padding: 16px 20px 11px;
+		border-bottom: 1px solid var(--sheet-line, var(--border));
 	}
 
-	.top-row {
+	.author-row {
 		display: flex;
 		align-items: center;
-		justify-content: flex-start;
-		gap: 12px;
-		margin-bottom: 14px;
+		gap: 9px;
+		margin-bottom: 13px;
 	}
 
-	.back-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
+	.author-row img {
+		width: 40px;
+		height: 40px;
+		border: 1px solid var(--border);
+		border-radius: 50%;
+		object-fit: cover;
+	}
+
+	.author-copy {
+		min-width: 0;
+		font-family: var(--font-sans);
+	}
+
+	.author-copy strong {
+		display: block;
 		font-size: 13px;
-		color: var(--muted);
-		transition: color 0.15s ease;
-	}
-
-	.back-link:hover {
+		font-weight: 650;
+		line-height: 1.2;
 		color: var(--text);
 	}
 
-	.post-header {
-		margin-bottom: 22px;
-		padding-bottom: 18px;
-		border-bottom: 1px solid var(--border);
-	}
-
-	.post-header h1 {
-		font-size: clamp(30px, 5vw, 44px);
-		line-height: 1.18;
-		margin-bottom: 12px;
-		letter-spacing: -0.01em;
-	}
-
-	.post-meta {
+	.author-copy > div {
+		margin-top: 1px;
 		display: flex;
 		flex-wrap: wrap;
-		gap: 8px 14px;
-		font-family: var(--font-mono);
+		gap: 4px;
 		font-size: 11px;
+		line-height: 1.25;
 		color: var(--muted);
-		margin-bottom: 12px;
 	}
 
-	.post-tags {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-	}
-
-	.tag {
-		font-size: 11px;
-		border: 1px solid var(--border);
-		border-radius: 999px;
-		color: var(--muted);
-		padding: 2px 9px;
-	}
-
-	.post-content :global(p) {
+	h1 {
+		max-width: 20ch;
+		margin: 0 0 7px;
 		font-family: var(--font-sans);
-		font-size: 16px;
-		line-height: 1.85;
-		margin-bottom: 1.1em;
-		color: var(--text-body);
+		font-size: clamp(30px, 4.4vw, 42px);
+		font-weight: 650;
+		line-height: 1.03;
+		letter-spacing: -0.04em;
 	}
 
-	.post-content :global(h2) {
-		font-size: clamp(24px, 3vw, 30px);
+	.article-deck {
+		max-width: 64ch;
+		margin: 0;
+		font-family: var(--font-sans);
+		font-size: 14px;
+		line-height: 1.45;
+		color: color-mix(in srgb, var(--text) 82%, var(--muted));
+	}
+
+	.article-submeta,
+	.article-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 4px 8px;
+		font-family: var(--font-sans);
+		font-size: 11px;
 		line-height: 1.3;
-		margin: 2.2em 0 0.8em;
+		color: var(--muted);
 	}
 
-	.post-content :global(h3) {
-		font-size: clamp(20px, 2.4vw, 24px);
-		line-height: 1.35;
-		margin: 1.8em 0 0.7em;
+	.article-submeta { margin-top: 9px; }
+	.article-tags { margin-top: 5px; }
+
+	.post-content {
+		max-width: 680px;
+		margin: 0 auto;
+		padding: 24px 20px 52px;
 	}
 
-	.post-content :global(ul),
-	.post-content :global(ol) {
-		margin: 0 0 1.2em;
-		padding-left: 1.5em;
-	}
-
+	.post-content :global(p),
 	.post-content :global(li) {
 		font-family: var(--font-sans);
 		font-size: 16px;
-		line-height: 1.8;
+		line-height: 1.62;
 		color: var(--text-body);
-		margin-bottom: 0.35em;
+	}
+
+	.post-content :global(p) { margin: 0 0 0.85em; }
+	.post-content :global(ul),
+	.post-content :global(ol) { margin: 0 0 0.95em; padding-left: 1.35em; }
+	.post-content :global(li) { margin-bottom: 0.25em; }
+
+	.post-content :global(h2) {
+		margin: 1.55em 0 0.45em;
+		font-family: var(--font-sans);
+		font-size: clamp(23px, 2.8vw, 27px);
+		font-weight: 650;
+		line-height: 1.16;
+		letter-spacing: -0.025em;
+	}
+
+	.post-content :global(h3) {
+		margin: 1.35em 0 0.4em;
+		font-family: var(--font-sans);
+		font-size: 20px;
+		font-weight: 650;
+		line-height: 1.22;
 	}
 
 	.post-content :global(a) {
-		color: var(--accent-hover);
+		color: var(--text);
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-underline-offset: 3px;
 	}
 
 	.post-content :global(blockquote) {
-		margin: 1.2em 0;
-		padding: 0.2em 0 0.2em 1em;
+		margin: 1.1em 0;
+		padding: 0.05em 0 0.05em 14px;
 		border-left: 2px solid var(--border-strong);
 		color: var(--muted);
 	}
 
-	.post-content :global(code) {
-		font-size: 14px;
-		background: var(--surface-2);
-		padding: 2px 6px;
-		border-radius: 6px;
-		border: 1px solid var(--border);
-	}
+	.post-content :global(blockquote p:last-child) { margin-bottom: 0; }
 
 	.post-content :global(pre) {
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 10px;
-		padding: 16px;
+		margin: 1.15em 0;
+		padding: 14px;
 		overflow-x: auto;
-		margin: 0 0 1.2em;
+		border: 1px solid var(--border);
+		border-radius: 0;
+		background: var(--surface);
 	}
 
-	.post-content :global(pre code) {
-		border: none;
-		background: none;
-		padding: 0;
+	.post-content :global(code) { font-size: 13px; }
+
+	.post-content :global(p code),
+	.post-content :global(li code) {
+		padding: 2px 5px;
+		border: 1px solid var(--border);
+		border-radius: 3px;
+		background: var(--surface-2);
+	}
+
+	:global(html[data-theme='dark']) .post-content :global(pre code span[style*='6A737D']) {
+		color: #9a9a9a !important;
+	}
+
+	:global(html[data-theme='light']) .post-content :global(pre code span[style*='6A737D']) {
+		color: #5f5f5f !important;
 	}
 
 	.post-content :global(img) {
-		border-radius: 10px;
+		margin: 1.15em 0;
 		border: 1px solid var(--border);
-		margin: 1.2em 0;
+		border-radius: 0;
 	}
 
 	.post-content :global(hr) {
-		border: none;
+		margin: 1.4em 0;
+		border: 0;
 		border-top: 1px solid var(--border);
-		margin: 2em 0;
 	}
 
-	.post-rail {
-		position: relative;
+	.post-content :global(table) {
+		width: 100%;
+		margin: 1.15em 0;
+		border-collapse: collapse;
+		font-family: var(--font-sans);
+		font-size: 13px;
 	}
 
-	@media (max-width: 980px) {
-		.post-layout {
-			grid-template-columns: minmax(0, 1fr);
-			gap: 16px;
+	.post-content :global(th),
+	.post-content :global(td) {
+		padding: 8px 9px;
+		border: 1px solid var(--border);
+		text-align: left;
+		vertical-align: top;
+	}
+
+	.next-entry {
+		padding: 14px 20px 18px;
+		border-top: 1px solid var(--sheet-line, var(--border));
+	}
+
+	.next-entry > span {
+		display: block;
+		margin-bottom: 4px;
+		font-family: var(--font-sans);
+		font-size: 11px;
+		color: var(--muted);
+	}
+
+	.next-entry a {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 18px;
+		color: var(--text);
+	}
+
+	.next-entry a:hover strong,
+	.next-entry a:focus-visible strong {
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
+	.next-entry a:focus-visible { outline: none; }
+
+	.next-entry strong {
+		font-family: var(--font-sans);
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	@media (max-width: 720px) {
+		.article-page {
+			border-inline: 0;
+			margin-bottom: 78px;
 		}
-	}
-
-	@media (max-width: 768px) {
+		.article-header { padding-inline: 16px; }
+		.post-content { padding: 22px 16px 44px; }
 		.post-content :global(p),
-		.post-content :global(li) {
-			font-size: 16px;
-			line-height: 1.78;
-		}
+		.post-content :global(li) { font-size: 15.5px; line-height: 1.65; }
 	}
 </style>

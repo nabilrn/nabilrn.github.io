@@ -1,62 +1,87 @@
 ---
-import { getSiteContent, normalizeLocale, type SiteLocale } from '../data/siteContent';
+import { normalizeLocale, type SiteLocale } from '../data/siteContent';
 
 interface Props {
 	locale?: SiteLocale;
 }
 
-const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
+const locale = normalizeLocale(Astro.props.locale);
+const labels = locale === 'id'
+	? { toLight: 'Gunakan mode terang', toDark: 'Gunakan mode gelap' }
+	: { toLight: 'Switch to light mode', toDark: 'Switch to dark mode' };
 ---
 
 <theme-toggle>
-	<button class="theme-toggle" aria-label={content.toggle} title={content.toggle} aria-pressed="false">
-		<span class="icon sun-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
-        </span>
-		<span class="icon moon-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
-        </span>
+	<button
+		class="theme-toggle"
+		aria-label={labels.toLight}
+		title={labels.toLight}
+		aria-pressed="false"
+		data-to-light-label={labels.toLight}
+		data-to-dark-label={labels.toDark}
+	>
+		<svg class="theme-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<circle cx="12" cy="12" r="3.5" />
+			<path d="M12 2.5v2.2M12 19.3v2.2M4.5 4.5l1.55 1.55M17.95 17.95l1.55 1.55M2.5 12h2.2M19.3 12h2.2M4.5 19.5l1.55-1.55M17.95 6.05l1.55-1.55" />
+		</svg>
+		<svg class="theme-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+			<path d="M20.2 15.15A8.35 8.35 0 0 1 8.85 3.8 8.4 8.4 0 1 0 20.2 15.15Z" />
+		</svg>
 	</button>
 </theme-toggle>
 
 <style is:global>
 	.theme-toggle {
-		background: var(--bg);
-		border: 1px solid var(--border-strong);
-		cursor: pointer;
+		width: 30px;
+		height: 30px;
 		padding: 0;
-		border-radius: 6px;
+		display: grid;
+		place-items: center;
+		border: 0;
+		border-radius: 0;
+		background: transparent;
 		color: var(--muted);
-		display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-        width: 32px;
-        height: 32px;
+		cursor: pointer;
+		transition: color 140ms ease, transform 140ms ease;
 	}
-    
-    .theme-toggle:hover {
-        background: var(--surface);
-        color: var(--text);
-        border-color: var(--accent);
-    }
 
-    .theme-toggle .icon {
-        display: none;
-        line-height: 0;
-    }
+	.theme-toggle:hover,
+	.theme-toggle:focus-visible {
+		color: var(--text);
+		outline: none;
+	}
 
-	[data-theme='dark'] .theme-toggle .sun-icon {
-		display: flex;
+	.theme-toggle:focus-visible {
+		box-shadow: inset 0 0 0 1px var(--border-strong);
 	}
-    
-    [data-theme='light'] .theme-toggle .moon-icon {
-		display: flex;
+
+	.theme-toggle .theme-icon {
+		grid-area: 1 / 1;
+		width: 14px;
+		height: 14px;
+		opacity: 0;
+		transform: scale(.84) rotate(-12deg);
+		transition: opacity 140ms ease, transform 160ms ease;
+		pointer-events: none;
 	}
-    
-    html:not([data-theme]) .theme-toggle .sun-icon {
-        display: flex;
-    }
+
+	[data-theme='dark'] .theme-toggle .sun-icon,
+	html:not([data-theme]) .theme-toggle .sun-icon {
+		opacity: 1;
+		transform: scale(1) rotate(0deg);
+	}
+
+	[data-theme='light'] .theme-toggle .moon-icon {
+		opacity: 1;
+		transform: scale(1) rotate(0deg);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.theme-toggle,
+		.theme-toggle .theme-icon {
+			transition: none;
+		}
+	}
 </style>
 
 <script>
@@ -65,7 +90,7 @@ const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 			super();
 			const button = this.querySelector('button');
 			this.syncButtonState();
-            
+
 			button?.addEventListener('click', () => {
 				const currentTheme = document.documentElement.dataset.theme || 'dark';
 				const nextTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -75,14 +100,26 @@ const content = getSiteContent(normalizeLocale(Astro.props.locale)).theme;
 
 		setTheme(theme: string) {
 			document.documentElement.dataset.theme = theme;
-			localStorage.setItem('starlight-theme', theme);
+			localStorage.setItem('portfolio-theme', theme);
 			this.syncButtonState();
 		}
 
 		syncButtonState() {
 			const button = this.querySelector('button');
-			button?.setAttribute('aria-pressed', String(document.documentElement.dataset.theme === 'light'));
+			if (!(button instanceof HTMLButtonElement)) return;
+
+			const isLight = document.documentElement.dataset.theme === 'light';
+			const label = isLight
+				? button.dataset.toDarkLabel || 'Switch to dark mode'
+				: button.dataset.toLightLabel || 'Switch to light mode';
+
+			button.setAttribute('aria-pressed', String(isLight));
+			button.setAttribute('aria-label', label);
+			button.title = label;
 		}
 	}
-	customElements.define('theme-toggle', ThemeToggle);
+
+	if (!customElements.get('theme-toggle')) {
+		customElements.define('theme-toggle', ThemeToggle);
+	}
 </script>

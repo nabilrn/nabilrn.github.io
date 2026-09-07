@@ -1,0 +1,595 @@
+---
+import UiIcon from '../icons/UiIcon.astro';
+
+interface Props {
+    heading: string;
+}
+
+const { heading } = Astro.props;
+
+const resumeHref = 'https://drive.google.com/file/d/1ynLaBBeJue9JrGGVVJcTzlhoHGd1SQeV/view';
+
+// Homepage copy stays intentionally compact; the public resume remains the
+// detailed source of truth for responsibilities, impact, and technical scope.
+const experienceItems = [
+    {
+        organization: 'NeoCentral · Department of Information Systems, Universitas Andalas',
+        role: 'Software Engineer · Full Stack, Mobile & Platform',
+        period: 'Aug 2025 — May 2026',
+    },
+    {
+        organization: 'TKITI · Universitas Andalas',
+        role: 'Coordinator Assistant',
+        period: 'Mar 2025 — Mar 2026',
+    },
+    {
+        organization: 'Department of Information Systems, Universitas Andalas',
+        role: 'Teaching Assistant · Android Development Practicum',
+        period: 'Aug 2025 — Dec 2025',
+    },
+    {
+        organization: 'UPT Perpustakaan Universitas Andalas · Library Analytics',
+        role: 'Software Engineer',
+        period: 'Aug 2025 — Nov 2025',
+    },
+    {
+        organization: 'Bank Nagari · Technology & Digitalization Division',
+        role: 'Programmer Intern · Full Stack / Backend',
+        period: 'Jan 2025 — Apr 2025',
+    },
+    {
+        organization: 'Laboratory of Basic Computing, Universitas Andalas',
+        role: 'Research & Development Staff',
+        period: 'Aug 2024 — Mar 2025',
+    },
+] as const;
+---
+
+<div class="experience-panel" data-scrollable="false" data-at-bottom="false">
+    <header class="experience-header">
+        <div class="experience-heading">
+            <span>my {heading.toLowerCase()}</span>
+        </div>
+
+        <div class="resume-action">
+            <a
+                class="resume-cta"
+                href={resumeHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Preview public resume on Google Drive"
+            >
+                <UiIcon name="briefcase" size={11} strokeWidth={1.45} />
+                <span>Resume</span>
+            </a>
+            <span class="resume-tooltip" role="tooltip">preview resume on Google Drive</span>
+        </div>
+    </header>
+
+    <div
+        class="experience-scroll"
+        role="region"
+        aria-label="Work experience history"
+        tabindex="0"
+    >
+        <div class="experience-timeline">
+            {experienceItems.map((item) => (
+                <article class="experience-entry">
+                    <span class="timeline-dot" aria-hidden="true"></span>
+                    <div class="experience-copy">
+                        <strong class="experience-organization">{item.organization}</strong>
+                        <div class="experience-meta">
+                            <span class="experience-role">{item.role}</span>
+                            <time class="experience-period">{item.period}</time>
+                        </div>
+                    </div>
+                </article>
+            ))}
+        </div>
+    </div>
+
+    <div class="experience-scroll-affordance" aria-hidden="true">
+        <span>scroll ↓</span>
+    </div>
+</div>
+
+<style>
+    .experience-panel {
+        --experience-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+        --timeline-line: color-mix(in srgb, var(--muted) 30%, transparent);
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .experience-header {
+        position: relative;
+        z-index: 12;
+        min-width: 0;
+        padding: 8px clamp(12px, 0.95vw, 17px) 7px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid var(--experience-line);
+    }
+
+    .experience-heading,
+    .resume-cta {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .experience-heading {
+        flex: none;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.5deg);
+        transform-origin: left center;
+    }
+
+    .resume-action {
+        position: relative;
+        flex: none;
+    }
+
+    .resume-cta {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        flex: none;
+        gap: 5px;
+        padding: 5px 8px;
+        border: 1px solid color-mix(in srgb, var(--text) 44%, var(--border));
+        border-radius: 4px;
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--text) 35%, var(--surface)) 0%,
+            color-mix(in srgb, var(--text) 16%, var(--surface)) 18%,
+            color-mix(in srgb, var(--text) 7%, var(--bg)) 52%,
+            color-mix(in srgb, var(--text) 21%, var(--surface)) 76%,
+            color-mix(in srgb, var(--text) 10%, var(--bg)) 100%
+        );
+        color: color-mix(in srgb, var(--text) 98%, #d9dde2);
+        font-family: var(--font-mono);
+        font-size: 8.5px;
+        font-weight: 600;
+        line-height: 1;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        box-shadow:
+            inset 0 1px 0 color-mix(in srgb, #fff 24%, transparent),
+            inset 0 -1px 0 color-mix(in srgb, #000 28%, transparent),
+            0 1px 0 color-mix(in srgb, #fff 5%, transparent),
+            0 0 12px color-mix(in srgb, var(--text) 8%, transparent);
+        transition:
+            color 160ms ease,
+            background 160ms ease,
+            border-color 160ms ease,
+            box-shadow 160ms ease,
+            transform 160ms ease;
+    }
+
+    .resume-cta::after {
+        content: '';
+        position: absolute;
+        top: -35%;
+        bottom: -35%;
+        left: 0;
+        z-index: 0;
+        width: 42%;
+        background: linear-gradient(
+            105deg,
+            transparent 0%,
+            transparent 28%,
+            color-mix(in srgb, #fff 18%, transparent) 39%,
+            color-mix(in srgb, #fff 76%, transparent) 50%,
+            color-mix(in srgb, #fff 24%, transparent) 61%,
+            transparent 72%,
+            transparent 100%
+        );
+        transform: translateX(-210%) skewX(-14deg);
+        animation: resume-glint 3.4s cubic-bezier(.22, .61, .36, 1) infinite;
+        pointer-events: none;
+    }
+
+    .resume-cta > span,
+    .resume-cta :global(svg) {
+        position: relative;
+        z-index: 1;
+    }
+
+    .resume-cta:hover,
+    .resume-cta:focus-visible {
+        color: #fff;
+        border-color: color-mix(in srgb, var(--text) 66%, var(--border));
+        background: linear-gradient(
+            180deg,
+            color-mix(in srgb, var(--text) 42%, var(--surface)) 0%,
+            color-mix(in srgb, var(--text) 20%, var(--surface)) 19%,
+            color-mix(in srgb, var(--text) 10%, var(--bg)) 52%,
+            color-mix(in srgb, var(--text) 27%, var(--surface)) 78%,
+            color-mix(in srgb, var(--text) 13%, var(--bg)) 100%
+        );
+        box-shadow:
+            inset 0 1px 0 color-mix(in srgb, #fff 32%, transparent),
+            inset 0 -1px 0 color-mix(in srgb, #000 28%, transparent),
+            0 0 16px color-mix(in srgb, var(--text) 14%, transparent);
+        transform: translateY(-1px);
+        outline: none;
+    }
+
+    .resume-tooltip {
+        position: absolute;
+        right: 0;
+        top: calc(100% + 6px);
+        bottom: auto;
+        z-index: 30;
+        width: max-content;
+        padding: 4px 7px;
+        border: 1px solid var(--border-strong);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 9px;
+        font-weight: 450;
+        line-height: 1.2;
+        letter-spacing: 0;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(-3px);
+        transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .resume-action:hover .resume-tooltip,
+    .resume-action:focus-within .resume-tooltip {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    :global(html[data-theme='light']) .resume-cta {
+        border-color: color-mix(in srgb, var(--text) 30%, var(--border));
+        background: linear-gradient(
+            180deg,
+            #ffffff 0%,
+            color-mix(in srgb, var(--surface) 54%, #fff) 18%,
+            color-mix(in srgb, var(--surface-2) 72%, #fff) 54%,
+            color-mix(in srgb, var(--surface) 68%, #fff) 78%,
+            color-mix(in srgb, var(--surface-2) 82%, #fff) 100%
+        );
+        color: color-mix(in srgb, var(--text) 90%, var(--muted));
+        box-shadow:
+            inset 0 1px 0 #fff,
+            inset 0 -1px 0 color-mix(in srgb, #000 8%, transparent),
+            0 1px 5px color-mix(in srgb, #000 9%, transparent);
+    }
+
+    :global(html[data-theme='light']) .resume-cta::after {
+        background: linear-gradient(
+            105deg,
+            transparent 0%,
+            transparent 30%,
+            color-mix(in srgb, #fff 36%, transparent) 40%,
+            #fff 50%,
+            color-mix(in srgb, #fff 48%, transparent) 60%,
+            transparent 70%,
+            transparent 100%
+        );
+        opacity: .84;
+    }
+
+    :global(html[data-theme='light']) .resume-cta:hover,
+    :global(html[data-theme='light']) .resume-cta:focus-visible {
+        color: var(--text);
+        border-color: color-mix(in srgb, var(--text) 42%, var(--border));
+        background: linear-gradient(
+            180deg,
+            #fff 0%,
+            color-mix(in srgb, var(--surface) 42%, #fff) 18%,
+            color-mix(in srgb, var(--surface-2) 66%, #fff) 54%,
+            color-mix(in srgb, var(--surface) 58%, #fff) 80%,
+            color-mix(in srgb, var(--surface-2) 76%, #fff) 100%
+        );
+        box-shadow:
+            inset 0 1px 0 #fff,
+            inset 0 -1px 0 color-mix(in srgb, #000 10%, transparent),
+            0 2px 9px color-mix(in srgb, #000 11%, transparent);
+    }
+
+    .resume-cta :global(svg) {
+        transition: transform 160ms ease;
+    }
+
+    .resume-cta:hover :global(svg),
+    .resume-cta:focus-visible :global(svg) {
+        transform: scale(1.04);
+    }
+
+    @keyframes resume-glint {
+        0%, 54% { transform: translateX(-210%) skewX(-14deg); }
+        76%, 100% { transform: translateX(350%) skewX(-14deg); }
+    }
+
+    .experience-scroll {
+        min-width: 0;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior-y: contain;
+        scrollbar-gutter: stable;
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--muted) 34%, transparent) transparent;
+        outline: none;
+    }
+
+    /* Same clipping principle as the tech rain: fade the actual content with a
+       mask instead of covering it with a dark gradient panel. */
+    .experience-panel[data-scrollable='true'][data-at-bottom='false'] .experience-scroll {
+        -webkit-mask-image: linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 78%,
+            rgba(0, 0, 0, .88) 86%,
+            rgba(0, 0, 0, .42) 94%,
+            transparent 100%
+        );
+        mask-image: linear-gradient(
+            to bottom,
+            #000 0%,
+            #000 78%,
+            rgba(0, 0, 0, .88) 86%,
+            rgba(0, 0, 0, .42) 94%,
+            transparent 100%
+        );
+    }
+
+    .experience-panel:hover .experience-scroll,
+    .experience-panel:focus-within .experience-scroll,
+    .experience-panel[data-at-bottom='true'] .experience-scroll {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+
+    .experience-panel:hover .experience-scroll,
+    .experience-panel:focus-within .experience-scroll {
+        scrollbar-color: color-mix(in srgb, var(--muted) 58%, transparent) transparent;
+    }
+
+    .experience-scroll::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .experience-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .experience-scroll::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--muted) 34%, transparent);
+    }
+
+    .experience-panel:hover .experience-scroll::-webkit-scrollbar-thumb,
+    .experience-panel:focus-within .experience-scroll::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--muted) 58%, transparent);
+    }
+
+    .experience-scroll:focus-visible {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--muted) 30%, transparent);
+    }
+
+    .experience-scroll-affordance {
+        position: absolute;
+        z-index: 5;
+        right: 14px;
+        bottom: 8px;
+        display: block;
+        color: color-mix(in srgb, var(--muted) 88%, transparent);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        line-height: 1;
+        letter-spacing: 0.03em;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(3px);
+        transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .experience-panel[data-scrollable='true'][data-at-bottom='false'] .experience-scroll-affordance {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .experience-panel:hover .experience-scroll-affordance,
+    .experience-panel:focus-within .experience-scroll-affordance,
+    .experience-panel[data-at-bottom='true'] .experience-scroll-affordance {
+        opacity: 0;
+        transform: translateY(3px);
+    }
+
+    .experience-timeline {
+        position: relative;
+        min-width: 0;
+        padding: 5px 0 16px;
+    }
+
+    .experience-timeline::before {
+        content: '';
+        position: absolute;
+        left: clamp(16px, 1.15vw, 20px);
+        top: 14px;
+        bottom: 15px;
+        width: 1px;
+        background: var(--timeline-line);
+        pointer-events: none;
+    }
+
+    .experience-entry {
+        position: relative;
+        min-width: 0;
+        display: grid;
+        grid-template-columns: clamp(32px, 2.4vw, 38px) minmax(0, 1fr);
+        padding: 8px clamp(12px, 0.95vw, 17px) 9px 0;
+        background: transparent;
+        transition: background 140ms ease;
+    }
+
+    .experience-entry:hover {
+        background: color-mix(in srgb, var(--surface) 24%, transparent);
+    }
+
+    .timeline-dot {
+        position: relative;
+        z-index: 2;
+        justify-self: center;
+        align-self: start;
+        width: 5px;
+        height: 5px;
+        margin-top: 4px;
+        border: 1px solid color-mix(in srgb, var(--muted) 68%, transparent);
+        border-radius: 50%;
+        background: var(--bg);
+        box-shadow: 0 0 0 2px var(--bg);
+        transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
+    }
+
+    .experience-entry:hover .timeline-dot {
+        border-color: color-mix(in srgb, var(--text) 82%, transparent);
+        background: color-mix(in srgb, var(--text) 74%, transparent);
+        transform: scale(1.08);
+    }
+
+    .experience-copy {
+        min-width: 0;
+        display: grid;
+        gap: 4px;
+    }
+
+    .experience-organization {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 10.5px;
+        font-weight: 550;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .experience-meta {
+        min-width: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: baseline;
+        gap: 10px;
+    }
+
+    .experience-role {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--text-body);
+        font-family: var(--font-sans);
+        font-size: 9.5px;
+        line-height: 1.25;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .experience-period {
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .resume-cta::after {
+            animation: none;
+        }
+
+        .resume-tooltip,
+        .experience-scroll-affordance {
+            transition: none;
+        }
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .experience-header {
+            padding-top: 6px;
+            padding-bottom: 5px;
+        }
+
+        .experience-heading {
+            font-size: 14px;
+        }
+
+        .experience-entry {
+            padding-top: 7px;
+            padding-bottom: 8px;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .experience-header {
+            padding: 11px 14px 9px;
+        }
+
+        .experience-heading {
+            font-size: 15px;
+        }
+
+        .experience-timeline::before {
+            left: 17px;
+        }
+
+        .experience-entry {
+            grid-template-columns: 34px minmax(0, 1fr);
+            padding: 10px 14px 11px 0;
+        }
+
+        .experience-meta {
+            grid-template-columns: 1fr;
+            gap: 3px;
+        }
+
+        .experience-period {
+            justify-self: start;
+        }
+    }
+</style>
+
+<script>
+    const panels = document.querySelectorAll<HTMLElement>('.experience-panel');
+
+    panels.forEach((panel) => {
+        const scroll = panel.querySelector<HTMLElement>('.experience-scroll');
+        if (!scroll) return;
+
+        const updateOverflowState = () => {
+            const scrollable = scroll.scrollHeight - scroll.clientHeight > 2;
+            const atBottom = !scrollable || scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2;
+            panel.dataset.scrollable = scrollable ? 'true' : 'false';
+            panel.dataset.atBottom = atBottom ? 'true' : 'false';
+        };
+
+        updateOverflowState();
+        scroll.addEventListener('scroll', updateOverflowState, { passive: true });
+
+        const observer = new ResizeObserver(updateOverflowState);
+        observer.observe(scroll);
+        const timeline = scroll.querySelector<HTMLElement>('.experience-timeline');
+        if (timeline) observer.observe(timeline);
+    });
+</script>

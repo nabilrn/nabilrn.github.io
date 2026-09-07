@@ -1,0 +1,75 @@
+---
+import HomeHeader from './home/HomeHeader.astro';
+import HomeLightModePolish from './home/HomeLightModePolish.astro';
+import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
+import {
+    localizePath,
+    normalizeLocale,
+    stripLocaleFromPath,
+    type SiteLocale,
+} from '../data/siteContent';
+
+interface Props {
+    currentPath?: string;
+    locale?: SiteLocale;
+    alternatePaths?: Partial<Record<SiteLocale, string>>;
+}
+
+const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
+const locale = normalizeLocale(Astro.props.locale);
+const alternatePaths = Astro.props.alternatePaths;
+const unlocalizedPath = stripLocaleFromPath(currentPath || '/');
+const normalizedPath = unlocalizedPath.endsWith('/') ? unlocalizedPath : `${unlocalizedPath}/`;
+const isHomePage = normalizedPath === '/';
+const isBlogPage = normalizedPath.startsWith('/blog/');
+const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
+const languageTargets = {
+    en: alternatePaths?.en ?? localizePath(unlocalizedPath, 'en'),
+    id: alternatePaths?.id ?? localizePath(unlocalizedPath, 'id'),
+};
+---
+
+<div class="full-shell">
+    {!isHomePage && (
+        <HomeHeader
+            locale={locale}
+            activeSection={activeSection}
+            languageTargets={languageTargets}
+        />
+    )}
+
+    <main class="full-main">
+        <slot />
+    </main>
+
+    {isHomePage && <HomeResponsiveArchitecture />}
+    {isHomePage && <HomeLightModePolish />}
+</div>
+
+<style>
+    .full-shell {
+        width: min(1920px, calc(100vw - 32px));
+        min-height: 100vh;
+        margin: 0 auto;
+        --content-gutter: 0px;
+        --sheet-line: color-mix(in srgb, var(--border) 72%, var(--bg));
+    }
+
+    .full-main {
+        width: 100%;
+        min-height: calc(100vh - 52px);
+        margin: 0;
+        padding: 0 0 72px;
+    }
+
+    @media (max-width: 760px) {
+        .full-shell {
+            width: 100%;
+        }
+
+        .full-main {
+            min-height: calc(100vh - 48px);
+            padding-bottom: 56px;
+        }
+    }
+</style>

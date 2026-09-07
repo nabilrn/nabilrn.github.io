@@ -1,6 +1,6 @@
 ---
-title: "Indonesia dan AI: Kita Pakai Tapi Gak Ngerti Apa yang Kita Pakai"
-description: "Indonesia sangat aktif memakai AI, tetapi literasi model yang rendah bisa menghambat dampak nyata dan memperbesar risiko kualitas informasi."
+title: "Indonesia dan AI: Adopsi Itu Bagian Mudah"
+description: "Indonesia mengadopsi AI dengan cepat. Pertanyaan yang lebih sulit adalah apakah kita ikut membangun penilaian, keterampilan, dan institusi untuk menggunakannya dengan baik."
 pubDate: 2026-04-21
 tags: ["ai", "indonesia", "teknologi", "masyarakat"]
 featured: false
@@ -9,117 +9,68 @@ locale: "id"
 translationKey: "indonesia-and-ai"
 ---
 
-# Indonesia dan AI: Kita Pakai Tapi Gak Ngerti Apa yang Kita Pakai
+Saya cukup sering memakai AI sampai akhirnya merasa pertanyaan yang menarik bukan lagi apakah orang Indonesia memakai AI.
 
-> **Opini pribadi** | Teknologi & Masyarakat
+Kita memang memakainya.
 
----
+Pertanyaan yang lebih sulit justru muncul setelah jawabannya keluar di layar.
 
-Indonesia punya 1,4 miliar akses ke layanan AI per tahun, nomor tiga di dunia, di bawah Amerika Serikat dan India.[^1] Angka yang kelihatannya keren banget. Tapi ada satu pertanyaan yang jarang diajukan: *pakai AI untuk apa, dan ngerti gak cara kerjanya?*
+Saat saya memakai AI untuk coding, infrastruktur, riset, atau menulis, alat ini paling berguna ketika saya sudah punya cukup pemahaman untuk membantahnya. Saya bisa minta pendekatan lain, buka dokumentasi, menjalankan perintah di environment yang aman, memeriksa diff, atau menolak jawaban yang terasa tidak masuk akal. Bagian yang berbahaya adalah ketika output-nya terlihat meyakinkan sementara saya sendiri tidak punya cara untuk memastikan apakah jawabannya benar.
 
-Jawabannya, kalau jujur, cukup bikin gelisah.
+Buat saya, perbedaan itu jauh lebih penting daripada menghitung berapa banyak prompt yang dikirim sebuah negara.
 
----
+## Indonesia tidak punya masalah adopsi
 
-## Masalah Utama: AI Diperlakukan Kayak Dewa, Bukan Tools
+Angka penggunaan AI di Indonesia sudah tinggi. Dalam [Microsoft dan LinkedIn Work Trend Index 2024](https://news.microsoft.com/id-id/2024/06/11/microsoft-and-linkedin-release-the-2024-work-trend-index-on-the-state-of-ai-at-work-in-indonesia/), 92% knowledge worker yang disurvei di Indonesia mengatakan sudah memakai generative AI di tempat kerja, dibandingkan 75% secara global.
 
-Ini yang paling fundamental dan yang paling bikin aku khawatir.
+Setahun kemudian, [Indonesia e-Conomy SEA 2025](https://services.google.com/fh/files/misc/indonesia_e_conomy_sea_2025_report.pdf) dari Google, Temasek, dan Bain menunjukkan arah yang sama dari sisi konsumen. Dalam surveinya, 80% responden Indonesia mengatakan mereka berinteraksi dengan tools dan fitur AI setiap hari, sementara 68% mengatakan mereka pernah berdiskusi atau mengajukan pertanyaan ke chatbot AI. Aplikasi yang dipasarkan dengan fitur AI juga mencatat pertumbuhan pendapatan 127% pada paruh pertama 2025 dibanding periode yang sama pada 2024.
 
-Kebanyakan orang Indonesia yang pakai AI, terutama pelajar dan pekerja muda, bukan pakai AI sebagai *alat bantu* untuk mempercepat kerja yang udah dipahami. Mereka pakai AI sebagai *pengganti* pemahaman itu sendiri. Seolah-olah AI adalah oracle yang selalu benar, yang tinggal dikasih prompt terus outputnya di-copy paste.
+Sentimen publiknya juga sangat positif. [Ipsos AI Monitor 2025](https://www.ipsos.com/en-id/press-release-ipsos-ai-monitor-2025) melaporkan bahwa 91% responden Indonesia merasa punya pemahaman yang baik tentang AI dan 80% merasa antusias terhadap produk serta layanan berbasis AI.
 
-Mahasiswa kasih tugas ke AI tanpa ngerti materinya. Freelancer minta AI nulis proposal tanpa tau konteks kliennya. Konten kreator generate artikel tanpa pernah baca satu referensi pun.
+Karena itu saya tidak lagi suka klaim bahwa orang Indonesia sekadar "tidak mengerti AI." Kalimat itu terlalu luas dan datanya tidak cukup untuk menggeneralisasi satu negara. Memang, merasa paham bukan berarti seseorang otomatis lolos tes kompetensi teknis. Tapi mengabaikan tingkat adopsi, eksperimen, dan rasa percaya diri yang sudah ada juga sama malasnya.
 
-**Dan ini bukan asumsi. Ada datanya.**
+Pertanyaan yang lebih berguna adalah apakah rasa percaya diri itu diikuti kemampuan untuk menilai hasilnya.
 
-Studi dari MIT Media Lab (2025) dengan 54 mahasiswa menunjukkan hasil yang cukup mengkhawatirkan:[^2]
+## Memakai AI dan mengevaluasi AI adalah dua kemampuan berbeda
 
-- Kelompok yang nulis esai pakai ChatGPT exclusively menunjukkan **aktivitas otak paling rendah** dibanding kelompok yang pakai search engine atau nulis sendiri
-- **83% dari kelompok AI tidak bisa mengingat poin utama** dari esai yang baru saja mereka "tulis"
-- Brain connectivity (alpha dan theta waves) hampir **berkurang setengahnya**
-- Mereka nulis 60% lebih cepat, tapi *cognitive load* yang relevan turun 32%
+Mengetahui nama ChatGPT, Gemini, Claude, atau model apa pun yang sedang populer bulan ini bukan definisi literasi AI yang saya maksud. Yang lebih penting adalah apakah seseorang bisa mengenali saat model sedang menebak, saat sebuah klaim tidak punya sumber, saat sebuah command berisiko, atau saat paragraf yang terdengar rapi sebenarnya menyembunyikan argumen yang lemah.
 
-Yang lebih parah: efeknya ga langsung balik ke normal setelah berhenti pakai AI. Brain activity tetap lebih rendah bahkan setelah study selesai.
+Di sini situasi Indonesia jadi lebih menarik. UNESCO dan kementerian komunikasi Indonesia menyelesaikan [AI Readiness Assessment](https://www.unesco.org/en/articles/unesco-and-kominfo-completed-ai-readiness-assessment-indonesia-ready-ai?hub=378) pada 2024 setelah konsultasi di lima wilayah. Assessment itu tidak menggambarkan Indonesia sebagai negara yang sekadar "tertinggal." Yang ditemukan justru gap yang lebih spesifik: kesadaran bahwa AI bisa memperkuat bias dan diskriminasi masih relatif rendah, pendanaan riset AI masih lemah dibanding beberapa negara tetangga, dan diperlukan edukasi publik serta koordinasi institusi yang lebih kuat.
 
-Para peneliti menyebut fenomena ini sebagai **"cognitive debt"**, utang kognitif yang terakumulasi setiap kali kita delegasikan proses berpikir ke AI.
+Framing seperti itu jauh lebih masuk akal bagi saya. Masalahnya bukan karena orang memakai AI. Masalah mulai muncul ketika penggunaan tumbuh lebih cepat daripada kebiasaan dan institusi yang dibutuhkan untuk memverifikasinya.
 
-> *"When participants reproduce suggestions without evaluating their accuracy or relevance, they not only forfeit ownership of the ideas but also risk internalising shallow or biased perspectives."*
-> MIT Media Lab, 2025
+Jawaban yang salah tetap salah walaupun disampaikan dengan sangat percaya diri. Kalau AI mengarang regulasi, salah membaca dokumentasi teknis, menyarankan command destruktif, atau menghasilkan statistik tanpa sumber yang nyata, tetap harus ada manusia yang menangkap kesalahan itu. Model tidak bisa menjadi otoritas terakhir atas output-nya sendiri.
 
-Ini masalah global, iya. Tapi di Indonesia, ada lapisan ekstra: kita tidak punya safety net untuk koreksi saat AI salah. Kalau GPT hallucinate soal peraturan perpajakan Indonesia, siapa yang sadar? Kalau AI generate data statistik yang ga valid, siapa yang punya kapasitas verifikasi?
+## Studi MIT adalah peringatan, bukan statistik tentang Indonesia
 
-**AI hanya berguna sebanding dengan kapasitas penggunanya untuk mengevaluasi output-nya.** Kalau penggunanya tidak punya fondasi di domain yang dikerjakan, AI bukan *multiplier*, ia jadi substitusi yang berbahaya.
+Salah satu studi yang sering dikutip dalam pembahasan seperti ini adalah paper MIT Media Lab tahun 2025, [*Your Brain on ChatGPT*](https://arxiv.org/abs/2506.08872). Penelitiannya menarik, tapi juga sangat mudah disalahgunakan.
 
----
+Studi itu melibatkan 54 peserta dalam tiga sesi awal penulisan esai, dibagi ke kelompok LLM, search engine, dan brain-only. Pengukuran EEG menunjukkan kelompok LLM memiliki konektivitas otak paling lemah di antara tiga kondisi tersebut. Peneliti juga menemukan recall yang lebih lemah dan rasa kepemilikan terhadap esai yang lebih rendah pada pengguna LLM. Hanya 18 peserta yang mengikuti sesi keempat, ketika sebagian peserta berpindah kondisi.
 
-## Paradoks Data Indonesia
+Hasil itu layak diperhatikan. Tapi itu **bukan** bukti bahwa persentase tertentu dari pengguna AI Indonesia tidak bisa mengingat pekerjaannya, dan bukan alasan untuk mengubah eksperimen kecil yang sangat spesifik tentang penulisan esai menjadi klaim tentang seluruh populasi atau semua jenis pekerjaan berbantuan AI.
 
-Di sini ada ironi yang cukup menarik.
+Pelajaran praktisnya justru lebih menarik daripada headline-nya. Kalau saya meminta AI membuat sesuatu lalu tidak bisa menjelaskan hasilnya setelah chat ditutup, kemungkinan saya sudah menyerahkan terlalu banyak proses berpikir. Kalau saya masih bisa memeriksa, mempertanyakan, menguji, dan memperbaikinya, alat itu bekerja dengan cara yang jauh lebih berguna.
 
-Secara angka, Indonesia kelihatan sangat antusias terhadap AI:
+## Momentum konsumen yang tinggi bukan berarti tidak ada yang perlu dibangun
 
-| Metrik | Angka | Sumber |
-|---|---|---|
-| Pekerja intelektual yang pakai GenAI | **92%** (vs rata-rata global 75%) | Microsoft & LinkedIn, 2024 |
-| Antusiasme AI di kehidupan sehari-hari | **41%** responden (peringkat 4 dunia) | Statista Consumer Insights, 2024 |
-| Akses ke layanan AI per tahun | **1,4 miliar** (peringkat 3 dunia) | GoTo Group, 2024 |
-| Adopsi AI naik di 2024 | **+47%** | Industry Report, 2025 |
-| Proyeksi kontribusi AI ke GDP 2030 | **USD 366 miliar/tahun** | McKinsey |
+Ada juga kecenderungan membagi negara menjadi "AI builder" dan "AI consumer" seolah batasnya sangat sederhana. Dulu framing itu terasa masuk akal bagi saya, tapi datanya ternyata lebih berantakan.
 
-Tapi ada yang ga muncul di tabel ini: Indonesia **tidak masuk top 50 negara** dalam output riset AI, paten AI, dan investasi AI menurut Stanford AI Index.[^3]
+Laporan e-Conomy SEA 2025 memperkirakan private AI funding untuk Indonesia mencapai USD 91 juta dari paruh kedua 2024 sampai paruh pertama 2025, setara 4% investasi AI di ASEAN-10 pada periode tersebut. Di saat yang sama, Indonesia memimpin kawasan dalam pertumbuhan pendapatan aplikasi yang dipasarkan dengan fitur AI.
 
-Jadi kita adalah negara pengguna terbesar ketiga di dunia, tapi hampir ga ada kontribusi ke pengembangan teknologinya. Kita **konsumen AI**, bukan *builder*.
+Dua angka itu menjelaskan hal yang berbeda. Yang satu adalah snapshot investasi swasta, sementara yang lain menggambarkan adopsi komersial. Keduanya tidak otomatis memberi tahu kita berapa banyak engineer AI yang kompeten di Indonesia, seberapa kuat komunitas risetnya, atau seberapa baik organisasi di sini mengimplementasikan AI secara internal.
 
-Dan itu sendiri bukan masalah, semua negara perlu mulai dari konsumsi. Masalahnya adalah *cara* kita mengonsumsinya.
+Temuan UNESCO bahwa riset AI masih kurang pendanaan menurut saya justru alasan yang lebih kuat untuk peduli pada sisi builder. Saya ingin lebih banyak orang di sini yang mampu melatih, mengevaluasi, mengintegrasikan, mengamankan, dan mengoperasikan sistem AI. Bukan karena memakai produk jadi itu lebih rendah, tetapi karena kemampuan yang lebih dalam memberi kita lebih banyak kontrol atas arah teknologinya.
 
----
+## Seperti apa penggunaan AI yang lebih baik bagi saya
 
-## Lima Masalah Lain yang Memperparah
+Saya tidak merasa jawabannya adalah memakai AI lebih sedikit. Standar penggunaannya saja yang harus lebih tinggi.
 
-### 1. Literasi Model AI yang Rendah Banget
+Kalau AI membantu saya menulis kode, hasilnya tetap harus lolos compiler, tests, dokumentasi, dan arsitektur proyek yang sebenarnya. Kalau AI menyarankan command infrastruktur, saya harus tahu apa yang akan disentuh command itu sebelum menjalankannya. Kalau AI memberi sebuah klaim faktual, saya harus bisa membuka sumber aslinya, bukan sekadar percaya pada kalimat yang terlihat seperti sitasi. Kalau AI membantu menulis, saya tetap harus menentukan sendiri apa yang benar-benar saya yakini.
 
-Rata-rata orang Indonesia kenal AI dari brand, bukan dari konsep. Persis kayak "pasta gigi" yang disebut "Pepsodent", AI di sini sama dengan "ChatGPT". Padahal ada Claude, Gemini, Mistral, LLaMA, Grok, dan puluhan model lainnya dengan kekuatan dan kelemahan yang berbeda-beda.
+Prinsip yang sama juga berlaku di luar engineering. AI bisa mempercepat pekerjaan membosankan, memperlihatkan lebih banyak opsi, menjelaskan konsep yang belum familiar, dan membuat informasi lebih mudah diakses. Tapi keputusan tetap milik penggunanya.
 
-Hasilnya? Tool selection bukan berdasarkan kebutuhan, tapi berdasarkan nama yang paling familiar. Dan banyak use case yang sebenernya lebih cocok pakai model lain, malah dijalankan di model yang salah.
+Adopsi AI Indonesia yang cepat bukan sesuatu yang saya lihat sebagai kelemahan. Itu bisa menjadi keuntungan. Jutaan orang yang semakin nyaman memakai kelas tools baru membuka ruang untuk produk, workflow, dan jenis pekerjaan baru.
 
-### 2. Banjir Konten Slop yang Mengalahkan Konten Berkualitas
+Tapi angka penggunaan baru permulaan. Yang akan bertambah nilainya dari waktu ke waktu adalah apakah orang ikut menjadi lebih baik dalam berpikir bersama alat itu, memeriksa hasilnya, dan pada akhirnya ikut membangun dengannya.
 
-Ini masalah global, tapi di Indonesia terasa lebih akut. Konten AI-generated yang informatif ada, tapi tenggelam di bawah gelombang slop dan brainrot. Estimasi perbandingan views antara konten slop dan konten substansif bisa sampai 4–5:1. Algoritma platform memang yang lebih bertanggung jawab, tapi pasar yang menerimanya adalah kita.
-
-Banyak kreator FOMO yang produksi massal konten AI demi adsense, tanpa peduli dampaknya ke kualitas informasi publik. Hasilnya adalah ekosistem informasi yang makin noise, dan orang yang butuh informasi berkualitas makin susah nemunya.
-
-### 3. Bisnis Sharing Subscription yang Sia-sia
-
-Indonesia terkenal kreatif dalam "pembajakan terstruktur", termasuk jual akun AI premium sharing ke banyak orang. Masalahnya bukan cuma soal ToS violation. Subscription AI premium personal memiliki context window dan usage limit yang dioptimalkan untuk satu pengguna. Pakai bareng 10 orang artinya ga ada yang dapat manfaat maksimalnya. Dan harga tetap global, jadi "penghematan" yang dikira cerdas sebenarnya cuma mengorbankan kualitas pengalaman.
-
-Ini dilatarbelakangi problem ekonomi yang nyata, pendapatan rata-rata Indonesia memang ga mendukung harga subscription global. Tapi solusinya bukan sharing account, karena outcome-nya jadi sama aja: ga dapat value.
-
-### 4. Influencer AI yang Jualan PHP Berkedok Edukasi
-
-Polanya udah terlalu familiar: thumbnail clickbait "tools AI gratis yang gila ini!!", konten short yang ragebait, lalu di akhir ada CTA ke kelas berbayar, member eksklusif, atau PDF panduan. Tools yang direkomendasikan sering sudah paid, outdated, atau tidak relevan untuk use case Indonesia.
-
-Indonesia butuh kreator yang genuinely mengedukasi AI, bukan funnel marketing yang nyamar jadi konten edukasi.
-
-### 5. Faktor Struktural yang Ga Bisa Diabaikan
-
-Indonesia bukan negara yang fokus pada pengembangan AI secara industri. Demand untuk tenaga digital bisa mencapai **12 juta orang pada 2030**, dan kita belum punya ekosistem yang siap mengisi gap itu.[^4] Ditambah broadband penetration yang masih di bawah 20% di beberapa daerah, ketimpangan akses antara kota dan desa masih sangat nyata.
-
----
-
-## Kesimpulan: Keterlambatan yang Bisa Jadi Kronis
-
-Kalau pola ini terus berlanjut, keterlambatan Indonesia dalam adopsi AI yang *bermakna* akan makin struktural. Bukan karena kita tidak pakai AI, justru sebaliknya. Kita pakai AI lebih dari yang kita sadari, tapi dengan cara yang ga membangun kapasitas apapun.
-
-Negara yang akan menang di era AI bukan yang paling banyak pakai ChatGPT. Tapi yang berhasil mengintegrasikan AI dengan kapasitas berpikir manusia yang kuat, yang pakai AI untuk *amplify* pemahaman, bukan menggantikannya.
-
-Statistik kita keren di atas kertas. Tapi kalau 83% dari pengguna AI Indonesia ga bisa ingat apa yang baru saja mereka "kerjakan" dengan AI, kita perlu nanya lagi: *sebenernya kita maju, atau cuma kelihatan maju?*
-
----
-
-[^1]: GoTo Group, dalam Indonesia Digital Economy Outlook 2025 Metro TV, Desember 2024
-[^2]: Kosmyna, N. et al. (2025). *Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task.* arXiv:2506.08872
-[^3]: Stanford AI Index 2024, via Medium/@daffaghiffarykusuma
-[^4]: Asosiasi AI Indonesia, 2025; McKinsey via asosiasi.ai
-
----
-
-*Opini pribadi. Penulis adalah lulusan Sistem Informasi yang tertarik pada infrastruktur teknologi dan adopsi AI di konteks lokal.*
+Gap yang saya pedulikan bukan antara orang yang memakai AI dan yang tidak. Gap-nya ada antara **memakai AI karena ia bisa menjawab** dan **memakai AI sambil tetap tahu bagaimana menilai jawabannya**.

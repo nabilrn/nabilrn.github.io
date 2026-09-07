@@ -1,0 +1,79 @@
+<style is:global>
+    /*
+     * Homepage light-theme refinements.
+     *
+     * The global palette is intentionally left untouched. These adjustments only
+     * strengthen local structural hierarchy and component legibility where the
+     * near-white canvas was washing out details on large/tall viewports.
+     */
+
+    html[data-theme='light'] .home-redesign {
+        --sheet-line: color-mix(in oklab, var(--border) 82%, var(--bg));
+    }
+
+    /* Major bento divisions should read one step stronger than the inner sheet
+       lines without turning the page into a heavy bordered dashboard. */
+    html[data-theme='light'] .home-redesign .top-layout {
+        border-bottom-color: color-mix(in srgb, var(--border-strong) 42%, var(--border));
+    }
+
+    html[data-theme='light'] .home-redesign .identity-board,
+    html[data-theme='light'] .home-redesign .projects-region {
+        border-right-color: color-mix(in srgb, var(--border-strong) 42%, var(--border));
+    }
+
+    /* The animated technology rail stays monochrome while idle, but the previous
+       transparent mix became too faint on #fafafa. Use an opaque tonal mix so the
+       icons remain legible without competing with their brand-color hover state. */
+    html[data-theme='light'] .home-redesign .skill-item {
+        color: color-mix(in srgb, var(--muted) 90%, var(--bg));
+    }
+
+    /* Keep the NR geometry identical; only raise light-theme construction-line,
+       pattern and silhouette contrast enough to preserve the isometric drawing. */
+    html[data-theme='light'] .home-redesign .nr-stage {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 10.5%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 17%, var(--nr-background));
+        --nr-line: color-mix(in oklab, var(--nr-foreground) 11.5%, var(--nr-background));
+        --nr-guide-base-opacity: .70;
+        --nr-guide-glow-opacity: .26;
+        --nr-glow-start-opacity: .34;
+    }
+
+    html[data-theme='light'] .home-redesign .nr-stage[data-music-state='playing'] {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 13%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 20%, var(--nr-background));
+    }
+
+    /* Resume remains a restrained silver control in light mode. The lower edge
+       and border are slightly more metallic, while the existing moving specular
+       highlight remains the focal motion cue. */
+    html[data-theme='light'] .home-redesign .resume-cta {
+        border-color: color-mix(in srgb, var(--text) 36%, var(--border));
+        background: linear-gradient(
+            180deg,
+            #fff 0%,
+            color-mix(in srgb, var(--surface) 48%, #fff) 18%,
+            color-mix(in srgb, var(--surface-2) 78%, #fff) 52%,
+            color-mix(in srgb, var(--surface) 62%, #fff) 76%,
+            color-mix(in srgb, var(--surface-2) 90%, #fff) 100%
+        );
+        box-shadow:
+            inset 0 1px 0 #fff,
+            inset 0 -1px 0 color-mix(in srgb, #000 13%, transparent),
+            0 1px 6px color-mix(in srgb, #000 10%, transparent);
+    }
+
+    html[data-theme='light'] .home-redesign .resume-cta::after {
+        opacity: .92;
+    }
+
+    html[data-theme='light'] .home-redesign .resume-cta:hover,
+    html[data-theme='light'] .home-redesign .resume-cta:focus-visible {
+        border-color: color-mix(in srgb, var(--text) 48%, var(--border));
+        box-shadow:
+            inset 0 1px 0 #fff,
+            inset 0 -1px 0 color-mix(in srgb, #000 15%, transparent),
+            0 2px 10px color-mix(in srgb, #000 12%, transparent);
+    }
+</style>

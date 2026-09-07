@@ -45,7 +45,6 @@ const renderUrl = ({
 export async function GET() {
   const pages = [
     { path: '/', priority: 1.0, changefreq: 'monthly', lastmod: staticLastmod },
-    { path: '/projects/', priority: 0.9, changefreq: 'weekly', lastmod: staticLastmod },
     { path: '/blog/', priority: 0.8, changefreq: 'weekly', lastmod: staticLastmod },
   ];
 

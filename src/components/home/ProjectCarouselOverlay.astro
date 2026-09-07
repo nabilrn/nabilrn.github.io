@@ -1,0 +1,261 @@
+---
+import { webProjects } from '../../data/projects';
+import ProjectCard from './ProjectCard.astro';
+---
+
+<template data-project-carousel-template>
+    <div class="project-carousel-panel" data-carousel-ready="false">
+        <header class="project-carousel-header">
+            <div class="project-carousel-heading">my projects</div>
+        </header>
+
+        <div class="project-carousel-viewport" role="region" aria-label="Selected projects carousel">
+            <div class="project-carousel-track">
+                <div class="project-carousel-group" data-project-carousel-source>
+                    {webProjects.map((project) => <ProjectCard project={project} />)}
+                </div>
+                <div class="project-carousel-group project-carousel-group--duplicate" aria-hidden="true">
+                    {webProjects.map((project) => <ProjectCard project={project} duplicate />)}
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style is:global>
+    /* index.astro gives every .index-region a legacy two-row grid because the
+       original projects block had a header and a list. The overlay is now one
+       self-contained child, so projects must own one full-height row. */
+    .home-redesign .projects-region {
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr);
+        overflow: hidden;
+    }
+
+    .home-redesign .project-carousel-panel {
+        --project-carousel-line: color-mix(in oklab, var(--border) 64%, var(--bg));
+        --project-carousel-offset: 0px;
+        --project-carousel-duration: 1s;
+        --project-carousel-inset: 7px;
+
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: 36px minmax(0, 1fr);
+        background: var(--bg);
+        overflow: hidden;
+    }
+
+    .home-redesign .project-carousel-header {
+        box-sizing: border-box;
+        min-width: 0;
+        height: 36px;
+        padding: 8px clamp(12px, 0.95vw, 17px) 7px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid var(--project-carousel-line);
+    }
+
+    .home-redesign .project-carousel-heading {
+        flex: none;
+        width: max-content;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1;
+        transform: rotate(-1.35deg);
+        transform-origin: left center;
+        user-select: none;
+    }
+
+    /* Keep vertical geometry in normal flow. The viewport has a definite grid
+       height and flex stretching propagates that height to track -> groups ->
+       cards. This avoids the previous percentage-height/absolute-positioning
+       cycle that could collapse the moving content to zero paint height. */
+    .home-redesign .project-carousel-viewport {
+        box-sizing: border-box;
+        min-width: 0;
+        min-height: 0;
+        padding-block: var(--project-carousel-inset);
+        display: flex;
+        align-items: stretch;
+        overflow: hidden;
+        outline: none;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+    }
+
+    .home-redesign .project-carousel-track {
+        position: relative;
+        flex: 0 0 auto;
+        align-self: stretch;
+        width: max-content;
+        min-width: max-content;
+        min-height: 0;
+        display: flex;
+        align-items: stretch;
+        transform: translate3d(0, 0, 0);
+        will-change: transform;
+        backface-visibility: hidden;
+    }
+
+    .home-redesign .project-carousel-panel[data-carousel-ready='true'] .project-carousel-track {
+        animation: home-project-carousel var(--project-carousel-duration) linear infinite;
+    }
+
+    .home-redesign .project-carousel-group {
+        flex: none;
+        align-self: stretch;
+        min-height: 0;
+        display: flex;
+        align-items: stretch;
+        gap: 10px;
+        padding-right: 10px;
+    }
+
+    /* ProjectCard previously used height:100%. In this carousel the more robust
+       geometry is flex cross-axis stretching, so remove the percentage height
+       specifically inside the moving rail. */
+    .home-redesign .project-carousel-group > .project-card {
+        height: auto;
+        align-self: stretch;
+    }
+
+    @keyframes home-project-carousel {
+        from { transform: translate3d(0, 0, 0); }
+        to { transform: translate3d(var(--project-carousel-offset), 0, 0); }
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .home-redesign .project-carousel-panel {
+            --project-carousel-inset: 6px;
+            grid-template-rows: 32px minmax(0, 1fr);
+        }
+
+        .home-redesign .project-carousel-header {
+            height: 32px;
+            padding-top: 6px;
+            padding-bottom: 5px;
+        }
+
+        .home-redesign .project-carousel-heading {
+            font-size: 14px;
+        }
+    }
+
+    @media (max-width: 720px) {
+        .home-redesign .project-carousel-viewport {
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 10px 12px;
+            scrollbar-width: thin;
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .home-redesign .project-carousel-track {
+            animation: none !important;
+            transform: none !important;
+            will-change: auto;
+        }
+
+        .home-redesign .project-carousel-group--duplicate {
+            display: none;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-redesign .project-carousel-viewport {
+            overflow-x: auto;
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .home-redesign .project-carousel-track {
+            animation: none !important;
+            transform: none !important;
+            will-change: auto;
+        }
+
+        .home-redesign .project-carousel-group--duplicate {
+            display: none;
+        }
+    }
+</style>
+
+<script>
+    const TARGET_VELOCITY_PX_PER_SECOND = 32;
+    const template = document.querySelector<HTMLTemplateElement>('[data-project-carousel-template]');
+    const region = document.querySelector<HTMLElement>('.projects-region');
+
+    if (template && region && !region.querySelector('.project-carousel-panel')) {
+        region.replaceChildren(template.content.cloneNode(true));
+    }
+
+    const panel = region?.querySelector<HTMLElement>('.project-carousel-panel');
+    const sourceGroup = panel?.querySelector<HTMLElement>('[data-project-carousel-source]');
+    const viewport = panel?.querySelector<HTMLElement>('.project-carousel-viewport');
+
+    if (panel && sourceGroup && viewport) {
+        let scheduledFrame = 0;
+        let previousDistance = 0;
+
+        const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const mobileQuery = window.matchMedia('(max-width: 720px)');
+
+        const measure = () => {
+            scheduledFrame = 0;
+
+            if (motionQuery.matches || mobileQuery.matches) {
+                panel.dataset.carouselReady = 'false';
+                panel.style.removeProperty('--project-carousel-offset');
+                panel.style.removeProperty('--project-carousel-duration');
+                return;
+            }
+
+            /* The source group includes its trailing seam spacing. Travelling by
+               exactly this width places duplicate group #2 at group #1's initial
+               coordinates when the animation loops. */
+            const distance = sourceGroup.getBoundingClientRect().width;
+            if (!Number.isFinite(distance) || distance <= 0) {
+                panel.dataset.carouselReady = 'false';
+                return;
+            }
+
+            /* Ignore tiny ResizeObserver noise so a sub-pixel fluctuation does
+               not restart the CSS animation. */
+            if (Math.abs(distance - previousDistance) < 0.25 && panel.dataset.carouselReady === 'true') {
+                return;
+            }
+
+            previousDistance = distance;
+            const duration = distance / TARGET_VELOCITY_PX_PER_SECOND;
+
+            panel.style.setProperty('--project-carousel-offset', `${(-distance).toFixed(3)}px`);
+            panel.style.setProperty('--project-carousel-duration', `${duration.toFixed(3)}s`);
+            panel.dataset.carouselReady = 'true';
+        };
+
+        const scheduleMeasure = () => {
+            if (scheduledFrame) cancelAnimationFrame(scheduledFrame);
+            scheduledFrame = requestAnimationFrame(measure);
+        };
+
+        const resizeObserver = new ResizeObserver(scheduleMeasure);
+        resizeObserver.observe(sourceGroup);
+        resizeObserver.observe(viewport);
+
+        motionQuery.addEventListener('change', scheduleMeasure);
+        mobileQuery.addEventListener('change', scheduleMeasure);
+        window.addEventListener('load', scheduleMeasure, { once: true });
+
+        scheduleMeasure();
+        document.fonts?.ready.then(scheduleMeasure);
+    }
+</script>

@@ -1,6 +1,4 @@
 import { defineCollection, z } from 'astro:content';
-import { docsLoader } from '@astrojs/starlight/loaders';
-import { docsSchema } from '@astrojs/starlight/schema';
 
 const blog = defineCollection({
 	type: 'content',
@@ -12,12 +10,9 @@ const blog = defineCollection({
 		tags: z.array(z.string()).default([]),
 		featured: z.boolean().default(false),
 		draft: z.boolean().default(false),
-		locale: z.enum(['en', 'id', 'cn', 'jp', 'ar']).default('en'),
+		locale: z.enum(['en', 'id']).default('en'),
 		translationKey: z.string().optional(),
 	}),
 });
 
-export const collections = {
-	docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
-	blog,
-};
+export const collections = { blog };

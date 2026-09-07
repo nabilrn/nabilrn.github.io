@@ -10,87 +10,73 @@ const page = content.notFound;
 	title={page.title}
 	description={page.description}
 	path="/404/"
-	layoutVariant="blog-full"
 	robots="noindex, nofollow"
 	ogImageAlt={page.ogImageAlt}
 >
-	<section class="error-wrap">
-		<p class="code">{page.code}</p>
-		<h1>{page.heading}</h1>
-		<p class="desc">
-			{page.body}
-		</p>
-		<div class="actions">
-			<a href="/" class="btn primary">{content.actions.portfolio}</a>
-			<a href="/blog/" class="btn">{content.actions.blog}</a>
-		</div>
+	<section class="error-page" aria-labelledby="error-title">
+		<p class="error-code">404</p>
+		<h1 id="error-title">Page not found.</h1>
+		<nav class="error-links" aria-label="Recovery links">
+			<a href="/">Home</a>
+			<a href="/blog/">Blog</a>
+		</nav>
 	</section>
 </Page>
 
 <style>
-	.error-wrap {
-		max-width: 760px;
-		margin: 12vh auto 0;
-		text-align: center;
-		padding: 30px 20px 26px;
-	}
-
-	.code {
-		font-size: clamp(56px, 13vw, 90px);
-		font-weight: 700;
-		line-height: 0.95;
-		letter-spacing: -0.04em;
-		color: var(--text);
-		margin-bottom: 8px;
-	}
-
-	h1 {
-		font-size: clamp(25px, 4.2vw, 34px);
-		line-height: 1.2;
-		margin-bottom: 10px;
-	}
-
-	.desc {
-		max-width: 560px;
+	.error-page {
+		width: min(900px, 100%);
+		min-height: calc(100vh - 124px);
 		margin: 0 auto;
-		font-size: 14px;
-		line-height: 1.65;
+		padding: clamp(52px, 10vw, 110px) clamp(20px, 5vw, 52px);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		border-inline: 1px solid var(--sheet-line, var(--border));
+		border-bottom: 1px solid var(--sheet-line, var(--border));
+	}
+
+	.error-code {
+		margin: 0 0 10px;
+		font-family: var(--font-mono);
+		font-size: 11px;
+		letter-spacing: 0.08em;
 		color: var(--muted);
 	}
 
-	.actions {
-		margin-top: 20px;
+	h1 {
+		margin: 0;
+		font-family: var(--font-sans);
+		font-size: clamp(38px, 6vw, 64px);
+		font-weight: 600;
+		line-height: 1;
+		letter-spacing: -0.05em;
+	}
+
+	.error-links {
+		margin-top: 34px;
 		display: flex;
-		gap: 10px;
-		justify-content: center;
-		flex-wrap: wrap;
+		gap: 20px;
 	}
 
-	.btn {
-		display: inline-flex;
-		align-items: center;
-		padding: 6px 12px;
-		border: 1px solid var(--border-strong);
-		border-radius: 6px;
+	.error-links a {
+		font-family: var(--font-mono);
+		font-size: 10px;
+		color: var(--muted);
+		text-decoration: underline;
+		text-underline-offset: 4px;
+	}
+
+	.error-links a:hover,
+	.error-links a:focus-visible {
 		color: var(--text);
-		background: var(--surface);
-		font-size: 13px;
+		outline: none;
 	}
 
-	.btn.primary {
-		border-color: var(--accent);
-		background: color-mix(in srgb, var(--accent) 22%, var(--bg));
-		color: var(--accent-hover);
-	}
-
-	.btn:hover {
-		border-color: var(--accent);
-	}
-
-	@media (max-width: 768px) {
-		.error-wrap {
-			margin-top: 8vh;
-			padding: 24px 16px 20px;
+	@media (max-width: 720px) {
+		.error-page {
+			min-height: calc(100vh - 104px);
+			border-inline: 0;
 		}
 	}
 </style>

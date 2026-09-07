@@ -1,191 +1,218 @@
 ---
 title: "How to Install Proxmox VE on Your Own Server"
-description: "A complete walkthrough for installing Proxmox Virtual Environment on bare-metal hardware — from preparing the USB installer to your first login on the web UI."
+description: "A practical bare-metal Proxmox VE 9 guide focused on the decisions that matter most: installation media, storage, networking, repositories, updates, and the first VM."
 pubDate: 2026-04-01
 tags: ["proxmox", "homelab", "virtualization", "linux"]
 featured: true
 draft: false
+locale: "en"
+translationKey: "how-to-install-proxmox-on-your-own-server"
 ---
 
-If you have ever wanted to run multiple virtual machines and containers on a single physical server, Proxmox VE is one of the best free options available. It is a Debian-based hypervisor that gives you a full web interface for managing VMs, LXC containers, storage, networking, and backups — all without paying for a VMware or Hyper-V license.
+The first time I installed Proxmox, I expected the installer itself to be the difficult part. It was not.
 
-This guide covers a clean bare-metal installation from start to finish.
+The part that deserves more attention is everything around it: which disk you are about to erase, how the management network should be configured, whether ZFS actually makes sense for the hardware, and what repository you should use after the first boot. If those decisions are correct, the installation is fairly straightforward.
 
-## What You Need
+This is the version of the process I would use for a new single-node lab or development server today. It targets **Proxmox VE 9.x**; the current stable ISO is Proxmox VE 9.2, which is based on Debian 13.5 "Trixie." Proxmox combines KVM virtual machines and LXC system containers behind the same web interface.
 
-Before starting, make sure you have:
+## Before installing, decide what this machine is for
 
-- A dedicated server or PC (64-bit CPU with VT-x/AMD-V support)
-- At least 8 GB of RAM (16 GB or more recommended)
-- A USB flash drive (at least 2 GB)
-- A stable internet connection
-- A monitor and keyboard connected to the server (only needed during install)
+You do not need enterprise hardware to learn Proxmox, but the hardware still determines what the node can realistically run.
 
-Proxmox runs directly on the hardware — you do not install it inside Windows or another OS. It replaces whatever is currently on the disk.
+Proxmox's <a href="https://pve.proxmox.com/pve-docs/pve-admin-guide.pdf" target="_blank" rel="noopener noreferrer">official administration guide</a> lists 2 GB of memory for the host and Proxmox services as the baseline, **plus the memory assigned to guests**. That is a minimum, not a useful sizing target for most labs. I would rather start with 8 GB for a small test node and 16 GB or more if I plan to run several VMs. ZFS and Ceph need additional memory.
 
-## Step 1 — Download the Proxmox VE ISO
+For a normal x86 server, I would prepare:
 
-Go to the official Proxmox downloads page and grab the latest ISO image:
+- A 64-bit Intel or AMD CPU with VT-x/AMD-V enabled in firmware
+- Enough RAM for the host **and** every VM or container you plan to run
+- An SSD or other storage you are willing to erase completely
+- A wired network connection
+- A USB flash drive large enough for the installer image
+- Another machine on the same network for accessing the web UI
 
-```
-https://www.proxmox.com/en/downloads/proxmox-virtual-environment/iso
-```
+If I need PCIe or GPU passthrough later, I also check for Intel VT-d or AMD IOMMU support before building the rest of the setup around that idea.
 
-At the time of writing, the latest stable release is Proxmox VE 8.x. Download the ISO file (around 1.2 GB).
+Most importantly: **back up anything on the installation disk first**. The Proxmox installer repartitions the selected target and removes the data already on it.
 
-## Step 2 — Create a Bootable USB Drive
+## 1. Download the official ISO
 
-You need to flash the ISO onto a USB drive. Use one of these tools depending on your OS:
+Get the installer from the <a href="https://www.proxmox.com/en/downloads/proxmox-virtual-environment/iso" target="_blank" rel="noopener noreferrer">official Proxmox VE ISO page</a>. For x86-64 hardware, the current installer is Proxmox VE 9.2-1. Proxmox also provides a separate Arm64 installer, so make sure you download the image that matches the server architecture.
 
-- **Windows** — Rufus or Etcher
-- **macOS** — Etcher or `dd` via Terminal
-- **Linux** — Etcher or `dd`
-
-If using Rufus on Windows:
-
-1. Open Rufus
-2. Select your USB drive
-3. Click "SELECT" and choose the Proxmox ISO
-4. Leave the partition scheme as GPT (for UEFI) or MBR (for legacy BIOS)
-5. Click "START"
-6. Wait for it to finish
-
-If using `dd` on Linux or macOS:
+I also verify the SHA-256 checksum shown on the download page before writing an infrastructure installer to USB. On Linux, for example:
 
 ```bash
-# Find your USB device name first
+sha256sum proxmox-ve_*.iso
+```
+
+The value should match the checksum published by Proxmox for that exact ISO.
+
+## 2. Write the ISO to a USB drive
+
+The Proxmox installer is a hybrid ISO, so it should be written as a disk image rather than copied onto a normally formatted USB drive.
+
+On Windows, Etcher works directly. Rufus also works, but Proxmox specifically documents using **DD mode**. If Rufus asks to download a different GRUB version, choose **No**, then select DD mode when prompted.
+
+On Linux, I usually use `dd`:
+
+```bash
 lsblk
-
-# Flash the ISO (replace /dev/sdX with your actual device)
-sudo dd if=proxmox-ve_8.x-x.iso of=/dev/sdX bs=4M status=progress
-sync
+sudo dd bs=1M conv=fdatasync if=./proxmox-ve_*.iso of=/dev/sdX
 ```
 
-Be very careful with the `of=` target — selecting the wrong disk will wipe it.
+Replace `/dev/sdX` with the USB device itself, not one of its partitions.
 
-## Step 3 — Boot from the USB Drive
+This is one of those commands where reading it twice is faster than recovering from a mistake. A wrong `of=` target can overwrite another disk.
 
-1. Plug the USB drive into the server
-2. Power on or reboot the server
-3. Enter the BIOS/UEFI setup (usually by pressing F2, F12, DEL, or ESC during boot)
-4. Set the USB drive as the first boot device, or use the one-time boot menu
-5. Save and exit
+## 3. Boot the server from USB
 
-You should see the Proxmox VE installer boot screen.
+Connect the installer USB, reboot the server, and open the firmware boot menu. The exact key depends on the hardware: `F2`, `F11`, `F12`, `Delete`, or `Esc` are common.
 
-## Step 4 — Run the Installer
+Choose the USB device and wait for the Proxmox installer menu. The normal choice is **Install Proxmox VE (Graphical)**. There is also a Terminal UI installer, which is useful when the graphical environment does not behave correctly on particular hardware. Both use the same installation backend.
 
-Once the Proxmox installer loads:
+## 4. Choose storage deliberately
 
-1. Select **Install Proxmox VE (Graphical)**
-2. Accept the EULA
-3. Select the target hard disk where Proxmox will be installed. If you have multiple disks, choose the one you want as the system disk. The installer will format it completely.
-4. Set your country, timezone, and keyboard layout
-5. Create a root password and enter an email address (used for notifications, can be changed later)
-6. Configure the network:
-   - **Management interface** — select the network interface connected to your LAN
-   - **Hostname** — something like `pve.local` or `proxmox.homelab`
-   - **IP address** — assign a static IP on your local network (e.g., `192.168.1.100/24`)
-   - **Gateway** — your router's IP (e.g., `192.168.1.1`)
-   - **DNS server** — your router's IP or a public DNS like `1.1.1.1`
+The installer will ask which disk and filesystem should hold Proxmox.
 
-Using a static IP is important. If the IP changes later, you will lose access to the web interface until you fix it manually.
+For a simple single-disk lab, the default LVM-thin setup is usually enough. I would not choose ZFS just because it appears more advanced. ZFS becomes interesting when I actually want its integrity, snapshot, and storage-management properties and have enough memory and suitable disks for it.
 
-7. Review the summary and click **Install**
+If I do use ZFS, I avoid putting hardware RAID underneath it. Proxmox's own guidance recommends giving ZFS or Ceph direct access to disks rather than hiding them behind a hardware RAID controller.
 
-The installation takes a few minutes. When it finishes, remove the USB drive and reboot.
+The important question here is not "which option looks best?" It is **how I expect this server to store and recover guest data later**.
 
-## Step 5 — Access the Web Interface
+Once the target is correct, set the country, timezone, keyboard layout, root password, and notification email.
 
-After the server reboots, it will show a console login screen with the URL to access the web UI:
+## 5. Treat the management network as infrastructure
 
+This is the installer page I spend the most time checking.
+
+Choose the physical NIC that is actually connected to the LAN, then configure:
+
+- A hostname for the node, preferably a proper hostname you can keep long-term
+- A static management IP and prefix
+- The default gateway
+- A working DNS server
+
+For example, on a home `/24` network:
+
+```text
+Hostname: pve01.home.arpa
+IP:       192.168.1.20/24
+Gateway:  192.168.1.1
+DNS:      192.168.1.1
 ```
-https://192.168.1.100:8006
+
+Do not copy those addresses blindly. They must match your own network and must not collide with another device.
+
+A standard installation creates a Linux bridge named `vmbr0` connected to the selected physical NIC. Think of that bridge like a software switch: the Proxmox host and its guests can use the same physical uplink while each VM still has its own virtual network interface. The <a href="https://pve.proxmox.com/wiki/Network_Configuration" target="_blank" rel="noopener noreferrer">Proxmox network documentation</a> is worth reading before changing bridges, VLANs, bonds, or routing later.
+
+I prefer a fixed management address because losing track of the hypervisor's address is an unnecessary way to make maintenance harder.
+
+## 6. Install, reboot, and open the web UI
+
+Review the summary carefully, especially the target disk and IP configuration, then start the installation.
+
+After the node reboots, remove the USB drive. The local console should show the management URL. From another machine on the same network, open:
+
+```text
+https://YOUR-PROXMOX-IP:8006
 ```
 
-Open this URL in a browser on any computer on the same network. You will see a certificate warning — this is normal because Proxmox uses a self-signed SSL certificate. Click through the warning to proceed.
+A fresh node normally uses a certificate issued by Proxmox's local cluster CA, so a browser that does not trust that CA can show a certificate warning. For a private lab, I verify that I am connecting to the expected host before proceeding rather than treating certificate warnings as meaningless.
 
 Log in with:
 
-- **Username:** root
-- **Password:** the password you set during installation
-- **Realm:** Linux PAM standard authentication
-
-You are now inside the Proxmox web interface.
-
-## Step 6 — Remove the Subscription Nag (Optional)
-
-If you are not using a paid Proxmox subscription, you will see a popup every time you log in. This is just a reminder and does not affect functionality.
-
-To remove it, SSH into your server and run:
-
-```bash
-# First, update your package sources to use the no-subscription repository
-echo "deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription" > /etc/apt/sources.list.d/pve-no-subscription.list
-
-# Comment out the enterprise repository (requires a subscription key)
-sed -i 's/^deb/#deb/' /etc/apt/sources.list.d/pve-enterprise.list
-
-# Update packages
-apt update && apt full-upgrade -y
+```text
+User:  root
+Realm: Linux PAM standard authentication
 ```
 
-For removing the login popup itself, there are community scripts available, but the cleanest approach is to simply click "OK" each time or use a browser extension.
+and the root password created during installation.
 
-## Step 7 — Update Proxmox
+## 7. Configure the package repository correctly
 
-Always update your Proxmox installation after the first boot:
+A fresh Proxmox installation has the enterprise repository available for systems with a valid subscription. That repository is the recommended one for production because its packages receive additional testing and validation.
+
+For a homelab or evaluation node without a subscription, use the **no-subscription** repository instead. The easiest method is through the web UI repository management panel: disable the enterprise repository and add the no-subscription repository.
+
+For Proxmox VE 9, the old Bookworm `.list` examples that are still scattered around blog posts are outdated. The current configuration uses Debian's deb822-style `.sources` files and the `trixie` suite. The equivalent no-subscription entry is:
+
+```text
+Types: deb
+URIs: http://download.proxmox.com/debian/pve
+Suites: trixie
+Components: pve-no-subscription
+Signed-By: /usr/share/keyrings/proxmox-archive-keyring.gpg
+```
+
+in:
+
+```text
+/etc/apt/sources.list.d/proxmox.sources
+```
+
+The no-subscription repository is free to access, but Proxmox explicitly describes it as appropriate for testing and non-production use because packages are not validated to the same level as the enterprise repository.
+
+The subscription reminder in the UI does not mean the hypervisor is broken or feature-limited. I leave application files alone instead of patching the web interface just to hide the message.
+
+## 8. Update the node before creating workloads
+
+The installer ISO is only a snapshot. Proxmox recommends updating a fresh installation to the latest available packages.
+
+From the shell:
 
 ```bash
-apt update && apt full-upgrade -y
+apt update
+apt dist-upgrade
+```
+
+Then reboot if the update installed a new kernel or other components that require it:
+
+```bash
 reboot
 ```
 
-This ensures you have the latest security patches and bug fixes.
+The same update flow is available in the web UI.
 
-## Step 8 — Upload an ISO and Create Your First VM
+## 9. Upload an ISO and create the first VM
 
-Now that Proxmox is running, you can create virtual machines:
+For my first guest, I normally create something boring, such as an Ubuntu or Debian VM, before experimenting with passthrough, nested virtualization, or complicated networking.
 
-1. In the web UI, navigate to your node (e.g., `pve`) in the left sidebar
-2. Click on **local** storage under the node
-3. Go to the **ISO Images** tab
-4. Click **Upload** and select an ISO file (e.g., Ubuntu Server, Debian, Windows)
-5. Once uploaded, click **Create VM** in the top right
-6. Follow the wizard:
-   - Give it a name and VM ID
-   - Select the ISO you uploaded as the CD/DVD
-   - Choose the OS type (Linux or Windows)
-   - Set the disk size, CPU cores, and RAM
-   - Configure the network bridge (default `vmbr0` works for most setups)
-7. Click **Finish** to create the VM
-8. Select the VM, click **Start**, then open the **Console** to begin the OS installation
+In the web UI:
 
-## Post-Install Tips
+1. Select the node and a storage that accepts ISO images, commonly `local`.
+2. Open **ISO Images** and upload the guest installer.
+3. Click **Create VM**.
+4. Choose the uploaded ISO.
+5. Assign CPU, memory, and disk resources conservatively.
+6. Connect the virtual NIC to `vmbr0` unless the network design requires something else.
+7. Start the VM and complete the guest OS installation from the console.
 
-Here are a few things worth doing after a fresh Proxmox install:
+For modern guests I prefer VirtIO-based virtual devices where the guest has the required drivers. Proxmox's migration guidance recommends VirtIO networking because of its low overhead, and VirtIO SCSI is a strong default for VM disks. Windows guests may need the VirtIO driver ISO during installation.
 
-- **Enable IOMMU** in your BIOS if you plan to do GPU or PCIe passthrough. You also need to add `intel_iommu=on` or `amd_iommu=on` to your kernel boot parameters in `/etc/default/grub`.
-- **Set up a backup schedule** using Proxmox Backup Server or the built-in `vzdump` tool. Go to Datacenter > Backup in the web UI.
-- **Create a Linux Bridge** for your VMs if you need more complex networking. The default `vmbr0` bridges to your physical NIC.
-- **Enable 2FA** on the root account for security if your Proxmox host is accessible over the internet.
-- **Consider ZFS** for your storage if you have multiple disks. Proxmox has built-in ZFS support during installation.
+I also install the QEMU Guest Agent inside VMs where it is supported. That gives the host better visibility and allows cleaner communication with the guest operating system.
 
-## Common Issues
+## A few things I would not configure on day one
 
-**Cannot access the web UI after install:**
-Make sure you are using `https://` (not `http://`) and port `8006`. Check that the server's IP is correct and reachable from your network. You can verify the IP by logging in directly on the server console and running `ip a`.
+It is tempting to finish a new Proxmox installation by immediately enabling every feature. I have found it more useful to establish a boring working baseline first.
 
-**Boot loop or GRUB not found:**
-This usually means the BIOS is set to the wrong boot mode. If you installed in UEFI mode, make sure the BIOS is set to UEFI boot. If you installed in legacy mode, set it to Legacy/CSM.
+I would postpone PCIe passthrough until the node is stable and the IOMMU groups are understood. I would not build a cluster before one node's storage and network design make sense. I would not expose port `8006` directly to the public internet just because the web interface is convenient. And I would not use ZFS, Ceph, VLANs, or bonding without first understanding what problem each one is solving.
 
-**Slow performance in VMs:**
-Make sure VirtIO drivers are selected for disk and network when creating VMs. For Windows VMs, you need to load the VirtIO drivers during installation from the VirtIO ISO (available on the Proxmox wiki).
+The same applies to Docker. Proxmox LXC containers are **system containers**, not Docker-style application containers. Proxmox's documentation recommends running Docker application containers inside a QEMU VM when you want stronger isolation and normal VM lifecycle behavior. That is the model I prefer for Docker hosts as well.
 
-## Wrapping Up
+## What I check after the first VM boots
 
-That is all you need to get Proxmox VE running on your own hardware. The entire process takes about 15-20 minutes from flashing the USB to logging into the web UI.
+At that point, the installation is technically finished, but I still verify a few things before trusting the node:
 
-From here, you can create VMs for development environments, spin up Docker hosts inside LXC containers, run a NAS with TrueNAS in a VM, set up a Kubernetes cluster, or build any homelab setup you want — all managed from a single web interface.
+- The host keeps the expected management IP after reboot
+- DNS and the default gateway work
+- Package updates complete without repository errors
+- The first VM can reach the LAN or internet as intended
+- Guest storage is on the datastore I expected
+- Backups have somewhere **outside the guest's own disk** to go
+- I can still reach the node through a local console or another recovery path if networking breaks
 
-In the next post, I will cover how to set up a self-hosted GitHub Actions runner inside a Proxmox VM, which is a great way to get free CI/CD for your projects.
+Those checks are much more valuable than making the dashboard look finished.
+
+Proxmox itself is not difficult to install. The useful part is understanding the small infrastructure decisions around the installer, because those decisions are what determine whether the server is still easy to operate six months later.
+
+The next part of my setup is a self-hosted GitHub Actions runner inside a Proxmox VM. That is where this stops being an empty hypervisor and starts doing actual work.

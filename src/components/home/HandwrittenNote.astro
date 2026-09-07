@@ -1,0 +1,126 @@
+---
+type ArrowVariant = 'curve' | 'shallow';
+
+interface Props {
+    text: string;
+    class?: string;
+    showArrow?: boolean;
+    arrowVariant?: ArrowVariant;
+}
+
+const {
+    text,
+    class: className,
+    showArrow = true,
+    arrowVariant = 'curve',
+} = Astro.props;
+---
+
+<div class:list={['handwritten-note', className]} aria-hidden="true">
+    <span>{text}</span>
+    {showArrow && (
+        arrowVariant === 'shallow' ? (
+            <svg
+                class="handwritten-arrow arrow-shallow"
+                viewBox="0 0 56 24"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path d="M28 2c0 5-4 9-9 12-4 3-8 5-13 6" />
+                <path d="m13 14-7 6 9 1" />
+            </svg>
+        ) : (
+            <svg
+                class="handwritten-arrow arrow-curve"
+                viewBox="0 0 40 40"
+                fill="none"
+                stroke="currentColor"
+                aria-hidden="true"
+            >
+                <path d="M20 3c2 10-1 21-13 31" />
+                <path d="m14 32-7 2 4-7" />
+            </svg>
+        )
+    )}
+</div>
+
+<style>
+    .handwritten-note {
+        pointer-events: none;
+        position: absolute;
+        z-index: 2;
+        width: max-content;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: var(--muted);
+        font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: var(--note-font-size, 17px);
+        font-weight: 400;
+        line-height: 1;
+        letter-spacing: 0;
+        user-select: none;
+    }
+
+    .handwritten-note > span {
+        white-space: nowrap;
+    }
+
+    .handwritten-arrow {
+        flex: none;
+        align-self: center;
+        margin-top: var(--note-arrow-gap, 1px);
+        stroke-width: var(--note-arrow-stroke, 1.5px);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .arrow-curve {
+        width: var(--note-arrow-width, 30px);
+        height: var(--note-arrow-height, 30px);
+    }
+
+    .arrow-shallow {
+        width: var(--note-arrow-width, 38px);
+        height: var(--note-arrow-height, 18px);
+    }
+
+    /* "my social" keeps the default shallow down-left arrow. The activity note
+       reuses the same primitive mirrored down-right, but lives in the negative
+       space immediately left of the contribution calendar instead of competing
+       with Jul/Aug and the dense recent cells. */
+    .handwritten-note.activity-note {
+        top: -5px !important;
+        right: auto !important;
+        left: -56px !important;
+        --note-font-size: 13px !important;
+        --note-arrow-width: 54px !important;
+        --note-arrow-height: 22px !important;
+        --note-arrow-gap: 0px !important;
+        transform: rotate(-3deg) !important;
+        transform-origin: center top !important;
+    }
+
+    .handwritten-note.activity-note .arrow-shallow {
+        transform: scaleX(-1);
+        transform-origin: center;
+    }
+
+    /* The activity annotation intentionally crosses the internal profile /
+       contribution rail. The identity board still clips the outer sheet, so
+       only this local boundary is relaxed. */
+    :global(.home-redesign .contribution-region) {
+        overflow: visible !important;
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .handwritten-note.activity-note {
+            top: -7px !important;
+            left: -52px !important;
+            --note-font-size: 12.5px !important;
+            --note-arrow-width: 50px !important;
+            --note-arrow-height: 20px !important;
+        }
+    }
+</style>

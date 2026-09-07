@@ -1,78 +1,112 @@
-# Portfolio Site
+# Nabil Rizki Navisa — Portfolio
 
-Personal portfolio built with Astro, now including:
+Personal portfolio and blog built as a static Astro site.
 
-- Profile and project landing page
-- Blog (`/blog`)
-- Post engagement metrics (views, likes, shares)
+## What is in this repository
+
+- Bento-style portfolio homepage
+- Selected web-project carousel
+- English and Indonesian locales
+- Markdown blog and localized blog routes
+- Blog engagement metrics: views, likes, and shares
+- Site analytics summary used by the homepage
+- Cloudflare Worker metrics API backed by Workers KV
 
 ## Stack
 
-- Astro (static site)
-- Astro Content Collections (blog content)
-- Cloudflare Worker + D1 (global engagement metrics)
+- Astro 5
+- TypeScript
+- Astro Content Collections
+- Inter + JetBrains Mono variable fonts
+- Cloudflare Worker + Workers KV for metrics
+- GitHub Actions for type/build/accessibility gates
 
-## Commands
+## Development
+
+Requires Node.js 22 and pnpm 10.
 
 ```bash
+pnpm install
 pnpm dev
+```
+
+Quality and production commands:
+
+```bash
+pnpm check
 pnpm build
 pnpm preview
 ```
 
+The Astro production output is static and is written to `dist/`.
+
+## Routes
+
+The public site currently exposes:
+
+- `/` — English portfolio
+- `/id/` — Indonesian portfolio
+- `/blog/` — English blog index
+- `/id/blog/` — Indonesian blog index
+- `/blog/<slug>/` and `/id/blog/<slug>/` — articles
+- `/404/` — custom not-found page
+- `/sitemap.xml` — custom sitemap
+
+Projects are presented directly on the homepage; there is no standalone `/projects/` route.
+
 ## Blog content
 
-Create posts in:
+Posts live in `src/content/blog/*.md`.
 
-`src/content/blog/*.md`
-
-Required frontmatter:
+Frontmatter schema:
 
 ```yaml
 title: "Post title"
 description: "Short summary"
 pubDate: 2026-03-15
+updatedDate: 2026-03-20 # optional
 tags: ["tag1", "tag2"]
 featured: false
 draft: false
+locale: en # en | id
+translationKey: shared-post-key # optional, links translations
 ```
 
-## Engagement API setup (Cloudflare)
+## Metrics Worker
 
-1. Install Wrangler (if needed):
+Worker source and configuration live under `worker/`.
 
-```bash
-pnpm dlx wrangler --version
-```
+The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the `METRICS` Workers KV binding.
 
-2. Create D1 database:
+For a separate deployment:
 
-```bash
-pnpm dlx wrangler d1 create portfolio-metrics
-```
-
-3. Copy returned `database_id` into `worker/wrangler.toml`.
-
-4. Run migration:
-
-```bash
-pnpm dlx wrangler d1 execute portfolio-metrics --file worker/migrations/0001_init.sql --remote
-```
-
-5. Deploy worker:
+1. Create a Cloudflare Workers KV namespace.
+2. Bind it as `METRICS` in `worker/wrangler.toml`.
+3. Set `ALLOWED_ORIGIN` to the portfolio origins that may call the Worker.
+4. Deploy:
 
 ```bash
 pnpm dlx wrangler deploy --config worker/wrangler.toml
 ```
 
-6. The site defaults to the production engagement worker:
+Production frontend code defaults to the portfolio metrics Worker. To test against another compatible endpoint, set:
 
-`https://portfolio-metrics-api.nabilrizkinavisa.workers.dev`
+```bash
+PUBLIC_ENGAGEMENT_API_BASE=https://your-worker.example
+```
 
-Set `PUBLIC_ENGAGEMENT_API_BASE=https://<your-worker-domain>` only when testing another worker endpoint.
+## CI
 
-## Notes
+`.github/workflows/portfolio-redesign-ci.yml` currently runs:
 
-- If `PUBLIC_ENGAGEMENT_API_BASE` is empty/unreachable, the UI falls back to local device metrics so the feature still works.
-- The portfolio is an Astro static build. MyPaas should deploy it as a static site from `dist`, not as a Dockerfile/Nginx container.
-- Current docs collection from Starlight is still present in the repo and can be removed later if unused.
+1. frozen pnpm install
+2. `astro check`
+3. production build
+4. Astro preview smoke test
+5. accessibility audit against the generated sitemap
+
+## Repository notes
+
+- The site is a static Astro deployment; no Docker runtime is required.
+- Generated output, local pnpm store data, environment files, and editor state are ignored.
+- Google site verification is served from `public/`.

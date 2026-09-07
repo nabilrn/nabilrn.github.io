@@ -1,0 +1,763 @@
+---
+import HandwrittenNote from './HandwrittenNote.astro';
+
+type Point = { x: number; y: number };
+type Placement = { kind: 'n' | 'r'; ox: number; oy: number };
+type SvgFillRule = 'evenodd' | 'nonzero';
+type BottomSegment = { edge: number; from: number; to: number };
+type Surface = {
+    points: Point[];
+    wallVisible: boolean[];
+    bottomSegments: BottomSegment[];
+    connectorVisible: boolean[];
+};
+type Wall = { a: Point; b: Point };
+
+const ISO_STEP = 26;
+const ISO_X = ISO_STEP * Math.cos(Math.PI / 6);
+const ISO_Y = ISO_STEP * Math.sin(Math.PI / 6);
+const GLYPH_X_SCALE = 1.1;
+const DEPTH = 28;
+const LATCH_DISTANCE = 8;
+const PRESS_DISTANCE = 14;
+
+const VIEWBOX = { x: 125, y: 30, width: 525, height: 315 };
+const AUDIO_SRC = '/audio/2_23_AM.mp3';
+const TRACK_TITLE = '2:23 AM';
+const TRACK_ARTIST = 'Sharou';
+const TRACK_ARTIST_JP = 'しゃろう';
+const TRACK_ARTIST_URL = 'https://www.youtube.com/c/Sharou';
+const HUD_BARS = Array.from({ length: 18 }, (_, index) => index);
+
+// Keep the bottom datum stable while reclaiming the unused space above the mark.
+// The glyphs are authored flat first, then projected on the same ±30° isometric axes.
+const ORIGIN = { x: 165, y: 198 };
+
+const PLACEMENTS: Placement[] = [
+    { kind: 'n', ox: 0, oy: 0 },
+    { kind: 'r', ox: 6.8, oy: 0 },
+];
+
+const N_OUTER: Point[] = [
+    { x: 0, y: 0 },
+    { x: 1.4, y: 0 },
+    { x: 3.6, y: 4.9 },
+    { x: 3.6, y: 0 },
+    { x: 5, y: 0 },
+    { x: 5, y: 7 },
+    { x: 3.6, y: 7 },
+    { x: 1.4, y: 2.1 },
+    { x: 1.4, y: 7 },
+    { x: 0, y: 7 },
+];
+
+// The diagonal leg joins the stem directly; the previous micro-segment created
+// a false notch after projection.
+const R_OUTER: Point[] = [
+    { x: 0, y: 0 },
+    { x: 1.4, y: 0 },
+    { x: 4, y: 0 },
+    { x: 5.2, y: 1.2 },
+    { x: 5.2, y: 3.4 },
+    { x: 4.2, y: 4.4 },
+    { x: 3.1, y: 4.4 },
+    { x: 5.2, y: 7 },
+    { x: 3.4, y: 7 },
+    { x: 1.4, y: 4.5 },
+    { x: 1.4, y: 7 },
+    { x: 0, y: 7 },
+];
+
+const R_HOLE: Point[] = [
+    { x: 1.4, y: 1.2 },
+    { x: 3.7, y: 1.2 },
+    { x: 4, y: 1.5 },
+    { x: 4, y: 2.8 },
+    { x: 3.7, y: 3.1 },
+    { x: 1.4, y: 3.1 },
+];
+
+const project = (point: Point, placement: Placement): Point => {
+    const x = placement.ox + point.x * GLYPH_X_SCALE;
+    const y = point.y + placement.oy;
+    return {
+        x: ORIGIN.x + (x + y) * ISO_X,
+        y: ORIGIN.y + (y - x) * ISO_Y,
+    };
+};
+
+const shifted = (point: Point, dy: number): Point => ({ x: point.x, y: point.y + dy });
+const move = (point: Point) => `${point.x.toFixed(3)} ${point.y.toFixed(3)}`;
+const projected = (shape: Point[], placement: Placement) => shape.map((point) => project(point, placement));
+const lerpPoint = (a: Point, b: Point, t: number): Point => ({
+    x: a.x + (b.x - a.x) * t,
+    y: a.y + (b.y - a.y) * t,
+});
+
+const polygonPath = (points: Point[]) => {
+    const [first, ...rest] = points;
+    return `M ${move(first)} ${rest.map((point) => `L ${move(point)}`).join(' ')} Z`;
+};
+
+const glyphPath = (placement: Placement) => {
+    if (placement.kind === 'n') return polygonPath(projected(N_OUTER, placement));
+    return `${polygonPath(projected(R_OUTER, placement))} ${polygonPath(projected(R_HOLE, placement))}`;
+};
+
+const GLYPHS = PLACEMENTS.map((placement) => ({
+    placement,
+    path: glyphPath(placement),
+    fillRule: (placement.kind === 'r' ? 'evenodd' : 'nonzero') as SvgFillRule,
+}));
+
+// This mark is fixed, so wall, lower-silhouette and connector visibility are
+// authored independently. Concave lower edges can be only partially exposed,
+// so bottom geometry uses clipped edge ranges instead of a simple on/off flag.
+const makeSurface = (
+    shape: Point[],
+    placement: Placement,
+    wallEdges: number[],
+    bottomSegments: BottomSegment[],
+    connectorVertices: number[],
+): Surface => {
+    const points = projected(shape, placement);
+    const wallSet = new Set(wallEdges);
+    const connectorSet = new Set(connectorVertices);
+    return {
+        points,
+        wallVisible: points.map((_, index) => wallSet.has(index)),
+        bottomSegments,
+        connectorVisible: points.map((_, index) => connectorSet.has(index)),
+    };
+};
+
+const fullBottomSegments = (edges: number[]): BottomSegment[] =>
+    edges.map((edge) => ({ edge, from: 0, to: 1 }));
+
+const N = PLACEMENTS[0];
+const R = PLACEMENTS[1];
+
+const SURFACES: Surface[] = [
+    // The two diagonal lower silhouettes are partially occluded by the N itself.
+    // Clip them to the exposed ranges so they close the side walls without
+    // cutting across the face like construction lines.
+    makeSurface(
+        N_OUTER,
+        N,
+        [2, 5, 6, 8, 9],
+        [
+            { edge: 2, from: 0.665, to: 1 },
+            { edge: 5, from: 0, to: 1 },
+            { edge: 6, from: 0, to: 0.555 },
+            { edge: 8, from: 0, to: 1 },
+            { edge: 9, from: 0, to: 1 },
+        ],
+        [0, 3, 5, 6, 8, 9],
+    ),
+    // R keeps its current exposed silhouette while using the same explicit
+    // visibility model so future hidden-line cleanup cannot delete whole faces.
+    makeSurface(
+        R_OUTER,
+        R,
+        [5, 7, 8, 10, 11],
+        fullBottomSegments([5, 7, 8, 10, 11]),
+        [0, 5, 7, 8, 10, 11],
+    ),
+    makeSurface(R_HOLE, R, [0, 1, 2], fullBottomSegments([0, 1, 2]), [0, 3]),
+];
+
+const wallPath = (a: Point, b: Point, topShift = 0) => {
+    const aTop = shifted(a, topShift);
+    const bTop = shifted(b, topShift);
+    const bBottom = shifted(b, DEPTH);
+    const aBottom = shifted(a, DEPTH);
+    return `M ${move(aTop)} L ${move(bTop)} L ${move(bBottom)} L ${move(aBottom)} Z`;
+};
+
+const WALLS: Wall[] = SURFACES.flatMap((surface) =>
+    surface.points.flatMap((a, index) => {
+        if (!surface.wallVisible[index]) return [];
+        const b = surface.points[(index + 1) % surface.points.length];
+        return [{ a, b }];
+    }),
+);
+
+const bottomStrokePath = () => {
+    const chunks: string[] = [];
+    for (const surface of SURFACES) {
+        for (const segment of surface.bottomSegments) {
+            const a = surface.points[segment.edge];
+            const b = surface.points[(segment.edge + 1) % surface.points.length];
+            const start = shifted(lerpPoint(a, b, segment.from), DEPTH);
+            const end = shifted(lerpPoint(a, b, segment.to), DEPTH);
+            chunks.push(`M ${move(start)} L ${move(end)}`);
+        }
+    }
+    return chunks.join(' ');
+};
+
+const connectorPoints = () => {
+    const points: Point[] = [];
+    const keys = new Set<string>();
+
+    for (const surface of SURFACES) {
+        surface.points.forEach((point, index) => {
+            if (!surface.connectorVisible[index]) return;
+            const key = `${point.x.toFixed(3)}:${point.y.toFixed(3)}`;
+            if (keys.has(key)) return;
+            keys.add(key);
+            points.push(point);
+        });
+    }
+
+    return points;
+};
+
+const connectorPath = (point: Point, topShift = 0) =>
+    `M ${move(shifted(point, topShift))} L ${move(shifted(point, DEPTH))}`;
+
+const TOP_STROKE = PLACEMENTS.map((placement) => glyphPath(placement)).join(' ');
+const BOTTOM_STROKE = bottomStrokePath();
+const CONNECTOR_POINTS = connectorPoints();
+
+const AXIS_POSITIVE = { x: Math.cos(Math.PI / 6), y: Math.sin(Math.PI / 6) };
+const AXIS_NEGATIVE = { x: Math.cos(Math.PI / 6), y: -Math.sin(Math.PI / 6) };
+const guideThrough = (anchor: Point, direction: Point, extent = 1100) =>
+    `M ${move({ x: anchor.x - direction.x * extent, y: anchor.y - direction.y * extent })} ` +
+    `L ${move({ x: anchor.x + direction.x * extent, y: anchor.y + direction.y * extent })}`;
+
+const N_BOTTOM_ANCHOR = shifted(project(N_OUTER[9], N), DEPTH);
+const R_BOTTOM_ANCHOR = shifted(project(R_OUTER[7], R), DEPTH);
+// Mirror the lower editorial ruler: anchor the upper guide to a real projected
+// NR vertex and keep it on the exact same -30° isometric axis.
+const TOP_GUIDE_ANCHOR = SURFACES
+    .flatMap((surface) => surface.points)
+    .reduce((highest, point) => (point.y < highest.y ? point : highest));
+
+const GUIDE_PATHS = [
+    guideThrough(TOP_GUIDE_ANCHOR, AXIS_NEGATIVE),
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_NEGATIVE),
+    guideThrough(N_BOTTOM_ANCHOR, AXIS_POSITIVE),
+    guideThrough(R_BOTTOM_ANCHOR, AXIS_POSITIVE),
+];
+---
+
+<div
+    class="nr-stage"
+    data-nr-stage
+    data-music-state="idle"
+    data-track-title={TRACK_TITLE}
+    data-track-artist={TRACK_ARTIST}
+    data-depth={DEPTH}
+    data-latch-distance={LATCH_DISTANCE}
+    data-press-distance={PRESS_DISTANCE}
+    data-viewbox-x={VIEWBOX.x}
+    data-viewbox-y={VIEWBOX.y}
+    data-viewbox-width={VIEWBOX.width}
+    data-viewbox-height={VIEWBOX.height}
+>
+    <button
+        class="nr-button"
+        type="button"
+        data-nr-button
+        aria-label={`Play ${TRACK_TITLE} by ${TRACK_ARTIST}`}
+        aria-pressed="false"
+    >
+        <svg
+            class="nr-svg"
+            data-nr-svg
+            viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.width} ${VIEWBOX.height}`}
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            role="img"
+            aria-label="Interactive isometric NR music switch"
+        >
+            <defs>
+                <pattern id="nr-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nr-pattern-line" />
+                </pattern>
+
+                <path id="nr-top-stroke" d={TOP_STROKE} />
+                <path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
+
+                <radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" class="nr-glow-start" />
+                    <stop offset="1" class="nr-glow-end" />
+                </radialGradient>
+            </defs>
+
+            <g class="nr-guides nr-guides-base" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+                {GUIDE_PATHS.map((path) => <path d={path} />)}
+            </g>
+            <g class="nr-guides nr-guides-glow" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+                {GUIDE_PATHS.map((path) => <path d={path} />)}
+            </g>
+
+            <g class="nr-walls" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+                {WALLS.map((wall) => (
+                    <path
+                        data-nr-wall
+                        data-ax={wall.a.x}
+                        data-ay={wall.a.y}
+                        data-bx={wall.b.x}
+                        data-by={wall.b.y}
+                        d={wallPath(wall.a, wall.b)}
+                    />
+                ))}
+            </g>
+
+            <use href="#nr-bottom-stroke" class="nr-stroke-base" />
+            <use href="#nr-bottom-stroke" class="nr-stroke-glow" />
+
+            <g class="nr-connectors" aria-hidden="true">
+                {CONNECTOR_POINTS.map((point) => (
+                    <g>
+                        <path
+                            data-nr-connector
+                            data-x={point.x}
+                            data-y={point.y}
+                            d={connectorPath(point)}
+                            class="nr-stroke-base"
+                        />
+                        <path
+                            data-nr-connector
+                            data-x={point.x}
+                            data-y={point.y}
+                            d={connectorPath(point)}
+                            class="nr-stroke-glow"
+                        />
+                    </g>
+                ))}
+            </g>
+
+            <g data-nr-top class="nr-top">
+                <g class="nr-face-background" aria-hidden="true">
+                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+                </g>
+                <g class="nr-face-pattern" aria-hidden="true">
+                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+                </g>
+                <use href="#nr-top-stroke" class="nr-stroke-base" />
+                <use href="#nr-top-stroke" class="nr-stroke-glow" />
+            </g>
+        </svg>
+    </button>
+
+    <div class="nr-annotation nr-annotation-play" aria-hidden="true">
+        <HandwrittenNote text="click to play song" class="nr-music-note" arrowVariant="curve" />
+    </div>
+    <div class="nr-annotation nr-annotation-pause" aria-hidden="true">
+        <HandwrittenNote text="click to pause" class="nr-music-note nr-pause-note" arrowVariant="curve" />
+    </div>
+
+    <div class="nr-music-hud" aria-hidden="true">
+        <div class="nr-hud-meta">
+            <span>BGM / 01</span>
+            <span data-nr-hud-state>paused</span>
+        </div>
+        <div class="nr-hud-title">
+            <strong>{TRACK_TITLE}</strong>
+            <span>{TRACK_ARTIST}</span>
+        </div>
+        <div class="nr-hud-wave" aria-hidden="true">
+            {HUD_BARS.map((bar) => <i data-nr-bar data-index={bar}></i>)}
+        </div>
+        <div class="nr-hud-footer">
+            <span data-nr-time>00:00 / 03:16</span>
+            <span>LOCAL AUDIO</span>
+        </div>
+        <div class="nr-hud-progress" aria-hidden="true">
+            <span data-nr-progress></span>
+        </div>
+    </div>
+
+    <a
+        class="nr-song-credit"
+        href={TRACK_ARTIST_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open ${TRACK_ARTIST_JP} ${TRACK_ARTIST}'s YouTube channel`}
+    >
+        <span>song by</span>
+        <strong>{TRACK_ARTIST_JP} / {TRACK_ARTIST}</strong>
+        <span aria-hidden="true">↗</span>
+    </a>
+
+    <audio data-nr-audio src={AUDIO_SRC} preload="metadata" aria-hidden="true"></audio>
+</div>
+
+<style>
+    .nr-stage {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        position: relative;
+        overflow: hidden;
+        isolation: isolate;
+        background: var(--bg);
+        --nr-background: var(--bg);
+        --nr-foreground: var(--text);
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 12%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
+        --nr-line: color-mix(in oklab, var(--border) 64%, var(--nr-background));
+        --nr-glow-start: #fff;
+        --nr-glow-start-opacity: 1;
+        --nr-glow-end: #52525b;
+        --nr-guide-base-opacity: .58;
+        --nr-guide-glow-opacity: .34;
+    }
+
+    .nr-button {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .nr-button:focus-visible {
+        outline: 1px solid color-mix(in srgb, var(--text) 60%, transparent);
+        outline-offset: -4px;
+    }
+
+    .nr-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .nr-pattern-line {
+        fill: none;
+        stroke: var(--nr-pattern);
+        stroke-width: 1;
+    }
+
+    .nr-guides {
+        fill: none;
+        pointer-events: none;
+    }
+
+    .nr-guides-base {
+        stroke: var(--nr-line);
+        opacity: var(--nr-guide-base-opacity);
+    }
+
+    .nr-guides-glow {
+        stroke: url(#nr-gradient);
+        opacity: var(--nr-guide-glow-opacity);
+    }
+
+    .nr-walls,
+    .nr-face-background {
+        fill: var(--nr-background);
+    }
+
+    .nr-face-pattern {
+        fill: url(#nr-pattern);
+        transition: opacity 220ms ease;
+    }
+
+    .nr-top {
+        transform-box: fill-box;
+        transform-origin: center;
+        will-change: transform;
+    }
+
+    .nr-stroke-base,
+    .nr-stroke-glow {
+        fill: none;
+        stroke-width: 1;
+        stroke-linecap: butt;
+        stroke-linejoin: miter;
+        pointer-events: none;
+    }
+
+    .nr-stroke-base {
+        stroke: var(--nr-stroke);
+        transition: stroke 220ms ease;
+    }
+
+    .nr-stroke-glow { stroke: url(#nr-gradient); }
+
+    .nr-glow-start {
+        stop-color: var(--nr-glow-start);
+        stop-opacity: var(--nr-glow-start-opacity);
+    }
+
+    .nr-glow-end {
+        stop-color: var(--nr-glow-end);
+        stop-opacity: 0;
+    }
+
+    :global(html[data-theme='light']) .nr-stage {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 13%, var(--nr-background));
+        --nr-line: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+        --nr-glow-start: #525252;
+        --nr-glow-start-opacity: .38;
+        --nr-glow-end: #a3a3a3;
+        --nr-guide-base-opacity: .64;
+        --nr-guide-glow-opacity: .30;
+    }
+
+    .nr-annotation {
+        position: absolute;
+        top: clamp(74px, 8vw, 108px);
+        right: clamp(18px, 1.8vw, 30px);
+        z-index: 3;
+        width: 164px;
+        height: 74px;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 220ms ease;
+    }
+
+    :global(.nr-annotation .nr-music-note) {
+        top: 0;
+        right: 0;
+        --note-font-size: 14px;
+        --note-arrow-width: 34px;
+        --note-arrow-height: 34px;
+        --note-arrow-gap: -2px;
+        transform: rotate(-4deg);
+        transform-origin: right top;
+    }
+
+    :global(.nr-annotation .nr-music-note .arrow-curve) {
+        transform: rotate(8deg);
+        transform-origin: center;
+    }
+
+    .nr-annotation-pause {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    :global(.nr-annotation-pause .nr-pause-note) {
+        transform: rotate(2deg);
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-annotation-play {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-annotation-pause {
+        opacity: 1;
+        transform: translateY(8px);
+    }
+
+    /* Replaces the old italic index-level hint with the shared handwritten primitive. */
+    :global(.nr-region > .nr-note) {
+        display: none !important;
+    }
+
+    .nr-music-hud {
+        position: absolute;
+        top: clamp(14px, 1.2vw, 20px);
+        left: clamp(16px, 1.4vw, 24px);
+        z-index: 4;
+        width: 196px;
+        height: 78px;
+        box-sizing: border-box;
+        padding: 7px 9px 8px;
+        border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+        background: color-mix(in srgb, var(--bg) 94%, transparent);
+        font-family: var(--font-mono);
+        pointer-events: none;
+        transition: border-color 180ms ease, opacity 180ms ease;
+    }
+
+    .nr-hud-meta,
+    .nr-hud-footer,
+    .nr-hud-title {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .nr-hud-meta,
+    .nr-hud-footer {
+        color: color-mix(in srgb, var(--muted) 70%, var(--bg));
+        font-size: 7px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .nr-hud-title {
+        margin-top: 3px;
+    }
+
+    .nr-hud-title strong {
+        color: color-mix(in srgb, var(--text) 74%, var(--bg));
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: .03em;
+    }
+
+    .nr-hud-title span {
+        color: var(--muted);
+        font-size: 8px;
+    }
+
+    .nr-hud-wave {
+        height: 19px;
+        margin: 4px 0 2px;
+        display: flex;
+        align-items: end;
+        gap: 2px;
+    }
+
+    .nr-hud-wave i {
+        --level: .25;
+        display: block;
+        width: 3px;
+        height: 100%;
+        flex: 1 1 0;
+        background: color-mix(in srgb, var(--muted) 52%, var(--bg));
+        transform: scaleY(var(--level));
+        transform-origin: center bottom;
+        transition: transform 85ms linear, background-color 180ms ease;
+    }
+
+    .nr-hud-progress {
+        position: relative;
+        height: 1px;
+        margin-top: 3px;
+        overflow: hidden;
+        background: color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    .nr-hud-progress span {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: color-mix(in srgb, var(--text) 62%, var(--bg));
+        transform: scaleX(0);
+        transform-origin: left center;
+    }
+
+    .nr-song-credit {
+        position: absolute;
+        right: clamp(16px, 1.5vw, 24px);
+        bottom: clamp(14px, 1.2vw, 20px);
+        z-index: 5;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        color: color-mix(in srgb, var(--muted) 62%, var(--bg));
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: .04em;
+        text-decoration: none;
+        transition: color 180ms ease, transform 180ms ease;
+    }
+
+    .nr-song-credit strong {
+        color: color-mix(in srgb, var(--text) 56%, var(--bg));
+        font-weight: 500;
+        transition: color 180ms ease;
+    }
+
+    .nr-song-credit:hover,
+    .nr-song-credit:focus-visible {
+        color: color-mix(in srgb, var(--text) 72%, var(--bg));
+        transform: translateY(-1px);
+    }
+
+    .nr-song-credit:hover strong,
+    .nr-song-credit:focus-visible strong {
+        color: var(--text);
+    }
+
+    .nr-song-credit:focus-visible {
+        outline: 1px solid color-mix(in srgb, var(--text) 38%, transparent);
+        outline-offset: 4px;
+    }
+
+    .nr-stage[data-music-state="playing"] {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 18%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 24%, var(--nr-background));
+    }
+
+    :global(html[data-theme='light']) .nr-stage[data-music-state="playing"] {
+        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 11%, var(--nr-background));
+        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-face-pattern {
+        opacity: 1;
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-music-hud {
+        border-color: color-mix(in srgb, var(--text) 28%, var(--border));
+    }
+
+    .nr-stage[data-music-state="playing"] .nr-hud-wave i {
+        background: color-mix(in srgb, var(--text) 66%, var(--bg));
+    }
+
+    .nr-stage[data-music-state="error"] .nr-music-hud {
+        opacity: .58;
+    }
+
+    audio[data-nr-audio] {
+        display: none;
+    }
+
+    @media (min-width: 1100px) and (max-height: 859px) {
+        .nr-music-hud {
+            top: 12px;
+            left: 12px;
+            transform-origin: left top;
+            scale: .92;
+        }
+
+        .nr-annotation {
+            top: 70px;
+            right: 16px;
+        }
+
+        .nr-song-credit {
+            right: 14px;
+            bottom: 12px;
+        }
+    }
+
+    @media (max-width: 1099px) {
+        .nr-music-hud {
+            top: 10px;
+            left: 10px;
+            transform-origin: left top;
+            scale: .88;
+        }
+
+        .nr-song-credit {
+            right: 12px;
+            bottom: 10px;
+            font-size: 7px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .nr-annotation,
+        .nr-face-pattern,
+        .nr-stroke-base,
+        .nr-music-hud,
+        .nr-hud-wave i,
+        .nr-song-credit {
+            transition: none;
+        }
+    }
+</style>
+
+<script>
+    import './nrMarkController';
+</script>
