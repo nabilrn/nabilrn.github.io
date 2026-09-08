@@ -74,7 +74,6 @@ const siteContent = {
         overview: 'Overview',
         projects: 'Projects',
         blog: 'Blog',
-        components: 'Components',
     },
     home: {
         seoTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
