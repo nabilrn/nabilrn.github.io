@@ -42,25 +42,33 @@ jobs:
         if: env.CLOUDFLARE_API_TOKEN != ''
         run: pnpm dlx wrangler@4 deploy --config worker/wrangler.toml
 
-      - name: Verify 24 hour summary contract
+      - name: Verify rolling 24 hour summary contract
         if: env.CLOUDFLARE_API_TOKEN != ''
         shell: bash
         run: |
           for attempt in {1..12}; do
             payload="$(curl --fail --silent --show-error https://portfolio-metrics-api.nabilrizkinavisa.workers.dev/analytics/summary || true)"
-            count="$(printf '%s' "$payload" | jq '.last24Hours | length' 2>/dev/null || echo 0)"
-            if [ "$count" = "24" ]; then
-              echo "Worker is serving exactly 24 hourly buckets."
+            valid="$(printf '%s' "$payload" | jq -r '
+              (.last24Hours | type == "array") and
+              (.last24Hours | length == 24) and
+              (.generatedAt | type == "string") and
+              (.visitors | type == "number") and
+              (.pageviews | type == "number") and
+              (.topPage.path | type == "string") and
+              (has("last30Days") | not)
+            ' 2>/dev/null || echo false)"
+            if [ "$valid" = "true" ]; then
+              echo "Worker is serving the strict rolling-24h contract."
               exit 0
             fi
             sleep 5
           done
 
-          echo "Worker deployment completed but the public summary did not expose 24 hourly buckets in time."
+          echo "Worker deployment completed but the public summary did not expose the strict rolling-24h contract in time."
           exit 1
 
       - name: Explain skipped deployment
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: |
           echo 'CLOUDFLARE_API_TOKEN is not configured in repository secrets.'
-          echo 'The frontend remains strict-24h, but the Worker must be deployed before live hourly data can populate.'
+          echo 'The frontend will reject the legacy analytics contract until the Worker is deployed.'

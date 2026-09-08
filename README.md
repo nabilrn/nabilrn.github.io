@@ -10,10 +10,10 @@ Personal portfolio and blog built as a static Astro site.
 - Markdown blog content with static article routes
 - Plain string filtering on the blog index
 - Portfolio-wide Ctrl/Cmd+K search
-- Curated component gallery with live previews and source code
-- A–Z technical isometric mark generator
+- Curated original-component gallery with live previews, recreation prompts, and native ZIP exports
+- Angular vector A–Z technical isometric mark generator based on the NR visual language
 - Blog engagement metrics: views, likes, and shares
-- Strict 24-hour site analytics summary used by the homepage
+- Rolling 24-hour site analytics used by the homepage
 - Cloudflare Worker metrics API backed by Workers KV
 
 ## Stack
@@ -51,8 +51,8 @@ The public site currently exposes:
 - `/` — portfolio homepage
 - `/blog/` — blog index with local string filtering
 - `/blog/<slug>/` — blog articles
-- `/components/` — curated component previews and source code
-- `/components/isometric-generator/` — A–Z technical isometric generator
+- `/components/` — original component previews, recreation prompts, and native ZIP downloads
+- `/components/isometric-generator/` — angular vector A–Z isometric generator
 - `/search-index.json` — build-time global-search index
 - `/404/` — custom not-found page
 - `/sitemap.xml` — custom sitemap
@@ -79,34 +79,36 @@ The blog index intentionally uses a simple client-side substring filter over tit
 
 ## Component gallery
 
-`/components/` is intentionally curated rather than a source-tree inspector. Each public block contains a live preview and the actual component source. Internal orchestration components are not exposed as gallery entries.
+`/components/` is intentionally curated rather than a source-tree inspector. Original portfolio components expose a live preview, a copyable prompt for recreating the exact component, and a framework-free ZIP containing native HTML/CSS/JS/SVG assets.
 
-The GitHub contribution graph is adapted from Chánh Đại's MIT-licensed implementation; Chánh Đại credits Kibo UI for the generic contribution graph primitive. The portfolio keeps that provenance visible in the gallery.
+The GitHub contribution graph is not presented as an original component. The gallery links directly to Chánh Đại's public GitHub Contributions component at `https://chanhdai.com/components/github-contributions`, which documents its own Kibo UI credit and installation details.
+
+## Isometric generator
+
+The A–Z generator does not use a 5×7 bitmap or voxel-cell alphabet. Glyphs are hand-authored angular vector contours with fractional control points, projected on ±30° isometric axes with sharp/mitered surfaces, matching the construction language of the portfolio NR mark.
+
+Exports are native SVG or a ZIP containing only `index.html`, `styles.css`, `script.js`, and `mark.svg`.
 
 ## Metrics Worker
 
 Worker source and configuration live under `worker/`.
 
-The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the `METRICS` Workers KV binding. The analytics summary contract returns exactly 24 hourly buckets in `last24Hours`.
+The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the existing `METRICS` Workers KV binding. The homepage analytics contract is strictly rolling 24 hours:
 
-For a separate deployment:
+- `last24Hours` contains exactly 24 hourly buckets
+- `pageviews` is the sum of those 24 hourly buckets
+- `visitors` is deduplicated across visitor keys from those 24 hours
+- `topPage` is aggregated only from hourly page counters in the same 24-hour window
 
-1. Create a Cloudflare Workers KV namespace.
-2. Bind it as `METRICS` in `worker/wrangler.toml`.
-3. Set `ALLOWED_ORIGIN` to the portfolio origins that may call the Worker.
-4. Deploy:
+Hourly keys use TTLs and live in the same KV namespace; no KV migration is required.
+
+Deploy manually with:
 
 ```bash
 pnpm dlx wrangler deploy --config worker/wrangler.toml
 ```
 
-Production frontend code defaults to the portfolio metrics Worker. To test against another compatible endpoint, set:
-
-```bash
-PUBLIC_ENGAGEMENT_API_BASE=https://your-worker.example
-```
-
-The homepage never renders the legacy 30-day chart. If an older Worker is still deployed, it keeps a 24-bucket zero-state until the hourly Worker contract is available.
+Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/workflows/deploy-metrics-worker.yml` can deploy Worker changes automatically.
 
 ## CI
 

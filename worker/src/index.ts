@@ -43,6 +43,7 @@ type EngagementPayload = {
 const ANALYTICS_PREFIX = 'analytics:';
 const HOURLY_VISITOR_TTL_SECONDS = 30 * 60 * 60;
 const HOURLY_COUNTER_TTL_SECONDS = 72 * 60 * 60;
+const ROLLING_HOURS = 24;
 
 function allowedOrigins(env: Env) {
   return (env.ALLOWED_ORIGIN ?? '*')
@@ -80,6 +81,7 @@ function corsHeaders(request: Request, env: Env, existing?: HeadersInit) {
 const json = (request: Request, env: Env, data: unknown, init: ResponseInit = {}) => {
   const headers = corsHeaders(request, env, init.headers);
   headers.set('Content-Type', 'application/json; charset=utf-8');
+  headers.set('Cache-Control', 'no-store');
   return new Response(JSON.stringify(data), { ...init, headers });
 };
 
@@ -114,6 +116,16 @@ function utcHourKey(date = new Date()) {
 
 function utcHourStart(hour: string) {
   return `${hour}:00:00.000Z`;
+}
+
+function rollingHours() {
+  const currentHour = new Date();
+  currentHour.setUTCMinutes(0, 0, 0);
+  return Array.from({ length: ROLLING_HOURS }, (_, index) => {
+    const date = new Date(currentHour);
+    date.setUTCHours(date.getUTCHours() - (ROLLING_HOURS - 1 - index));
+    return utcHourKey(date);
+  });
 }
 
 async function getMetrics(kv: KVNamespace, postId: string) {
@@ -169,6 +181,12 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
       1,
       { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
     ),
+    increment(
+      kv,
+      `${ANALYTICS_PREFIX}hour:${hour}:page:${encodedPath}:views`,
+      1,
+      { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
+    ),
   ]);
 
   const uniqueWrites: Promise<unknown>[] = [];
@@ -208,19 +226,7 @@ async function listKeysByPrefix(kv: KVNamespace, prefix: string) {
 }
 
 async function getAnalyticsSummary(kv: KVNamespace) {
-  const [pageviewsRaw, visitorsRaw, pageKeys] = await Promise.all([
-    kv.get(`${ANALYTICS_PREFIX}pageviews`),
-    kv.get(`${ANALYTICS_PREFIX}visitors`),
-    listKeysByPrefix(kv, `${ANALYTICS_PREFIX}page:`),
-  ]);
-
-  const currentHour = new Date();
-  currentHour.setUTCMinutes(0, 0, 0);
-  const hours = Array.from({ length: 24 }, (_, index) => {
-    const date = new Date(currentHour);
-    date.setUTCHours(date.getUTCHours() - (23 - index));
-    return utcHourKey(date);
-  });
+  const hours = rollingHours();
 
   const hourlyValues = await Promise.all(
     hours.map(async (hour) => {
@@ -236,25 +242,44 @@ async function getAnalyticsSummary(kv: KVNamespace) {
     }),
   );
 
-  const pageCounts = await Promise.all(
-    pageKeys
-      .filter((name) => name.endsWith(':views'))
-      .map(async (name) => {
-        const encoded = name.slice(`${ANALYTICS_PREFIX}page:`.length, -':views'.length);
-        const path = decodeURIComponent(encoded);
-        return {
-          path,
-          views: Number((await kv.get(name)) ?? '0'),
-        };
-      }),
+  const visitorKeyPages = await Promise.all(
+    hours.map((hour) => listKeysByPrefix(kv, `${ANALYTICS_PREFIX}hour:${hour}:visitor:`)),
   );
+  const uniqueVisitors = new Set<string>();
+  visitorKeyPages.forEach((keys, index) => {
+    const prefix = `${ANALYTICS_PREFIX}hour:${hours[index]}:visitor:`;
+    keys.forEach((name) => uniqueVisitors.add(name.slice(prefix.length)));
+  });
 
-  pageCounts.sort((a, b) => b.views - a.views || a.path.localeCompare(b.path));
-  const topPage = pageCounts[0] ?? { path: '/', views: 0 };
+  const pageKeyPages = await Promise.all(
+    hours.map((hour) => listKeysByPrefix(kv, `${ANALYTICS_PREFIX}hour:${hour}:page:`)),
+  );
+  const pageCounts = new Map<string, number>();
+
+  for (const names of pageKeyPages) {
+    const viewKeys = names.filter((name) => name.endsWith(':views'));
+    const values = await Promise.all(viewKeys.map((name) => kv.get(name)));
+    viewKeys.forEach((name, index) => {
+      const marker = ':page:';
+      const start = name.indexOf(marker);
+      if (start < 0) return;
+      const encoded = name.slice(start + marker.length, -':views'.length);
+      const path = decodeURIComponent(encoded);
+      pageCounts.set(path, (pageCounts.get(path) ?? 0) + Number(values[index] ?? '0'));
+    });
+  }
+
+  const sortedPages = [...pageCounts.entries()]
+    .map(([path, views]) => ({ path, views }))
+    .sort((a, b) => b.views - a.views || a.path.localeCompare(b.path));
+
+  const pageviews = hourlyValues.reduce((sum, point) => sum + point.views, 0);
+  const topPage = sortedPages[0] ?? { path: '/', views: 0 };
 
   return {
-    visitors: Number(visitorsRaw ?? '0'),
-    pageviews: Number(pageviewsRaw ?? '0'),
+    generatedAt: new Date().toISOString(),
+    visitors: uniqueVisitors.size,
+    pageviews,
     topPage,
     last24Hours: hourlyValues,
   };
@@ -319,7 +344,6 @@ export default {
 
     const visitorId = normalizeVisitorId(payload.visitorId);
     const action = payload.action;
-
     if (!action) return badRequest(request, env, 'Missing action.');
 
     const kv = env.METRICS;
@@ -333,7 +357,6 @@ export default {
         await increment(kv, `metrics:${postId}:views`);
       }
 
-      // Existing blog traffic also feeds the lightweight site analytics stream.
       await trackSiteView(kv, `/blog/${postId}/`, visitorId);
       return json(request, env, await getEngagementState(kv, postId, visitorId));
     }
