@@ -415,9 +415,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   };
 
   const hourlyPoints = (values?: HourPoint[]): ChartPoint[] => {
-    const safe = Array.isArray(values) && values.length === 24
+    const safe: HourPoint[] = Array.isArray(values) && values.length === 24
       ? values
-      : Array.from({ length: 24 }, () => ({ views: 0, visitors: 0 }));
+      : Array.from({ length: 24 }, (): HourPoint => ({ views: 0, visitors: 0 }));
     return safe.map((item, index) => {
       const fallback = new Date(Date.now() - (23 - index) * 3_600_000);
       const parsed = item.hour ? new Date(item.hour) : fallback;
