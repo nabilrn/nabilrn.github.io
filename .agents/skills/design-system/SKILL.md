@@ -30,8 +30,8 @@ Clean editorial portfolio inspired by the restraint and hierarchy of ChanhDai, w
 - Keep the existing Astro + TypeScript + CSS stack.
 - Prefer tokens from `src/components/Page.astro` over raw one-off colors.
 - Reuse `src/data/siteContent.ts`, `src/data/projects.ts`, and existing assets.
-- Preserve localization, theme behavior, SEO, search, projects, blog, and accessibility.
+- Preserve the English-only content model, theme behavior, SEO, search, projects, blog, and accessibility.
 - Check desktop, mobile, dark/light theme, keyboard focus, and reduced motion.
-- Run `pnpm build` before completion.
+- Run `pnpm check` and `pnpm build` before completion.
 
 For NR geometry, hatch, visible edges, ruler lines, spotlight, and press interaction, use `.agents/skills/technical-isometric/SKILL.md`.
