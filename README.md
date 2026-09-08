@@ -10,8 +10,6 @@ Personal portfolio and blog built as a static Astro site.
 - Markdown blog content with static article routes
 - Plain string filtering on the blog index
 - Portfolio-wide Ctrl/Cmd+K search
-- Curated original-component gallery with live previews, recreation prompts, and native ZIP exports
-- Angular vector A–Z technical isometric mark generator based on the NR visual language
 - Blog engagement metrics: views, likes, and shares
 - Rolling 24-hour site analytics used by the homepage
 - Cloudflare Worker metrics API backed by Workers KV
@@ -51,8 +49,6 @@ The public site currently exposes:
 - `/` — portfolio homepage
 - `/blog/` — blog index with local string filtering
 - `/blog/<slug>/` — blog articles
-- `/components/` — original component previews, recreation prompts, and native ZIP downloads
-- `/components/isometric-generator/` — angular vector A–Z isometric generator
 - `/search-index.json` — build-time global-search index
 - `/404/` — custom not-found page
 - `/sitemap.xml` — custom sitemap
@@ -76,18 +72,6 @@ draft: false
 ```
 
 The blog index intentionally uses a simple client-side substring filter over title, description, and tags. Full article-body search belongs to the global Ctrl/Cmd+K search instead.
-
-## Component gallery
-
-`/components/` is intentionally curated rather than a source-tree inspector. Original portfolio components expose a live preview, a copyable prompt for recreating the exact component, and a framework-free ZIP containing native HTML/CSS/JS/SVG assets.
-
-The GitHub contribution graph is not presented as an original component. The gallery links directly to Chánh Đại's public GitHub Contributions component at `https://chanhdai.com/components/github-contributions`, which documents its own Kibo UI credit and installation details.
-
-## Isometric generator
-
-The A–Z generator does not use a 5×7 bitmap or voxel-cell alphabet. Glyphs are hand-authored angular vector contours with fractional control points, projected on ±30° isometric axes with sharp/mitered surfaces, matching the construction language of the portfolio NR mark.
-
-Exports are native SVG or a ZIP containing only `index.html`, `styles.css`, `script.js`, and `mark.svg`.
 
 ## Metrics Worker
 
@@ -120,7 +104,7 @@ Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/wo
 4. Astro preview smoke test
 5. accessibility audit against the generated sitemap
 
-The sitemap includes the public component gallery and isometric generator, so both are part of the accessibility gate.
+The sitemap covers the public portfolio and blog routes, so both remain part of the accessibility gate.
 
 ## Repository notes
 
