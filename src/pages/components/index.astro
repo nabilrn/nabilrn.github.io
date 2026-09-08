@@ -1,25 +1,17 @@
 ---
 import Page from '../../components/Page.astro';
 import EngagementBar from '../../components/EngagementBarNew.astro';
-import GitHubContributionGrid from '../../components/GitHubContributionGrid.astro';
 import IsometricMark from '../../components/IsometricMark.astro';
 import ThemeToggle from '../../components/ThemeToggle.astro';
 import ProjectCard from '../../components/home/ProjectCard.astro';
 import { webProjects } from '../../data/projects';
-
-import engagementSource from '../../components/EngagementBarNew.astro?raw';
-import contributionSource from '../../components/GitHubContributionGrid.astro?raw';
-import globalSearchSource from '../../components/GlobalSearch.astro?raw';
-import isometricSource from '../../components/IsometricMark.astro?raw';
-import themeToggleSource from '../../components/ThemeToggle.astro?raw';
-import projectCardSource from '../../components/home/ProjectCard.astro?raw';
 
 const project = webProjects[0];
 ---
 
 <Page
   title="Components — Nabil Rizki Navisa"
-  description="A compact gallery of reusable portfolio components with live previews and source code."
+  description="Original portfolio components with live previews, exact recreation prompts, and native downloads."
   path="/components/"
 >
   <div class="components-page">
@@ -27,47 +19,26 @@ const project = webProjects[0];
       <div>
         <span class="eyebrow">SYSTEM / COMPONENTS</span>
         <h1>Components</h1>
-        <p>Reusable pieces from this portfolio. Preview first, source directly below.</p>
+        <p>Original portfolio pieces. Preview the component, copy an exact recreation prompt, or download a native HTML/CSS/JS/SVG package.</p>
       </div>
-      <a class="generator-link" href="/components/isometric-generator/">A–Z isometric generator ↗</a>
+      <a class="generator-link" href="/components/isometric-generator/">Open A–Z isometric generator</a>
     </header>
 
+    <section class="external-reference" aria-labelledby="external-reference-title">
+      <div>
+        <span class="eyebrow">EXTERNAL REFERENCE</span>
+        <h2 id="external-reference-title">GitHub Contributions — Chánh Đại</h2>
+        <p>The contribution graph used as the visual reference for the homepage is not presented as an original Nabil component.</p>
+      </div>
+      <a href="https://chanhdai.com/components/github-contributions" target="_blank" rel="noopener noreferrer">Open Chánh Đại component</a>
+    </section>
+
     <div class="component-list">
-      <section class="component-block" id="github-contribution-grid">
-        <header class="component-head">
-          <div>
-            <span class="component-index">01</span>
-            <h2>GitHub Contribution Graph</h2>
-          </div>
-          <span class="component-kind">data display</span>
-        </header>
-
-        <div class="preview-stage contribution-preview">
-          <GitHubContributionGrid username="nabilrn" />
-        </div>
-
-        <p class="component-credit">
-          Adapted from
-          <a href="https://chanhdai.com/" target="_blank" rel="noopener noreferrer">Chánh Đại</a>.
-          Chánh Đại's contribution graph credits
-          <a href="https://www.kibo-ui.com/components/contribution-graph" target="_blank" rel="noopener noreferrer">Kibo UI</a>.
-        </p>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{contributionSource}</code></pre>
-        </details>
-      </section>
-
       <section class="component-block" id="global-search">
         <header class="component-head">
-          <div>
-            <span class="component-index">02</span>
-            <h2>Global Search</h2>
-          </div>
+          <div><span class="component-index">01</span><h2>Global Search</h2></div>
           <span class="component-kind">navigation</span>
         </header>
-
         <div class="preview-stage compact-preview">
           <button type="button" class="search-preview-trigger" data-global-search-open>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
@@ -78,97 +49,123 @@ const project = webProjects[0];
             <kbd data-global-search-shortcut>Ctrl K</kbd>
           </button>
         </div>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{globalSearchSource}</code></pre>
-        </details>
+        <div class="component-actions">
+          <button type="button" data-copy-component-prompt="global-search">Copy recreate prompt</button>
+          <button type="button" data-download-component="global-search">Download native ZIP</button>
+          <span data-component-status="global-search" aria-live="polite"></span>
+        </div>
       </section>
 
       <section class="component-block" id="theme-toggle">
         <header class="component-head">
-          <div>
-            <span class="component-index">03</span>
-            <h2>Theme Toggle</h2>
-          </div>
+          <div><span class="component-index">02</span><h2>Theme Toggle</h2></div>
           <span class="component-kind">interaction</span>
         </header>
-
         <div class="preview-stage compact-preview">
           <div class="theme-preview-shell"><ThemeToggle /></div>
-          <span class="preview-note">pixel transition is the real site interaction</span>
+          <span class="preview-note">Real pixel transition interaction</span>
         </div>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{themeToggleSource}</code></pre>
-        </details>
+        <div class="component-actions">
+          <button type="button" data-copy-component-prompt="theme-toggle">Copy recreate prompt</button>
+          <button type="button" data-download-component="theme-toggle">Download native ZIP</button>
+          <span data-component-status="theme-toggle" aria-live="polite"></span>
+        </div>
       </section>
 
       <section class="component-block" id="project-card">
         <header class="component-head">
-          <div>
-            <span class="component-index">04</span>
-            <h2>Project Card</h2>
-          </div>
+          <div><span class="component-index">03</span><h2>Project Card</h2></div>
           <span class="component-kind">content</span>
         </header>
-
         <div class="preview-stage project-card-preview">
           {project && <ProjectCard project={project} />}
         </div>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{projectCardSource}</code></pre>
-        </details>
+        <div class="component-actions">
+          <button type="button" data-copy-component-prompt="project-card">Copy recreate prompt</button>
+          <button type="button" data-download-component="project-card">Download native ZIP</button>
+          <span data-component-status="project-card" aria-live="polite"></span>
+        </div>
       </section>
 
       <section class="component-block" id="engagement-bar">
         <header class="component-head">
-          <div>
-            <span class="component-index">05</span>
-            <h2>Engagement Bar</h2>
-          </div>
+          <div><span class="component-index">04</span><h2>Engagement Bar</h2></div>
           <span class="component-kind">interaction</span>
         </header>
-
         <div class="preview-stage compact-preview">
-          <EngagementBar
-            postId="component-preview"
-            title="Component preview"
-            variant="inline"
-            trackView={false}
-          />
+          <EngagementBar postId="component-preview" title="Component preview" variant="inline" trackView={false} />
         </div>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{engagementSource}</code></pre>
-        </details>
+        <div class="component-actions">
+          <button type="button" data-copy-component-prompt="engagement-bar">Copy recreate prompt</button>
+          <button type="button" data-download-component="engagement-bar">Download native ZIP</button>
+          <span data-component-status="engagement-bar" aria-live="polite"></span>
+        </div>
       </section>
 
       <section class="component-block" id="isometric-mark">
         <header class="component-head">
-          <div>
-            <span class="component-index">06</span>
-            <h2>Isometric Mark</h2>
-          </div>
-          <a class="component-action" href="/components/isometric-generator/">open generator ↗</a>
+          <div><span class="component-index">05</span><h2>Isometric Mark</h2></div>
+          <a class="component-action" href="/components/isometric-generator/">Open generator</a>
         </header>
-
         <div class="preview-stage isometric-preview">
           <IsometricMark character="N" depth={28} hatch={true} guides={true} />
         </div>
-
-        <details class="source-panel">
-          <summary>source code</summary>
-          <pre><code>{isometricSource}</code></pre>
-        </details>
+        <div class="component-actions">
+          <button type="button" data-copy-component-prompt="isometric-mark">Copy recreate prompt</button>
+          <button type="button" data-download-component="isometric-mark">Download native ZIP</button>
+          <span data-component-status="isometric-mark" aria-live="polite"></span>
+        </div>
       </section>
     </div>
   </div>
 </Page>
+
+<script>
+  import { componentPackages, type ComponentPackageId } from '../../lib/componentPackages';
+  import { buildStoredZip } from '../../lib/zip';
+
+  const setStatus = (id: ComponentPackageId, message: string) => {
+    const target = document.querySelector<HTMLElement>(`[data-component-status="${id}"]`);
+    if (!target) return;
+    target.textContent = message;
+    window.setTimeout(() => {
+      if (target.textContent === message) target.textContent = '';
+    }, 1800);
+  };
+
+  const download = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  document.querySelectorAll<HTMLElement>('[data-copy-component-prompt]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.copyComponentPrompt as ComponentPackageId | undefined;
+      if (!id || !componentPackages[id]) return;
+      try {
+        await navigator.clipboard.writeText(componentPackages[id].prompt);
+        setStatus(id, 'prompt copied');
+      } catch {
+        setStatus(id, 'copy failed');
+      }
+    });
+  });
+
+  document.querySelectorAll<HTMLElement>('[data-download-component]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const id = button.dataset.downloadComponent as ComponentPackageId | undefined;
+      if (!id || !componentPackages[id]) return;
+      download(buildStoredZip(componentPackages[id].files), `${id}-native.zip`);
+      setStatus(id, 'ZIP downloaded');
+    });
+  });
+</script>
 
 <style>
   .components-page {
@@ -208,17 +205,19 @@ const project = webProjects[0];
     letter-spacing: -.045em;
   }
 
-  .components-hero p {
-    max-width: 560px;
+  .components-hero p,
+  .external-reference p {
+    max-width: 650px;
     margin: 0;
     color: var(--muted);
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.5;
   }
 
   .generator-link,
-  .component-action {
+  .component-action,
+  .external-reference a {
     color: var(--text);
     font-family: var(--font-mono);
     font-size: 10px;
@@ -229,10 +228,30 @@ const project = webProjects[0];
   .generator-link:hover,
   .generator-link:focus-visible,
   .component-action:hover,
-  .component-action:focus-visible {
+  .component-action:focus-visible,
+  .external-reference a:hover,
+  .external-reference a:focus-visible {
     text-decoration: underline;
     text-underline-offset: 3px;
     outline: none;
+  }
+
+  .external-reference {
+    min-height: 100px;
+    padding: 18px clamp(18px, 3vw, 32px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    border-bottom: 1px solid var(--sheet-line, var(--border));
+    background: color-mix(in srgb, var(--surface) 32%, var(--bg));
+  }
+
+  .external-reference h2 {
+    margin: 6px 0 5px;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 620;
   }
 
   .component-list { display: grid; }
@@ -242,9 +261,7 @@ const project = webProjects[0];
     scroll-margin-top: 68px;
   }
 
-  .component-block + .component-block {
-    border-top: 1px solid var(--sheet-line, var(--border));
-  }
+  .component-block + .component-block { border-top: 1px solid var(--sheet-line, var(--border)); }
 
   .component-head {
     min-height: 76px;
@@ -254,11 +271,7 @@ const project = webProjects[0];
     gap: 18px;
   }
 
-  .component-head > div {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-  }
+  .component-head > div { display: flex; align-items: baseline; gap: 12px; }
 
   .component-head h2 {
     margin: 0;
@@ -281,53 +294,34 @@ const project = webProjects[0];
       linear-gradient(to bottom, transparent calc(50% - .5px), color-mix(in srgb, var(--border) 50%, transparent) 50%, transparent calc(50% + .5px));
   }
 
-  .contribution-preview {
-    min-height: 230px;
-    display: block;
-    padding-top: 44px;
-    background: transparent;
-  }
-
-  .compact-preview {
-    min-height: 150px;
-    align-content: center;
-    gap: 12px;
-  }
-
+  .compact-preview { min-height: 150px; align-content: center; gap: 12px; }
   .project-card-preview { min-height: 330px; }
   .project-card-preview :global(.project-card) { width: min(300px, 100%); }
-
   .isometric-preview { min-height: 330px; }
   .isometric-preview :global(.isometric-mark) { width: min(420px, 88%); }
 
   .search-preview-trigger {
     min-height: 40px;
-    padding: 0 11px;
+    padding: 0 2px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid var(--border-strong);
-    border-radius: 5px;
-    background: var(--bg);
+    border: 0;
+    background: transparent;
     color: var(--text);
     font-family: var(--font-sans);
     font-size: 12px;
     cursor: pointer;
   }
 
-  .search-preview-trigger svg {
-    width: 15px;
-    height: 15px;
-    color: var(--muted);
-  }
-
+  .search-preview-trigger svg { width: 15px; height: 15px; color: var(--muted); }
   .search-preview-trigger kbd {
     margin-left: 8px;
     padding: 3px 5px;
     border: 1px solid var(--border);
     border-bottom-color: var(--border-strong);
     border-radius: 3px;
-    background: var(--surface);
+    background: transparent;
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 8px;
@@ -342,66 +336,59 @@ const project = webProjects[0];
     background: var(--bg);
   }
 
-  .preview-note,
-  .component-credit {
+  .preview-note {
     color: var(--muted);
     font-family: var(--font-sans);
     font-size: 10px;
     line-height: 1.45;
   }
 
-  .component-credit { margin: 10px 0 0; }
-  .component-credit a { color: var(--text); text-underline-offset: 2px; }
-
-  .source-panel {
-    margin-top: 12px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-  }
-
-  .source-panel summary {
-    min-height: 38px;
-    padding: 0 12px;
+  .component-actions {
+    min-height: 52px;
     display: flex;
     align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .component-actions button {
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-body);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    cursor: pointer;
+  }
+
+  .component-actions button:hover,
+  .component-actions button:focus-visible {
+    border-color: var(--border-strong);
+    color: var(--text);
+    outline: none;
+  }
+
+  .component-actions [data-component-status] {
+    margin-left: auto;
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .source-panel summary::-webkit-details-marker { display: none; }
-  .source-panel summary::before { content: '+ '; margin-right: 6px; color: var(--text); }
-  .source-panel[open] summary::before { content: '− '; }
-
-  .source-panel pre {
-    max-height: 520px;
-    margin: 0;
-    padding: 14px;
-    overflow: auto;
-    border-top: 1px solid var(--border);
-    background: color-mix(in srgb, var(--surface) 42%, var(--bg));
-    color: color-mix(in srgb, var(--text) 92%, var(--muted));
-    font-family: var(--font-mono);
-    font-size: 10px;
-    line-height: 1.55;
-    tab-size: 2;
-    white-space: pre;
   }
 
   @media (max-width: 720px) {
     .components-page { border-inline: 0; }
-    .components-hero { min-height: 118px; align-items: flex-start; flex-direction: column; }
+    .components-hero,
+    .external-reference { align-items: flex-start; flex-direction: column; }
+    .components-hero { min-height: 118px; }
     .component-head { min-height: 68px; }
     .component-kind { display: none; }
     .component-head > div { gap: 8px; }
     .component-head h2 { font-size: 16px; }
     .preview-stage { padding: 14px; }
-    .contribution-preview { overflow-x: auto; }
     .project-card-preview { min-height: 300px; }
     .isometric-preview { min-height: 260px; }
+    .component-actions { align-items: stretch; padding: 10px 0; flex-direction: column; }
+    .component-actions [data-component-status] { margin-left: 0; min-height: 14px; }
   }
 </style>

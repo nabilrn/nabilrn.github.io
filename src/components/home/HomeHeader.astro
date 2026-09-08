@@ -228,12 +228,11 @@ const componentsPath = '/components/';
         margin-left: auto;
         display: flex;
         align-items: center;
-        gap: 3px;
+        gap: 15px;
     }
 
     .home-nav-link {
         min-height: 30px;
-        padding: 0 8px;
         display: inline-flex;
         align-items: center;
         color: var(--muted);
@@ -242,18 +241,17 @@ const componentsPath = '/components/';
         font-weight: 520;
         line-height: 1;
         text-decoration: none;
-        border: 1px solid transparent;
-        transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+        transition: color 120ms ease;
     }
 
     .home-nav-link:hover,
     .home-nav-link:focus-visible,
     .home-nav-link.is-active {
         color: var(--text);
-        border-color: var(--border);
-        background: color-mix(in srgb, var(--surface) 60%, transparent);
         outline: none;
     }
+
+    .home-nav-link.is-active { font-weight: 650; }
 
     .home-actions {
         display: flex;
@@ -263,23 +261,20 @@ const componentsPath = '/components/';
 
     .header-search {
         min-height: 30px;
-        padding: 0 7px;
+        padding: 0 2px;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        border: 1px solid var(--border);
-        border-radius: 4px;
+        gap: 7px;
+        border: 0;
         background: transparent;
         color: var(--muted);
         cursor: pointer;
-        transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+        transition: color 120ms ease;
     }
 
     .header-search:hover,
     .header-search:focus-visible {
         color: var(--text);
-        border-color: var(--border-strong);
-        background: color-mix(in srgb, var(--surface) 60%, transparent);
         outline: none;
     }
 
@@ -293,7 +288,7 @@ const componentsPath = '/components/';
         border: 1px solid var(--border);
         border-bottom-color: var(--border-strong);
         border-radius: 3px;
-        background: var(--surface);
+        background: transparent;
         color: inherit;
         font-family: var(--font-mono);
         font-size: 8px;
@@ -317,16 +312,17 @@ const componentsPath = '/components/';
         .home-header { height: 48px; }
         .home-header-inner { padding-inline: 10px; gap: 7px; }
         .home-greeting { font-size: 13px; }
-        .home-nav { gap: 0; margin-left: auto; }
-        .home-nav-link { min-height: 28px; padding-inline: 6px; font-size: 10px; }
-        .header-search { width: 30px; padding: 0; justify-content: center; }
+        .home-nav { gap: 10px; margin-left: auto; }
+        .home-nav-link { min-height: 28px; font-size: 10px; }
+        .header-search { width: 28px; padding: 0; justify-content: center; }
         .header-search kbd { display: none; }
         .home-actions { gap: 3px; }
     }
 
     @media (max-width: 560px) {
         .home-greeting { display: none; }
-        .home-nav-link { padding-inline: 5px; font-size: 9.5px; }
+        .home-nav { gap: 8px; }
+        .home-nav-link { font-size: 9.5px; }
         .header-separator { display: none; }
     }
 </style>
