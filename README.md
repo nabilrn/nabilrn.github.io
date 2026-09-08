@@ -96,7 +96,7 @@ Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/wo
 
 ## CI
 
-`.github/workflows/portfolio-redesign-ci.yml` currently runs:
+`.github/workflows/ci.yml` runs:
 
 1. frozen pnpm install
 2. `astro check`
