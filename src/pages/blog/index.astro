@@ -16,13 +16,18 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
 	(a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime()
 );
 
+const normalizeFilterText = (value: string) => value
+	.normalize('NFKD')
+	.replace(/[\u0300-\u036f]/g, '')
+	.toLowerCase();
+
 const getReadingTime = (raw: string) => Math.max(1, Math.ceil(raw.trim().split(/\s+/).length / 200));
 const cards = posts.map((post) => {
 	const readingTime = getReadingTime(post.body);
 	return {
 		post,
 		link: `/blog/${post.slug}/`,
-		searchText: [post.data.title, post.data.description, ...post.data.tags].join(' ').toLowerCase(),
+		searchText: normalizeFilterText([post.data.title, post.data.description, ...post.data.tags].join(' ')),
 		readingLabel: content.minRead(readingTime),
 		date: post.data.pubDate.toLocaleDateString('en-US', {
 			month: 'short',
@@ -199,13 +204,6 @@ const blogCollectionJson = JSON.stringify({
 		border-radius: 999px;
 		background: color-mix(in srgb, var(--surface) 72%, transparent);
 		color: var(--muted);
-		transition: border-color 130ms ease, background 130ms ease, color 130ms ease;
-	}
-
-	.search-field:focus-within {
-		border-color: var(--border-strong);
-		background: var(--bg);
-		color: var(--text);
 	}
 
 	.search-field svg {
@@ -219,10 +217,17 @@ const blogCollectionJson = JSON.stringify({
 		padding: 0;
 		border: 0;
 		outline: 0;
+		box-shadow: none;
 		background: transparent;
 		color: var(--text);
 		font-family: var(--font-sans);
 		font-size: 13px;
+	}
+
+	.search-field input:focus,
+	.search-field input:focus-visible {
+		outline: 0;
+		box-shadow: none;
 	}
 
 	.search-field input::placeholder { color: var(--muted); }
@@ -246,6 +251,10 @@ const blogCollectionJson = JSON.stringify({
 		gap: 10px;
 		border-bottom: 1px solid var(--sheet-line, var(--border));
 		transition: background 130ms ease;
+	}
+
+	.feed-post[hidden] {
+		display: none;
 	}
 
 	.feed-post:last-of-type { border-bottom: 0; }
@@ -400,11 +409,17 @@ const blogCollectionJson = JSON.stringify({
 		const search = root.querySelector('[data-blog-search]');
 		if (!(search instanceof HTMLInputElement)) return;
 
+		const normalize = (value) => value
+			.normalize('NFKD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.toLowerCase();
+
 		const apply = () => {
-			const query = search.value.trim().toLowerCase();
+			const query = normalize(search.value.trim());
 			let visible = 0;
 			for (const card of cards) {
-				const matches = !query || (card.getAttribute('data-post-search') || '').includes(query);
+				const haystack = card.getAttribute('data-post-search') || '';
+				const matches = !query || haystack.includes(query);
 				card.hidden = !matches;
 				if (matches) visible++;
 			}
@@ -415,5 +430,6 @@ const blogCollectionJson = JSON.stringify({
 		};
 
 		search.addEventListener('input', apply);
+		apply();
 	})();
 </script>
