@@ -1,558 +1,407 @@
 ---
 import Page from '../../components/Page.astro';
-import BrandIcon from '../../components/icons/BrandIcon.astro';
-import UiIcon from '../../components/icons/UiIcon.astro';
-import HandwrittenNote from '../../components/home/HandwrittenNote.astro';
+import EngagementBar from '../../components/EngagementBarNew.astro';
+import GitHubContributionGrid from '../../components/GitHubContributionGrid.astro';
+import IsometricMark from '../../components/IsometricMark.astro';
+import ThemeToggle from '../../components/ThemeToggle.astro';
 import ProjectCard from '../../components/home/ProjectCard.astro';
-import VerifiedIcon from '../../components/home/VerifiedIcon.astro';
 import { webProjects } from '../../data/projects';
-import { buildComponentCatalog } from '../../lib/componentCatalog';
 
-const catalog = buildComponentCatalog();
-const categories = [...new Set(catalog.map((entry) => entry.category))];
-const initial = catalog[0];
-const serializedCatalog = JSON.stringify(catalog)
-  .replace(/</g, '\\u003c')
-  .replace(/>/g, '\\u003e')
-  .replace(/&/g, '\\u0026');
+import engagementSource from '../../components/EngagementBarNew.astro?raw';
+import contributionSource from '../../components/GitHubContributionGrid.astro?raw';
+import globalSearchSource from '../../components/GlobalSearch.astro?raw';
+import isometricSource from '../../components/IsometricMark.astro?raw';
+import themeToggleSource from '../../components/ThemeToggle.astro?raw';
+import projectCardSource from '../../components/home/ProjectCard.astro?raw';
+
+const project = webProjects[0];
 ---
 
 <Page
   title="Components — Nabil Rizki Navisa"
-  description="Build-time component explorer for the portfolio design system and implementation primitives."
+  description="A compact gallery of reusable portfolio components with live previews and source code."
   path="/components/"
 >
-  <div class="component-explorer" data-component-explorer>
-    <aside class="component-sidebar" aria-label="Component catalog">
-      <div class="sidebar-head">
-        <div>
-          <span class="eyebrow">SYSTEM / COMPONENTS</span>
-          <h1>Components</h1>
-        </div>
-        <span class="component-count">{catalog.length}</span>
+  <div class="components-page">
+    <header class="components-hero">
+      <div>
+        <span class="eyebrow">SYSTEM / COMPONENTS</span>
+        <h1>Components</h1>
+        <p>Reusable pieces from this portfolio. Preview first, source directly below.</p>
       </div>
+      <a class="generator-link" href="/components/isometric-generator/">A–Z isometric generator ↗</a>
+    </header>
 
-      <label class="component-filter">
-        <span class="visually-hidden">Filter components</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-          <circle cx="11" cy="11" r="6.5" />
-          <path d="m16 16 4 4" />
-        </svg>
-        <input type="search" placeholder="Filter components..." autocomplete="off" data-component-filter />
-      </label>
+    <div class="component-list">
+      <section class="component-block" id="github-contribution-grid">
+        <header class="component-head">
+          <div>
+            <span class="component-index">01</span>
+            <h2>GitHub Contribution Graph</h2>
+          </div>
+          <span class="component-kind">data display</span>
+        </header>
 
-      <nav class="component-nav" aria-label="Available components">
-        {categories.map((category) => (
-          <section class="component-group" data-component-group>
-            <h2>{category}</h2>
-            <div class="component-links">
-              {catalog.filter((entry) => entry.category === category).map((entry) => (
-                <button
-                  type="button"
-                  class="component-link"
-                  data-component-id={entry.id}
-                  data-component-search={`${entry.name} ${entry.path} ${entry.category}`.toLowerCase()}
-                >
-                  <span>{entry.name}</span>
-                  {entry.previewId
-                    ? <span class="preview-dot" title="Live preview available" aria-label="Live preview available"></span>
-                    : null}
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
-        <p class="component-empty" data-component-empty hidden>No matching component.</p>
-      </nav>
-    </aside>
-
-    <section class="component-workspace" aria-live="polite">
-      <header class="workspace-head">
-        <div class="workspace-title">
-          <span class="eyebrow" data-component-category>{initial?.category ?? 'Component'}</span>
-          <h2 data-component-name>{initial?.name ?? 'Component'}</h2>
-          <code data-component-path>{initial?.path ?? ''}</code>
-        </div>
-        <div class="workspace-actions">
-          <a href="#source" class="compact-action">source</a>
-          <button type="button" class="compact-action" data-copy-source>copy</button>
-        </div>
-      </header>
-
-      <div class="preview-shell" data-preview-shell>
-        <div class="preview-label">
-          <span>LIVE PREVIEW</span>
-          <span data-preview-status>source only</span>
+        <div class="preview-stage contribution-preview">
+          <GitHubContributionGrid username="nabilrn" />
         </div>
 
-        <div class="preview-canvas" data-preview-canvas>
-          <div class="preview-instance" data-preview-pane="verified-icon" hidden>
-            <div class="icon-preview"><VerifiedIcon size={42} /></div>
-          </div>
+        <p class="component-credit">
+          Adapted from
+          <a href="https://chanhdai.com/" target="_blank" rel="noopener noreferrer">Chánh Đại</a>.
+          Chánh Đại's contribution graph credits
+          <a href="https://www.kibo-ui.com/components/contribution-graph" target="_blank" rel="noopener noreferrer">Kibo UI</a>.
+        </p>
 
-          <div class="preview-instance" data-preview-pane="ui-icon" hidden>
-            <div class="icon-row">
-              <UiIcon name="briefcase" size={30} />
-              <UiIcon name="graduation-cap" size={30} />
-              <UiIcon name="map-pin" size={30} />
-            </div>
-          </div>
-
-          <div class="preview-instance" data-preview-pane="brand-icon" hidden>
-            <div class="icon-row brand-row">
-              <BrandIcon name="github" size={30} />
-              <BrandIcon name="docker" size={30} />
-              <BrandIcon name="cloudflare" size={30} />
-              <BrandIcon name="go" size={30} />
-            </div>
-          </div>
-
-          <div class="preview-instance handwritten-preview" data-preview-pane="handwritten-note" hidden>
-            <HandwrittenNote text="component note" showArrow={true} arrowVariant="shallow" />
-          </div>
-
-          <div class="preview-instance project-preview" data-preview-pane="project-card" hidden>
-            <ProjectCard project={webProjects[0]} />
-          </div>
-
-          <div class="source-only-preview" data-source-only-preview>
-            <span class="source-only-mark" aria-hidden="true">◇</span>
-            <strong>Source-only component</strong>
-            <p>This component depends on page orchestration, runtime state, or a larger layout context. Its implementation is still fully inspectable below.</p>
-          </div>
-        </div>
-      </div>
-
-      <section class="source-shell" id="source">
-        <div class="source-tabs" role="tablist" aria-label="Component source views">
-          <button type="button" role="tab" aria-selected="false" data-source-tab="preview">Preview</button>
-          <button type="button" role="tab" aria-selected="true" data-source-tab="astro">Astro</button>
-          <button type="button" role="tab" aria-selected="false" data-source-tab="typescript">TypeScript</button>
-          <button type="button" role="tab" aria-selected="false" data-source-tab="css">CSS</button>
-        </div>
-        <div class="source-meta">
-          <span data-source-label>Astro source</span>
-          <span data-script-count></span>
-        </div>
-        <pre class="source-code"><code data-source-output>{initial?.source ?? ''}</code></pre>
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{contributionSource}</code></pre>
+        </details>
       </section>
-    </section>
-  </div>
 
-  <script type="application/json" id="component-catalog-data" set:html={serializedCatalog}></script>
+      <section class="component-block" id="global-search">
+        <header class="component-head">
+          <div>
+            <span class="component-index">02</span>
+            <h2>Global Search</h2>
+          </div>
+          <span class="component-kind">navigation</span>
+        </header>
+
+        <div class="preview-stage compact-preview">
+          <button type="button" class="search-preview-trigger" data-global-search-open>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="6.5"></circle>
+              <path d="m16 16 4 4"></path>
+            </svg>
+            <span>Search portfolio</span>
+            <kbd data-global-search-shortcut>Ctrl K</kbd>
+          </button>
+        </div>
+
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{globalSearchSource}</code></pre>
+        </details>
+      </section>
+
+      <section class="component-block" id="theme-toggle">
+        <header class="component-head">
+          <div>
+            <span class="component-index">03</span>
+            <h2>Theme Toggle</h2>
+          </div>
+          <span class="component-kind">interaction</span>
+        </header>
+
+        <div class="preview-stage compact-preview">
+          <div class="theme-preview-shell"><ThemeToggle /></div>
+          <span class="preview-note">pixel transition is the real site interaction</span>
+        </div>
+
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{themeToggleSource}</code></pre>
+        </details>
+      </section>
+
+      <section class="component-block" id="project-card">
+        <header class="component-head">
+          <div>
+            <span class="component-index">04</span>
+            <h2>Project Card</h2>
+          </div>
+          <span class="component-kind">content</span>
+        </header>
+
+        <div class="preview-stage project-card-preview">
+          {project && <ProjectCard project={project} />}
+        </div>
+
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{projectCardSource}</code></pre>
+        </details>
+      </section>
+
+      <section class="component-block" id="engagement-bar">
+        <header class="component-head">
+          <div>
+            <span class="component-index">05</span>
+            <h2>Engagement Bar</h2>
+          </div>
+          <span class="component-kind">interaction</span>
+        </header>
+
+        <div class="preview-stage compact-preview">
+          <EngagementBar
+            postId="component-preview"
+            title="Component preview"
+            variant="inline"
+            trackView={false}
+          />
+        </div>
+
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{engagementSource}</code></pre>
+        </details>
+      </section>
+
+      <section class="component-block" id="isometric-mark">
+        <header class="component-head">
+          <div>
+            <span class="component-index">06</span>
+            <h2>Isometric Mark</h2>
+          </div>
+          <a class="component-action" href="/components/isometric-generator/">open generator ↗</a>
+        </header>
+
+        <div class="preview-stage isometric-preview">
+          <IsometricMark character="N" depth={28} hatch={true} guides={true} />
+        </div>
+
+        <details class="source-panel">
+          <summary>source code</summary>
+          <pre><code>{isometricSource}</code></pre>
+        </details>
+      </section>
+    </div>
+  </div>
 </Page>
 
-<script is:inline>
-  (() => {
-    const root = document.querySelector('[data-component-explorer]');
-    const dataNode = document.getElementById('component-catalog-data');
-    if (!(root instanceof HTMLElement) || !dataNode?.textContent) return;
-
-    let catalog;
-    try {
-      catalog = JSON.parse(dataNode.textContent);
-    } catch {
-      return;
-    }
-    if (!Array.isArray(catalog) || catalog.length === 0) return;
-
-    const links = Array.from(root.querySelectorAll('[data-component-id]'));
-    const groups = Array.from(root.querySelectorAll('[data-component-group]'));
-    const filter = root.querySelector('[data-component-filter]');
-    const empty = root.querySelector('[data-component-empty]');
-    const name = root.querySelector('[data-component-name]');
-    const category = root.querySelector('[data-component-category]');
-    const path = root.querySelector('[data-component-path]');
-    const output = root.querySelector('[data-source-output]');
-    const label = root.querySelector('[data-source-label]');
-    const scriptCount = root.querySelector('[data-script-count]');
-    const previewStatus = root.querySelector('[data-preview-status]');
-    const sourceOnly = root.querySelector('[data-source-only-preview]');
-    const previewPanes = Array.from(root.querySelectorAll('[data-preview-pane]'));
-    const tabs = Array.from(root.querySelectorAll('[data-source-tab]'));
-    const copyButton = root.querySelector('[data-copy-source]');
-
-    let selected = catalog[0];
-    let activeTab = 'astro';
-
-    const sourceFor = (entry, tab) => {
-      if (tab === 'typescript') {
-        if (!entry.scripts?.length) return '// No companion TypeScript file for this component.';
-        return entry.scripts.map((script) => `// ${script.path}\n\n${script.source}`).join('\n\n// ------------------------------------------------------------\n\n');
-      }
-      if (tab === 'css') return entry.css || '/* No component-scoped CSS block. */';
-      if (tab === 'preview') {
-        return entry.previewId
-          ? `Live preview fixture: ${entry.previewId}\n\nRendered above with the real Astro component.`
-          : 'This component is source-only because it depends on a larger page or runtime context.';
-      }
-      return entry.source;
-    };
-
-    const renderPreview = (entry) => {
-      for (const pane of previewPanes) {
-        pane.hidden = pane.getAttribute('data-preview-pane') !== entry.previewId;
-      }
-      if (sourceOnly instanceof HTMLElement) sourceOnly.hidden = Boolean(entry.previewId);
-      if (previewStatus) previewStatus.textContent = entry.previewId ? 'rendered component' : 'source only';
-    };
-
-    const renderSource = () => {
-      if (output) output.textContent = sourceFor(selected, activeTab);
-      if (label) {
-        label.textContent = activeTab === 'typescript'
-          ? 'Companion TypeScript'
-          : activeTab === 'css'
-            ? 'Extracted CSS'
-            : activeTab === 'preview'
-              ? 'Preview fixture'
-              : 'Full Astro source';
-      }
-      if (scriptCount) {
-        scriptCount.textContent = selected.scripts?.length
-          ? `${selected.scripts.length} companion ${selected.scripts.length === 1 ? 'file' : 'files'}`
-          : '';
-      }
-      for (const tab of tabs) {
-        const isActive = tab.getAttribute('data-source-tab') === activeTab;
-        tab.setAttribute('aria-selected', String(isActive));
-      }
-    };
-
-    const select = (id, updateUrl = true) => {
-      const next = catalog.find((entry) => entry.id === id) ?? catalog[0];
-      selected = next;
-      for (const link of links) {
-        link.classList.toggle('is-active', link.getAttribute('data-component-id') === next.id);
-      }
-      if (name) name.textContent = next.name;
-      if (category) category.textContent = next.category;
-      if (path) path.textContent = next.path;
-      renderPreview(next);
-      renderSource();
-
-      if (updateUrl) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('component', next.id);
-        history.replaceState(null, '', url);
-      }
-    };
-
-    for (const link of links) {
-      link.addEventListener('click', () => select(link.getAttribute('data-component-id')));
-    }
-
-    for (const tab of tabs) {
-      tab.addEventListener('click', () => {
-        activeTab = tab.getAttribute('data-source-tab') || 'astro';
-        renderSource();
-        if (activeTab === 'preview') root.querySelector('[data-preview-shell]')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-    }
-
-    if (filter instanceof HTMLInputElement) {
-      filter.addEventListener('input', () => {
-        const query = filter.value.trim().toLowerCase();
-        let visible = 0;
-        for (const link of links) {
-          const haystack = link.getAttribute('data-component-search') || '';
-          const matches = !query || haystack.includes(query);
-          link.hidden = !matches;
-          if (matches) visible++;
-        }
-        for (const group of groups) {
-          group.hidden = !group.querySelector('[data-component-id]:not([hidden])');
-        }
-        if (empty instanceof HTMLElement) empty.hidden = visible > 0;
-      });
-    }
-
-    if (copyButton instanceof HTMLButtonElement) {
-      copyButton.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(sourceFor(selected, activeTab));
-          const previous = copyButton.textContent;
-          copyButton.textContent = 'copied';
-          window.setTimeout(() => { copyButton.textContent = previous || 'copy'; }, 1200);
-        } catch {
-          copyButton.textContent = 'failed';
-        }
-      });
-    }
-
-    const requested = new URL(window.location.href).searchParams.get('component');
-    select(requested || catalog[0].id, false);
-  })();
-</script>
-
 <style>
-  .component-explorer {
-    min-height: calc(100dvh - 52px);
-    display: grid;
-    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  .components-page {
+    width: min(1100px, 100%);
+    margin: 0 auto;
     border-inline: 1px solid var(--sheet-line, var(--border));
     border-bottom: 1px solid var(--sheet-line, var(--border));
   }
 
-  .component-sidebar {
-    min-height: calc(100dvh - 52px);
-    border-right: 1px solid var(--sheet-line, var(--border));
-    background: var(--bg);
-  }
-
-  .sidebar-head,
-  .workspace-head {
-    min-height: 82px;
-    padding: 16px 18px;
+  .components-hero {
+    min-height: 132px;
+    padding: 26px clamp(18px, 3vw, 34px);
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
+    gap: 24px;
     border-bottom: 1px solid var(--sheet-line, var(--border));
   }
 
-  .eyebrow {
-    display: block;
-    margin-bottom: 5px;
+  .eyebrow,
+  .component-index,
+  .component-kind {
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 9px;
     line-height: 1;
-    letter-spacing: .11em;
-  }
-
-  .sidebar-head h1,
-  .workspace-title h2 {
-    margin: 0;
-    font-family: var(--font-sans);
-    font-size: 20px;
-    font-weight: 650;
-    line-height: 1.15;
-    letter-spacing: -.025em;
-  }
-
-  .component-count {
-    min-width: 28px;
-    height: 24px;
-    padding: 0 7px;
-    display: grid;
-    place-items: center;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 10px;
-  }
-
-  .component-filter {
-    height: 42px;
-    margin: 12px;
-    padding: 0 11px;
-    display: grid;
-    grid-template-columns: 16px minmax(0, 1fr);
-    align-items: center;
-    gap: 8px;
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-
-  .component-filter:focus-within {
-    border-color: var(--border-strong);
-    color: var(--text);
-  }
-
-  .component-filter svg { width: 16px; height: 16px; }
-  .component-filter input {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    color: var(--text);
-    font-family: var(--font-sans);
-    font-size: 12px;
-  }
-
-  .component-nav {
-    max-height: calc(100dvh - 190px);
-    padding: 2px 12px 28px;
-    overflow-y: auto;
-  }
-
-  .component-group { margin-top: 16px; }
-  .component-group h2 {
-    margin: 0 0 5px 8px;
-    color: var(--muted);
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: .1em;
+    letter-spacing: .08em;
     text-transform: uppercase;
   }
 
-  .component-links { display: grid; gap: 1px; }
-  .component-link {
-    width: 100%;
-    min-height: 34px;
-    padding: 0 8px;
-    border: 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    background: transparent;
+  .components-hero h1 {
+    margin: 8px 0 7px;
+    font-family: var(--font-sans);
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: -.045em;
+  }
+
+  .components-hero p {
+    max-width: 560px;
+    margin: 0;
     color: var(--muted);
     font-family: var(--font-sans);
-    font-size: 12px;
-    text-align: left;
-    cursor: pointer;
+    font-size: 13px;
+    line-height: 1.5;
   }
 
-  .component-link:hover,
-  .component-link.is-active {
-    background: color-mix(in srgb, var(--surface) 58%, transparent);
+  .generator-link,
+  .component-action {
     color: var(--text);
-  }
-
-  .preview-dot {
-    width: 5px;
-    height: 5px;
-    flex: none;
-    border-radius: 50%;
-    background: var(--muted);
-  }
-
-  .component-empty {
-    margin: 18px 8px;
-    color: var(--muted);
-    font-size: 11px;
-  }
-
-  .component-workspace { min-width: 0; }
-  .workspace-head { min-height: 82px; }
-  .workspace-title { min-width: 0; }
-  .workspace-title code {
-    margin-top: 6px;
-    display: block;
-    overflow: hidden;
-    color: var(--muted);
+    font-family: var(--font-mono);
     font-size: 10px;
-    text-overflow: ellipsis;
+    text-decoration: none;
     white-space: nowrap;
   }
 
-  .workspace-actions { display: flex; align-items: center; gap: 6px; }
-  .compact-action {
-    min-height: 30px;
-    padding: 0 9px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    font: 10px/28px var(--font-mono);
-    cursor: pointer;
+  .generator-link:hover,
+  .generator-link:focus-visible,
+  .component-action:hover,
+  .component-action:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    outline: none;
   }
-  .compact-action:hover { border-color: var(--border-strong); color: var(--text); }
 
-  .preview-shell { padding: clamp(14px, 2vw, 28px); border-bottom: 1px solid var(--sheet-line, var(--border)); }
-  .preview-label,
-  .source-meta {
+  .component-list { display: grid; }
+
+  .component-block {
+    padding: 0 clamp(16px, 3vw, 32px) 30px;
+    scroll-margin-top: 68px;
+  }
+
+  .component-block + .component-block {
+    border-top: 1px solid var(--sheet-line, var(--border));
+  }
+
+  .component-head {
+    min-height: 76px;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 9px;
-    letter-spacing: .08em;
+    gap: 18px;
   }
 
-  .preview-canvas {
-    min-height: 300px;
-    margin-top: 10px;
-    position: relative;
+  .component-head > div {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  .component-head h2 {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 640;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+  }
+
+  .preview-stage {
+    min-height: 180px;
+    padding: clamp(16px, 2.4vw, 28px);
     display: grid;
     place-items: center;
     overflow: hidden;
     border: 1px solid var(--border);
-    background-image:
-      linear-gradient(var(--border) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 28px 28px;
-    background-position: -1px -1px;
+    background:
+      linear-gradient(to right, transparent calc(50% - .5px), color-mix(in srgb, var(--border) 50%, transparent) 50%, transparent calc(50% + .5px)),
+      linear-gradient(to bottom, transparent calc(50% - .5px), color-mix(in srgb, var(--border) 50%, transparent) 50%, transparent calc(50% + .5px));
   }
 
-  .preview-instance { width: min(760px, calc(100% - 40px)); }
-  .icon-preview { display: grid; place-items: center; color: var(--text); }
-  .icon-row { display: flex; align-items: center; justify-content: center; gap: 28px; color: var(--text); }
-  .brand-row { gap: 34px; }
-  .handwritten-preview { height: 130px; position: relative; }
-  .handwritten-preview :global(.handwritten-note) { left: 50%; top: 30%; transform: translateX(-50%); }
-  .project-preview { max-width: 560px; }
-
-  .source-only-preview {
-    width: min(440px, calc(100% - 40px));
-    text-align: center;
-  }
-  .source-only-mark { display: block; margin-bottom: 9px; color: var(--muted); font-size: 28px; }
-  .source-only-preview strong { font-family: var(--font-sans); font-size: 14px; }
-  .source-only-preview p { margin: 7px 0 0; font-family: var(--font-sans); font-size: 12px; line-height: 1.5; }
-
-  .source-shell { min-width: 0; }
-  .source-tabs {
-    min-height: 42px;
-    padding: 0 14px;
-    display: flex;
-    align-items: end;
-    gap: 2px;
-    border-bottom: 1px solid var(--sheet-line, var(--border));
-  }
-  .source-tabs button {
-    min-height: 40px;
-    padding: 0 12px;
-    border: 0;
-    border-bottom: 1px solid transparent;
+  .contribution-preview {
+    min-height: 230px;
+    display: block;
+    padding-top: 44px;
     background: transparent;
-    color: var(--muted);
-    font: 11px/40px var(--font-sans);
+  }
+
+  .compact-preview {
+    min-height: 150px;
+    align-content: center;
+    gap: 12px;
+  }
+
+  .project-card-preview { min-height: 330px; }
+  .project-card-preview :global(.project-card) { width: min(300px, 100%); }
+
+  .isometric-preview { min-height: 330px; }
+  .isometric-preview :global(.isometric-mark) { width: min(420px, 88%); }
+
+  .search-preview-trigger {
+    min-height: 40px;
+    padding: 0 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--border-strong);
+    border-radius: 5px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 12px;
     cursor: pointer;
   }
-  .source-tabs button[aria-selected='true'] { border-bottom-color: var(--text); color: var(--text); }
 
-  .source-meta { min-height: 34px; padding: 0 16px; align-items: center; border-bottom: 1px solid var(--border); }
-  .source-code {
-    height: min(48dvh, 520px);
+  .search-preview-trigger svg {
+    width: 15px;
+    height: 15px;
+    color: var(--muted);
+  }
+
+  .search-preview-trigger kbd {
+    margin-left: 8px;
+    padding: 3px 5px;
+    border: 1px solid var(--border);
+    border-bottom-color: var(--border-strong);
+    border-radius: 3px;
+    background: var(--surface);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 8px;
+  }
+
+  .theme-preview-shell {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .preview-note,
+  .component-credit {
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .component-credit { margin: 10px 0 0; }
+  .component-credit a { color: var(--text); text-underline-offset: 2px; }
+
+  .source-panel {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .source-panel summary {
+    min-height: 38px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .source-panel summary::-webkit-details-marker { display: none; }
+  .source-panel summary::before { content: '+ '; margin-right: 6px; color: var(--text); }
+  .source-panel[open] summary::before { content: '− '; }
+
+  .source-panel pre {
+    max-height: 520px;
     margin: 0;
-    padding: 18px;
+    padding: 14px;
     overflow: auto;
-    background: color-mix(in srgb, var(--surface) 46%, var(--bg));
-    color: color-mix(in srgb, var(--text) 88%, var(--muted));
-    font: 11px/1.65 var(--font-mono);
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 42%, var(--bg));
+    color: color-mix(in srgb, var(--text) 92%, var(--muted));
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.55;
     tab-size: 2;
     white-space: pre;
   }
 
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  @media (max-width: 900px) {
-    .component-explorer { grid-template-columns: 210px minmax(0, 1fr); }
-    .workspace-head { padding-inline: 14px; }
-    .preview-canvas { min-height: 240px; }
-  }
-
-  @media (max-width: 700px) {
-    .component-explorer { display: block; }
-    .component-sidebar { min-height: auto; border-right: 0; border-bottom: 1px solid var(--sheet-line, var(--border)); }
-    .component-nav { max-height: 220px; }
-    .workspace-actions { display: none; }
-    .preview-shell { padding: 12px; }
-    .preview-canvas { min-height: 220px; }
-    .source-tabs { padding-inline: 8px; overflow-x: auto; }
-    .source-tabs button { padding-inline: 9px; }
-    .source-code { height: 420px; font-size: 10px; }
+  @media (max-width: 720px) {
+    .components-page { border-inline: 0; }
+    .components-hero { min-height: 118px; align-items: flex-start; flex-direction: column; }
+    .component-head { min-height: 68px; }
+    .component-kind { display: none; }
+    .component-head > div { gap: 8px; }
+    .component-head h2 { font-size: 16px; }
+    .preview-stage { padding: 14px; }
+    .contribution-preview { overflow-x: auto; }
+    .project-card-preview { min-height: 300px; }
+    .isometric-preview { min-height: 260px; }
   }
 </style>
