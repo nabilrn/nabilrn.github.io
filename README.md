@@ -8,8 +8,12 @@ Personal portfolio and blog built as a static Astro site.
 - Selected web-project carousel
 - English portfolio and blog
 - Markdown blog content with static article routes
+- Plain string filtering on the blog index
+- Portfolio-wide Ctrl/Cmd+K search
+- Curated component gallery with live previews and source code
+- A–Z technical isometric mark generator
 - Blog engagement metrics: views, likes, and shares
-- Site analytics summary used by the homepage
+- Strict 24-hour site analytics summary used by the homepage
 - Cloudflare Worker metrics API backed by Workers KV
 
 ## Stack
@@ -45,8 +49,11 @@ The Astro production output is static and is written to `dist/`.
 The public site currently exposes:
 
 - `/` — portfolio homepage
-- `/blog/` — blog index
+- `/blog/` — blog index with local string filtering
 - `/blog/<slug>/` — blog articles
+- `/components/` — curated component previews and source code
+- `/components/isometric-generator/` — A–Z technical isometric generator
+- `/search-index.json` — build-time global-search index
 - `/404/` — custom not-found page
 - `/sitemap.xml` — custom sitemap
 
@@ -68,11 +75,19 @@ featured: false
 draft: false
 ```
 
+The blog index intentionally uses a simple client-side substring filter over title, description, and tags. Full article-body search belongs to the global Ctrl/Cmd+K search instead.
+
+## Component gallery
+
+`/components/` is intentionally curated rather than a source-tree inspector. Each public block contains a live preview and the actual component source. Internal orchestration components are not exposed as gallery entries.
+
+The GitHub contribution graph is adapted from Chánh Đại's MIT-licensed implementation; Chánh Đại credits Kibo UI for the generic contribution graph primitive. The portfolio keeps that provenance visible in the gallery.
+
 ## Metrics Worker
 
 Worker source and configuration live under `worker/`.
 
-The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the `METRICS` Workers KV binding.
+The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the `METRICS` Workers KV binding. The analytics summary contract returns exactly 24 hourly buckets in `last24Hours`.
 
 For a separate deployment:
 
@@ -91,6 +106,8 @@ Production frontend code defaults to the portfolio metrics Worker. To test again
 PUBLIC_ENGAGEMENT_API_BASE=https://your-worker.example
 ```
 
+The homepage never renders the legacy 30-day chart. If an older Worker is still deployed, it keeps a 24-bucket zero-state until the hourly Worker contract is available.
+
 ## CI
 
 `.github/workflows/portfolio-redesign-ci.yml` currently runs:
@@ -100,6 +117,8 @@ PUBLIC_ENGAGEMENT_API_BASE=https://your-worker.example
 3. production build
 4. Astro preview smoke test
 5. accessibility audit against the generated sitemap
+
+The sitemap includes the public component gallery and isometric generator, so both are part of the accessibility gate.
 
 ## Repository notes
 
