@@ -30,8 +30,6 @@ export async function GET() {
   const pages = [
     { path: '/', priority: 1.0, changefreq: 'monthly', lastmod: staticLastmod },
     { path: '/blog/', priority: 0.8, changefreq: 'weekly', lastmod: staticLastmod },
-    { path: '/components/', priority: 0.7, changefreq: 'monthly', lastmod: staticLastmod },
-    { path: '/components/isometric-generator/', priority: 0.6, changefreq: 'monthly', lastmod: staticLastmod },
   ];
 
   const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
