@@ -4,7 +4,7 @@ import GitHubStars from './GitHubStars.astro';
 import VerifiedIcon from './VerifiedIcon.astro';
 import { getSiteContent } from '../../data/siteContent';
 
-type HeaderSection = 'overview' | 'blog' | 'none';
+type HeaderSection = 'overview' | 'blog' | 'components' | 'none';
 
 interface Props {
     activeSection?: HeaderSection;
@@ -14,6 +14,7 @@ const activeSection = Astro.props.activeSection ?? 'overview';
 const content = getSiteContent();
 const homePath = '/';
 const blogPath = '/blog/';
+const componentsPath = '/components/';
 ---
 
 <header class="home-header">
@@ -24,8 +25,6 @@ const blogPath = '/blog/';
             </a>
         </div>
 
-        <div class="home-spacer" aria-hidden="true"></div>
-
         <a
             class="design-reference"
             href="https://chanhdai.com/"
@@ -35,9 +34,7 @@ const blogPath = '/blog/';
         >
             <span class="design-reference-copy">design reference —</span>
             <strong>Chánh Đại</strong>
-            <span class="design-reference-verified" aria-hidden="true">
-                <VerifiedIcon size={13} />
-            </span>
+            <span class="design-reference-verified" aria-hidden="true"><VerifiedIcon size={13} /></span>
             <span class="design-reference-tooltip" role="tooltip">visit chanhdai.com</span>
         </a>
 
@@ -46,25 +43,37 @@ const blogPath = '/blog/';
                 href={homePath}
                 class:list={['home-nav-link', { 'is-active': activeSection === 'overview' }]}
                 aria-current={activeSection === 'overview' ? 'page' : undefined}
-            >
-                {content.nav.overview}
-            </a>
+            >{content.nav.overview}</a>
             <a
                 href={blogPath}
                 class:list={['home-nav-link', { 'is-active': activeSection === 'blog' }]}
                 aria-current={activeSection === 'blog' ? 'page' : undefined}
-            >
-                {content.nav.blog}
-            </a>
+            >{content.nav.blog}</a>
+            <a
+                href={componentsPath}
+                class:list={['home-nav-link', { 'is-active': activeSection === 'components' }]}
+                aria-current={activeSection === 'components' ? 'page' : undefined}
+            >{content.nav.components}</a>
         </nav>
 
         <div class="home-actions">
-            <span class="header-separator desktop-separator" aria-hidden="true"></span>
-
-            <GitHubStars repo="nabilrn/nabilrn.github.io" />
+            <button
+                type="button"
+                class="header-search"
+                aria-label="Search portfolio"
+                title="Search portfolio"
+                data-global-search-open
+            >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true">
+                    <circle cx="11" cy="11" r="6.5"></circle>
+                    <path d="m16 16 4 4"></path>
+                </svg>
+                <kbd data-global-search-shortcut>Ctrl K</kbd>
+            </button>
 
             <span class="header-separator" aria-hidden="true"></span>
-
+            <GitHubStars repo="nabilrn/nabilrn.github.io" />
+            <span class="header-separator" aria-hidden="true"></span>
             <ThemeToggle />
         </div>
     </div>
@@ -82,7 +91,6 @@ const blogPath = '/blog/';
                 : hour >= 12 && hour < 17
                     ? 'good afternoon'
                     : 'good evening';
-
             target.textContent = greeting;
             target.dataset.ready = 'true';
         };
@@ -105,11 +113,10 @@ const blogPath = '/blog/';
         position: relative;
         width: 100%;
         height: 100%;
-        margin: 0;
         padding: 0 clamp(14px, 1.5vw, 24px);
         display: flex;
         align-items: center;
-        gap: clamp(12px, 1.2vw, 20px);
+        gap: clamp(10px, 1.1vw, 18px);
         border-inline: 1px solid var(--sheet-line, var(--border));
     }
 
@@ -131,18 +138,16 @@ const blogPath = '/blog/';
     .home-intro {
         min-width: 0;
         display: flex;
-        flex: none;
+        flex: 1 1 0;
         align-items: center;
     }
 
     .home-greeting {
         display: inline-flex;
         align-items: center;
-        flex: none;
         color: var(--muted);
         font-family: "Segoe Print", "Bradley Hand", "Comic Sans MS", cursive;
         font-size: 15px;
-        font-weight: 400;
         line-height: 1;
         text-decoration: none;
         transform: rotate(-1.3deg);
@@ -173,81 +178,42 @@ const blogPath = '/blog/';
         left: 50%;
         top: 50%;
         z-index: 6;
-        min-width: 0;
         min-height: 30px;
         display: inline-flex;
         align-items: center;
         gap: 4px;
         color: var(--muted);
         font-family: var(--font-sans);
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 11px;
         line-height: 1;
-        letter-spacing: .015em;
         white-space: nowrap;
         text-decoration: none;
         transform: translate(-50%, -50%);
-        transition: transform 140ms ease;
     }
 
-    .design-reference-copy,
-    .design-reference strong {
-        color: transparent;
-        background: linear-gradient(
-            90deg,
-            color-mix(in srgb, var(--muted) 82%, transparent) 0%,
-            color-mix(in srgb, var(--text) 90%, var(--muted)) 36%,
-            var(--text) 50%,
-            color-mix(in srgb, var(--text) 90%, var(--muted)) 64%,
-            color-mix(in srgb, var(--muted) 82%, transparent) 100%
-        );
-        background-size: 220% 100%;
-        background-clip: text;
-        -webkit-background-clip: text;
-        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--text) 16%, transparent));
-        animation: design-reference-shimmer 4.2s ease-in-out infinite;
-    }
-
-    .design-reference strong {
-        font: inherit;
-        font-weight: 600;
-    }
-
+    .design-reference strong { color: var(--text); font: inherit; font-weight: 600; }
+    .design-reference-copy { color: var(--muted); }
     .design-reference-verified {
         width: 13px;
         height: 13px;
-        flex: none;
         display: grid;
         place-items: center;
-        margin-left: 1px;
         color: #ffad1f;
-    }
-
-    .design-reference:hover,
-    .design-reference:focus-visible {
-        transform: translate(-50%, -50%) translateY(-1px);
-        outline: none;
     }
 
     .design-reference-tooltip {
         position: absolute;
         left: 50%;
         top: calc(100% + 7px);
-        z-index: 40;
         width: max-content;
         padding: 4px 7px;
         border: 1px solid var(--border-strong);
         border-radius: 5px;
-        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+        background: var(--surface);
         color: var(--text);
-        font-family: var(--font-sans);
         font-size: 9px;
-        font-weight: 450;
-        line-height: 1.2;
-        letter-spacing: 0;
-        white-space: nowrap;
-        pointer-events: none;
         opacity: 0;
+        pointer-events: none;
         transform: translate(-50%, -3px);
         transition: opacity 120ms ease, transform 120ms ease;
     }
@@ -258,276 +224,109 @@ const blogPath = '/blog/';
         transform: translate(-50%, 0);
     }
 
-    .home-spacer {
-        flex: 1 1 auto;
-        min-width: 16px;
-    }
-
     .home-nav {
+        margin-left: auto;
         display: flex;
         align-items: center;
-        gap: clamp(16px, 1.6vw, 26px);
-        flex: none;
+        gap: 3px;
     }
 
     .home-nav-link {
+        min-height: 30px;
+        padding: 0 8px;
         display: inline-flex;
         align-items: center;
-        min-height: 30px;
         color: var(--muted);
         font-family: var(--font-sans);
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 11px;
+        font-weight: 520;
         line-height: 1;
-        letter-spacing: 0.015em;
-        transition: color 140ms ease;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
     }
 
     .home-nav-link:hover,
-    .home-nav-link.is-active { color: var(--text); }
+    .home-nav-link:focus-visible,
+    .home-nav-link.is-active {
+        color: var(--text);
+        border-color: var(--border);
+        background: color-mix(in srgb, var(--surface) 60%, transparent);
+        outline: none;
+    }
 
     .home-actions {
         display: flex;
-        flex: none;
         align-items: center;
-        gap: 7px;
+        gap: 5px;
+    }
+
+    .header-search {
+        min-height: 30px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition: color 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .header-search:hover,
+    .header-search:focus-visible {
+        color: var(--text);
+        border-color: var(--border-strong);
+        background: color-mix(in srgb, var(--surface) 60%, transparent);
+        outline: none;
+    }
+
+    .header-search svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .header-search kbd {
+        padding: 2px 4px;
+        border: 1px solid var(--border);
+        border-bottom-color: var(--border-strong);
+        border-radius: 3px;
+        background: var(--surface);
+        color: inherit;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
     }
 
     .header-separator {
         width: 1px;
-        height: 20px;
-        flex: none;
+        height: 16px;
         background: var(--sheet-line, var(--border));
     }
 
-    :global(.home-header .theme-toggle) {
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
-        min-height: 30px;
-        border: 0;
-        border-radius: 0;
-        background: transparent;
-        color: var(--muted);
-    }
-
-    :global(.home-header .theme-toggle:hover) {
-        border-color: transparent;
-        background: transparent;
-        color: var(--text);
-    }
-
-    :global(.home-header .theme-toggle svg) {
-        width: 14px;
-        height: 14px;
-        stroke-width: 1.6;
-    }
-
-    @keyframes design-reference-shimmer {
-        0% { background-position: 115% 0; }
-        54%, 100% { background-position: -115% 0; }
-    }
-
-    @media (max-width: 1020px) {
+    @media (max-width: 1080px) {
         .design-reference { display: none; }
+        .home-intro { flex: 0 1 auto; }
     }
 
     @media (max-width: 760px) {
         .home-header { height: 48px; }
-
-        .home-header-inner {
-            padding: 0 12px;
-            gap: 8px;
-            border-inline: 0;
-        }
-
-        .home-greeting { font-size: 14px; }
-
-        .home-nav,
-        .desktop-separator {
-            display: none;
-        }
-
-        .home-spacer { min-width: 0; }
-        .home-actions { gap: 5px; }
+        .home-header-inner { padding-inline: 10px; gap: 7px; }
+        .home-greeting { font-size: 13px; }
+        .home-nav { gap: 0; margin-left: auto; }
+        .home-nav-link { min-height: 28px; padding-inline: 6px; font-size: 10px; }
+        .header-search { width: 30px; padding: 0; justify-content: center; }
+        .header-search kbd { display: none; }
+        .home-actions { gap: 3px; }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-        .design-reference-copy,
-        .design-reference strong {
-            animation: none;
-        }
-    }
-</style>
-
-<style is:global>
-    html,
-    body,
-    .full-shell {
-        overflow-x: clip;
-    }
-
-    .full-shell .home-redesign[data-home-redesign] {
-        overflow-x: visible;
-    }
-
-    .home-redesign[data-home-redesign] .portfolio-board {
-        isolation: isolate;
-        border-top: 0;
-        border-bottom: 0;
-    }
-
-    .home-redesign[data-home-redesign] .portfolio-board::before,
-    .home-redesign[data-home-redesign] .portfolio-board::after,
-    .home-redesign[data-home-redesign] .top-layout::after {
-        content: '';
-        position: absolute;
-        left: 50%;
-        width: 100vw;
-        transform: translateX(-50%);
-        pointer-events: none;
-    }
-
-    .home-redesign[data-home-redesign] .portfolio-board::before,
-    .home-redesign[data-home-redesign] .portfolio-board::after {
-        z-index: 6;
-        height: var(--minor-stroke);
-        background: var(--sheet-line);
-    }
-
-    .home-redesign[data-home-redesign] .portfolio-board::before { top: 0; }
-    .home-redesign[data-home-redesign] .portfolio-board::after { bottom: 0; }
-
-    .home-redesign[data-home-redesign] .top-layout {
-        position: relative;
-        border-bottom: 0;
-    }
-
-    .home-redesign[data-home-redesign] .top-layout::after {
-        right: auto;
-        bottom: 0;
-        z-index: 8;
-        height: var(--major-stroke);
-        background: var(--border);
-    }
-
-    .home-redesign[data-home-redesign] .nr-hud-title strong::before {
-        content: '♪ ';
-        color: color-mix(in srgb, var(--muted) 82%, transparent);
-        font-weight: 400;
-    }
-
-    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo'] {
-        position: relative;
-        z-index: 9;
-        overflow: visible !important;
-    }
-
-    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']::before {
-        content: 'View @bilcikiwir on Duolingo';
-        position: absolute;
-        z-index: 30;
-        left: 12px;
-        bottom: calc(100% + 8px);
-        width: max-content;
-        padding: 4px 7px;
-        border: 1px solid var(--border-strong);
-        border-radius: 5px;
-        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: 9px;
-        font-weight: 450;
-        line-height: 1.2;
-        white-space: nowrap;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(3px);
-        transition: opacity 120ms ease, transform 120ms ease;
-    }
-
-    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']:hover::before,
-    .home-redesign[data-home-redesign] .streak-region[data-profile-link='duolingo']:focus-within::before {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit {
-        align-items: center;
-        gap: 5px;
-        color: color-mix(in srgb, var(--muted) 78%, var(--bg));
-        font-size: 9.5px;
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit > span[aria-hidden='true'] {
-        display: none;
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit::before {
-        content: '';
-        width: 14px;
-        height: 14px;
-        flex: none;
-        display: block;
-        background-color: color-mix(in srgb, var(--muted) 78%, var(--bg));
-        -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12Z'/%3E%3C/svg%3E") center / contain no-repeat;
-        mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.017 3.017 0 0 0 2.121 2.136c1.872.505 9.377.505 9.377.505s7.505 0 9.377-.505a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814ZM9.545 15.568V8.432L15.818 12Z'/%3E%3C/svg%3E") center / contain no-repeat;
-        filter: grayscale(1);
-        opacity: .82;
-        transition: background-color 160ms ease, filter 160ms ease, opacity 160ms ease, transform 160ms ease;
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit strong {
-        color: color-mix(in srgb, var(--text) 70%, var(--bg));
-        font-weight: 550;
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit:hover::before,
-    .home-redesign[data-home-redesign] .nr-song-credit:focus-visible::before {
-        background-color: #ff0000;
-        filter: none;
-        opacity: 1;
-        transform: scale(1.06);
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit::after {
-        content: "Visit Sharou's YouTube channel";
-        position: absolute;
-        z-index: 40;
-        right: 0;
-        bottom: calc(100% + 8px);
-        width: max-content;
-        padding: 4px 7px;
-        border: 1px solid var(--border-strong);
-        border-radius: 5px;
-        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: 9px;
-        font-weight: 450;
-        line-height: 1.2;
-        letter-spacing: 0;
-        white-space: nowrap;
-        pointer-events: none;
-        opacity: 0;
-        transform: translateY(3px);
-        transition: opacity 120ms ease, transform 120ms ease;
-    }
-
-    .home-redesign[data-home-redesign] .nr-song-credit:hover::after,
-    .home-redesign[data-home-redesign] .nr-song-credit:focus-visible::after {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .home-redesign[data-home-redesign] .blog-all-link > span[aria-hidden='true'],
-    .home-redesign[data-home-redesign] .tweet-read-link > span[aria-hidden='true'] {
-        display: none;
-    }
-
-    @media (max-width: 1099px) {
-        .home-redesign[data-home-redesign] .nr-song-credit {
-            font-size: 8.5px;
-        }
+    @media (max-width: 560px) {
+        .home-greeting { display: none; }
+        .home-nav-link { padding-inline: 5px; font-size: 9.5px; }
+        .header-separator { display: none; }
     }
 </style>

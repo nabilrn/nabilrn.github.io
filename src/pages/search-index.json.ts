@@ -2,7 +2,6 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { webProjects } from '../data/projects';
 import { getSiteContent } from '../data/siteContent';
-import { buildComponentCatalog } from '../lib/componentCatalog';
 import { buildSearchText, type SearchEntry } from '../lib/search';
 
 export const prerender = true;
@@ -13,10 +12,66 @@ const slugify = (value: string) => value
   .replace(/^-+|-+$/g, '')
   .toLowerCase();
 
+const componentEntries: SearchEntry[] = [
+  {
+    id: 'component-github-contribution-grid',
+    kind: 'component',
+    category: 'Components',
+    title: 'GitHub Contribution Graph',
+    description: 'Rolling GitHub activity graph adapted from Chánh Đại, with Kibo UI credited as the graph base.',
+    href: '/components/#github-contribution-grid',
+    searchText: buildSearchText('github contribution graph activity chanh dai kibo ui component'),
+  },
+  {
+    id: 'component-global-search',
+    kind: 'component',
+    category: 'Components',
+    title: 'Global Search',
+    description: 'Ctrl/Cmd K portfolio-wide search dialog.',
+    href: '/components/#global-search',
+    searchText: buildSearchText('global search command palette ctrl k cmd k component'),
+  },
+  {
+    id: 'component-theme-toggle',
+    kind: 'component',
+    category: 'Components',
+    title: 'Theme Toggle',
+    description: 'Dark and light mode toggle with pixel transition.',
+    href: '/components/#theme-toggle',
+    searchText: buildSearchText('theme toggle dark light pixel transition component'),
+  },
+  {
+    id: 'component-project-card',
+    kind: 'component',
+    category: 'Components',
+    title: 'Project Card',
+    description: 'Project preview card used by the portfolio carousel.',
+    href: '/components/#project-card',
+    searchText: buildSearchText('project card preview carousel component'),
+  },
+  {
+    id: 'component-engagement-bar',
+    kind: 'component',
+    category: 'Components',
+    title: 'Engagement Bar',
+    description: 'Views, likes, and sharing controls for blog posts.',
+    href: '/components/#engagement-bar',
+    searchText: buildSearchText('engagement views likes share blog component'),
+  },
+  {
+    id: 'component-isometric-mark',
+    kind: 'component',
+    category: 'Components',
+    title: 'Isometric Mark',
+    description: 'Reusable technical isometric letter mark and A–Z generator entry point.',
+    href: '/components/#isometric-mark',
+    searchText: buildSearchText('isometric mark letter generator geometry component'),
+  },
+];
+
 export const GET: APIRoute = async () => {
   const site = getSiteContent();
   const posts = await getCollection('blog', ({ data }) => !data.draft);
-  const componentCatalog = buildComponentCatalog();
 
   const pages: SearchEntry[] = [
     {
@@ -26,12 +81,7 @@ export const GET: APIRoute = async () => {
       title: 'Overview',
       description: site.seo.defaultDescription,
       href: '/',
-      searchText: buildSearchText(
-        'overview home portfolio',
-        site.profile.name,
-        site.seo.defaultDescription,
-        site.schema.knowsAbout,
-      ),
+      searchText: buildSearchText('overview home portfolio', site.profile.name, site.seo.defaultDescription, site.schema.knowsAbout),
     },
     {
       id: 'page-blog',
@@ -47,18 +97,18 @@ export const GET: APIRoute = async () => {
       kind: 'page',
       category: 'Pages',
       title: 'Components',
-      description: 'Browse portfolio components, live previews, Astro source, TypeScript companions, and extracted CSS.',
+      description: 'Compact gallery of reusable portfolio components with previews and source code.',
       href: '/components/',
-      searchText: buildSearchText('components component explorer design system source preview astro typescript css'),
+      searchText: buildSearchText('components gallery preview source code design system'),
     },
     {
       id: 'page-isometric-generator',
       kind: 'page',
       category: 'Pages',
-      title: 'Isometric A–Z Generator',
-      description: 'Generate modular technical-isometric A–Z marks with depth, hatch, guide, Astro, SVG, and runnable ZIP exports.',
+      title: 'A–Z Isometric Generator',
+      description: 'Generate technical isometric A–Z marks and export Astro, SVG, or a runnable ZIP.',
       href: '/components/isometric-generator/',
-      searchText: buildSearchText('isometric generator alphabet a z glyph character depth hatch guide astro svg zip component'),
+      searchText: buildSearchText('isometric generator letters az svg astro zip'),
     },
   ];
 
@@ -82,32 +132,10 @@ export const GET: APIRoute = async () => {
       title: post.data.title,
       description: post.data.description,
       href: `/blog/${post.slug}/`,
-      searchText: buildSearchText(
-        post.data.title,
-        post.data.description,
-        post.data.tags,
-        post.body,
-      ),
+      searchText: buildSearchText(post.data.title, post.data.description, post.data.tags, post.body),
     }));
 
-  const components: SearchEntry[] = componentCatalog.map((entry) => ({
-    id: `component-${entry.id}`,
-    kind: 'component' as const,
-    category: `${entry.category} components`,
-    title: entry.name,
-    description: `${entry.path}${entry.previewId ? ' · live preview' : ' · source only'}`,
-    href: `/components/?component=${encodeURIComponent(entry.id)}`,
-    searchText: buildSearchText(
-      entry.name,
-      entry.category,
-      entry.path,
-      entry.source,
-      entry.css,
-      entry.scripts.flatMap((script) => [script.path, script.source]),
-    ),
-  }));
-
-  const entries = [...pages, ...projects, ...blog, ...components];
+  const entries = [...pages, ...projects, ...blog, ...componentEntries];
 
   return new Response(JSON.stringify({
     generatedAt: new Date().toISOString(),
