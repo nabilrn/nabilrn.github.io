@@ -1,6 +1,5 @@
 ---
 import GlobalSearch from './GlobalSearch.astro';
-import BlogSearchBridge from './blog/BlogSearchBridge.astro';
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
@@ -13,7 +12,8 @@ const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
 const normalizedPath = (currentPath || '/').endsWith('/') ? (currentPath || '/') : `${currentPath}/`;
 const isHomePage = normalizedPath === '/';
 const isBlogPage = normalizedPath.startsWith('/blog/');
-const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
+const isComponentsPage = normalizedPath.startsWith('/components/');
+const activeSection = isBlogPage ? 'blog' : isComponentsPage ? 'components' : isHomePage ? 'overview' : 'none';
 ---
 
 <div class="full-shell">
@@ -24,7 +24,6 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
     </main>
 
     <GlobalSearch />
-    {isBlogPage && <BlogSearchBridge />}
 
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
