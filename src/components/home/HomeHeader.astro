@@ -4,7 +4,7 @@ import GitHubStars from './GitHubStars.astro';
 import VerifiedIcon from './VerifiedIcon.astro';
 import { getSiteContent } from '../../data/siteContent';
 
-type HeaderSection = 'overview' | 'blog' | 'components' | 'none';
+type HeaderSection = 'overview' | 'blog' | 'none';
 
 interface Props {
     activeSection?: HeaderSection;
@@ -14,7 +14,6 @@ const activeSection = Astro.props.activeSection ?? 'overview';
 const content = getSiteContent();
 const homePath = '/';
 const blogPath = '/blog/';
-const componentsPath = '/components/';
 ---
 
 <header class="home-header">
@@ -49,11 +48,6 @@ const componentsPath = '/components/';
                 class:list={['home-nav-link', { 'is-active': activeSection === 'blog' }]}
                 aria-current={activeSection === 'blog' ? 'page' : undefined}
             >{content.nav.blog}</a>
-            <a
-                href={componentsPath}
-                class:list={['home-nav-link', { 'is-active': activeSection === 'components' }]}
-                aria-current={activeSection === 'components' ? 'page' : undefined}
-            >{content.nav.components}</a>
         </nav>
 
         <div class="home-actions">
