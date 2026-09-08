@@ -2,11 +2,13 @@
 import EducationOverlayBase from './EducationOverlayBase.astro';
 import ProjectCarouselOverlay from './ProjectCarouselOverlay.astro';
 import LowerSectionsOverlay from './LowerSectionsOverlay.astro';
+import StrictAnalytics24h from './StrictAnalytics24h.astro';
 ---
 
 <EducationOverlayBase />
 <ProjectCarouselOverlay />
 <LowerSectionsOverlay />
+<StrictAnalytics24h />
 
 <script is:inline>
     (() => {
@@ -26,10 +28,6 @@ import LowerSectionsOverlay from './LowerSectionsOverlay.astro';
             });
         };
 
-        /* These images live inside inert templates until the home overlays mount.
-           Apply the viewport policy before those templates are cloned into the
-           live DOM: desktop renders them above the fold, while the mobile stack
-           keeps them lazy because Education and Blog sit much farther down-page. */
         configureTemplateImages(
             '[data-education-template]',
             '.education-logo, .education-photo img',
@@ -42,9 +40,6 @@ import LowerSectionsOverlay from './LowerSectionsOverlay.astro';
 </script>
 
 <style is:global>
-    /* index.astro scopes its legacy two-column .bottom-layout rule, which gives
-       that selector the same effective specificity as the lower-section overlay.
-       Keep the intended lower bento geometry authoritative on desktop. */
     @media (min-width: 1100px) and (min-height: 760px) {
         .home-redesign .portfolio-board .bottom-layout {
             grid-template-columns:
