@@ -1,4 +1,4 @@
-export type SearchKind = 'page' | 'project' | 'blog' | 'component';
+export type SearchKind = 'page' | 'project' | 'blog';
 
 export interface SearchEntry {
   id: string;
@@ -56,7 +56,6 @@ export function scoreSearchEntry(entry: SearchEntry, rawQuery: string): number {
     page: 8,
     project: 6,
     blog: 5,
-    component: 3,
   };
 
   return score + kindBoost[entry.kind];
