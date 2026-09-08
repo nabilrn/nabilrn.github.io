@@ -79,6 +79,8 @@ Cursor spotlight:
 
 ## Workflow
 
-Use `src/pages/dev/nrn-compare.astro` for side-by-side validation against the reference. Iterate in `src/components/dev/NRModularMark.astro`, then promote to `src/components/home/NRMark.astro` only after the candidate is cleaner.
+`src/components/home/NRMark.astro` is the visual-locked production implementation. Do not casually refactor its geometry during unrelated work.
 
-Before completion verify: NR reads clearly, orientation is N lower-left to R upper-right, all visible vertical creases exist, hidden depth lines do not leak through top faces, rulers pass through real vertices, hatch phase is continuous, the mark fills the viewBox confidently, and `pnpm build` passes.
+For risky geometry changes, use a temporary branch-local development fixture rather than adding a permanent public route. Compare the candidate against the current production mark and reference, promote only demonstrably cleaner geometry, then remove the fixture before merge.
+
+Before completion verify: NR reads clearly, orientation is N lower-left to R upper-right, all visible vertical creases exist, hidden depth lines do not leak through top faces, rulers pass through real vertices, hatch phase is continuous, the mark fills the viewBox confidently, and both `pnpm check` and `pnpm build` pass.
