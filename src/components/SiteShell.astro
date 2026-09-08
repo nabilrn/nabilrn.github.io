@@ -12,8 +12,7 @@ const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
 const normalizedPath = (currentPath || '/').endsWith('/') ? (currentPath || '/') : `${currentPath}/`;
 const isHomePage = normalizedPath === '/';
 const isBlogPage = normalizedPath.startsWith('/blog/');
-const isComponentsPage = normalizedPath.startsWith('/components/');
-const activeSection = isBlogPage ? 'blog' : isComponentsPage ? 'components' : isHomePage ? 'overview' : 'none';
+const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
 ---
 
 <div class="full-shell">
