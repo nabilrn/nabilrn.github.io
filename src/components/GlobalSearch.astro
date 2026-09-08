@@ -12,7 +12,7 @@
           type="search"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Search pages, projects, blog, components..."
+          placeholder="Search pages, projects, blog..."
           role="combobox"
           aria-autocomplete="list"
           aria-expanded="false"
@@ -63,12 +63,11 @@
     results instanceof HTMLElement &&
     status instanceof HTMLElement
   ) {
-    const kindOrder: SearchKind[] = ['page', 'project', 'blog', 'component'];
+    const kindOrder: SearchKind[] = ['page', 'project', 'blog'];
     const groupTitles: Record<SearchKind, string> = {
       page: 'Pages',
       project: 'Projects',
       blog: 'Blog',
-      component: 'Components',
     };
 
     let entries: SearchEntry[] | null = null;
@@ -210,7 +209,7 @@
 
       setStatus(trimmed
         ? `${selected.length} result${selected.length === 1 ? '' : 's'} shown.`
-        : 'Quick access to pages, projects, recent writing, and components.');
+        : 'Quick access to pages, projects, and recent writing.');
       updateActive(0);
     };
 
@@ -330,11 +329,18 @@
     height: 52px;
     border: 0;
     outline: 0;
+    box-shadow: none;
     background: transparent;
     color: var(--text);
     font-family: var(--font-sans);
     font-size: 14px;
     line-height: 1;
+  }
+
+  .global-search-label input:focus,
+  .global-search-label input:focus-visible {
+    outline: 0;
+    box-shadow: none;
   }
 
   .global-search-label input::placeholder { color: var(--muted); }
