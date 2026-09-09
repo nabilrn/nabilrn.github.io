@@ -1,7 +1,9 @@
 ---
+import EngagementEnhancements from './EngagementEnhancements.astro';
 import GlobalSearch from './GlobalSearch.astro';
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
+import HomePageLifecycle from './home/HomePageLifecycle.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
 
 interface Props {
@@ -22,8 +24,12 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         <slot />
     </main>
 
-    <GlobalSearch />
+    <div class="global-search-host" transition:persist="global-search">
+        <GlobalSearch />
+    </div>
 
+    <HomePageLifecycle />
+    <EngagementEnhancements />
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
 </div>
@@ -42,6 +48,10 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         min-height: calc(100vh - 52px);
         margin: 0;
         padding: 0 0 72px;
+    }
+
+    .global-search-host {
+        display: contents;
     }
 
     @media (max-width: 760px) {
