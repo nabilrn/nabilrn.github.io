@@ -1,6 +1,6 @@
 import { getCollection } from 'astro:content';
 import sharp from 'sharp';
-import { buildOgSvg, extractExcerpt } from '../../../utils/og';
+import { buildArticleOgSvg } from '../../../utils/og';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -9,21 +9,28 @@ export async function getStaticPaths() {
 		params: { slug: post.slug },
 		props: {
 			title: post.data.title,
-			excerpt: extractExcerpt(post.body),
+			publishedDate: post.data.pubDate.toLocaleDateString('en-US', {
+				month: 'short',
+				day: '2-digit',
+				year: 'numeric',
+				timeZone: 'UTC',
+			}),
+			tags: post.data.tags,
 		},
 	}));
 }
 
 interface Props {
 	title: string;
-	excerpt: string;
+	publishedDate: string;
+	tags: string[];
 }
 
 export async function GET({ props }: { props: Props }) {
-	const svg = buildOgSvg({
+	const svg = buildArticleOgSvg({
 		title: props.title,
-		excerpt: props.excerpt,
-		kicker: 'nabilrn / blog',
+		publishedDate: props.publishedDate,
+		tags: props.tags,
 	});
 
 	const png = await sharp(new TextEncoder().encode(svg)).png({ compressionLevel: 9 }).toBuffer();

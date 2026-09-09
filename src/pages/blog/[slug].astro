@@ -5,6 +5,7 @@ import avatar from '../../assets/profile-anime.webp';
 import BlogArticleDock from '../../components/blog/BlogArticleDock.astro';
 import Page from '../../components/Page.astro';
 import { authorName, getSiteContent, siteUrl } from '../../data/siteContent';
+import { withOgVersion } from '../../utils/og';
 
 export async function getStaticPaths() {
 	const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -25,7 +26,7 @@ const siteCopy = getSiteContent();
 const blogCopy = siteCopy.blog;
 const postPath = `/blog/${post.slug}/`;
 const postUrl = new URL(postPath, siteUrl).toString();
-const ogImagePath = `/og/blog/${post.slug}.png`;
+const ogImagePath = withOgVersion(`/og/blog/${post.slug}.png`);
 const publishedTime = post.data.pubDate.toISOString();
 const modifiedTime = (post.data.updatedDate ?? post.data.pubDate).toISOString();
 
