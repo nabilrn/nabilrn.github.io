@@ -1,6 +1,7 @@
 ---
 import EngagementEnhancements from './EngagementEnhancements.astro';
 import GlobalSearch from './GlobalSearch.astro';
+import BlogUXEnhancements from './blog/BlogUXEnhancements.astro';
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
 import HomePageLifecycle from './home/HomePageLifecycle.astro';
@@ -30,6 +31,7 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
 
     <HomePageLifecycle />
     <EngagementEnhancements />
+    <BlogUXEnhancements />
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
 </div>
