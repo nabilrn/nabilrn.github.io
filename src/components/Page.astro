@@ -53,6 +53,7 @@ const description = pageDesc || defaultDescription;
 const currentUrl = path ? new URL(path, siteUrl).toString() : siteUrl;
 const normalizedPath = path ?? '/';
 const isHomePageForSchema = normalizedPath === '/';
+// Keep search-engine metadata descriptive while letting social previews stay concise.
 const socialTitle = pageSocialTitle ?? (isHomePageForSchema ? authorName : title);
 const socialDescription = pageSocialDescription ?? (isHomePageForSchema ? 'daily prompter.' : description);
 const ogImageUrl = new URL(pageOgImage ?? defaultOgImage, siteUrl).toString();
