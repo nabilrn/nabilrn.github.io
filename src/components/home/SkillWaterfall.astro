@@ -158,13 +158,8 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
         animation-iteration-count: infinite;
     }
 
-    .is-up .skill-track {
-        animation-name: waterfall-up;
-    }
-
-    .is-down .skill-track {
-        animation-name: waterfall-down;
-    }
+    .is-up .skill-track { animation-name: waterfall-up; }
+    .is-down .skill-track { animation-name: waterfall-down; }
 
     .skill-sequence {
         display: grid;
@@ -209,26 +204,16 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
         opacity: 0;
     }
 
-    .skill-item:hover {
-        color: var(--brand-color);
-    }
-
-    .skill-item:hover .skill-mono {
-        transform: scale(calc(var(--icon-scale) * 1.08));
-    }
-
-    .skill-item.has-color-asset:hover .skill-mono {
-        opacity: 0;
-    }
+    .skill-item:hover { color: var(--brand-color); }
+    .skill-item:hover .skill-mono { transform: scale(calc(var(--icon-scale) * 1.08)); }
+    .skill-item.has-color-asset:hover .skill-mono { opacity: 0; }
 
     .skill-item.has-color-asset:hover .skill-color {
         opacity: 1;
         transform: scale(calc(var(--icon-scale) * 1.08));
     }
 
-    .skill-column:hover .skill-track {
-        animation-play-state: paused;
-    }
+    .skill-column:hover .skill-track { animation-play-state: paused; }
 
     .sr-only {
         position: absolute;
@@ -297,51 +282,63 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
             transform: none !important;
         }
 
-        .skill-sequence:nth-child(2) {
-            display: none;
-        }
+        .skill-sequence:nth-child(2) { display: none; }
     }
 </style>
 
 <script>
-    const tooltipClass = 'skill-floating-tooltip';
-    let tooltip = document.querySelector<HTMLElement>(`.${tooltipClass}`);
+    let skillBlurHandler: (() => void) | null = null;
 
-    if (!tooltip) {
-        tooltip = document.createElement('div');
+    const cleanupSkillWaterfall = () => {
+        if (skillBlurHandler) window.removeEventListener('blur', skillBlurHandler);
+        skillBlurHandler = null;
+        document.querySelector('.skill-floating-tooltip')?.remove();
+    };
+
+    const initSkillWaterfall = () => {
+        cleanupSkillWaterfall();
+
+        const tooltipClass = 'skill-floating-tooltip';
+        const items = document.querySelectorAll<HTMLElement>('[data-skill-label]');
+        if (!items.length) return;
+
+        const tooltip = document.createElement('div');
         tooltip.className = tooltipClass;
         tooltip.setAttribute('role', 'tooltip');
         document.body.appendChild(tooltip);
-    }
 
-    const hideTooltip = () => tooltip?.classList.remove('is-visible');
+        const hideTooltip = () => tooltip.classList.remove('is-visible');
 
-    document.querySelectorAll<HTMLElement>('[data-skill-label]').forEach((item) => {
-        if (item.dataset.tooltipReady === 'true') return;
-        item.dataset.tooltipReady = 'true';
+        items.forEach((item) => {
+            if (item.dataset.tooltipReady === 'true') return;
+            item.dataset.tooltipReady = 'true';
 
-        item.addEventListener('pointerenter', () => {
-            if (!tooltip) return;
-            const label = item.dataset.skillLabel;
-            if (!label) return;
+            item.addEventListener('pointerenter', () => {
+                const label = item.dataset.skillLabel;
+                if (!label) return;
 
-            tooltip.textContent = label;
-            tooltip.style.left = '0px';
-            tooltip.style.top = '0px';
-            tooltip.classList.add('is-visible');
+                tooltip.textContent = label;
+                tooltip.style.left = '0px';
+                tooltip.style.top = '0px';
+                tooltip.classList.add('is-visible');
 
-            const rect = item.getBoundingClientRect();
-            const tooltipRect = tooltip.getBoundingClientRect();
-            const half = tooltipRect.width / 2;
-            const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
-            const top = Math.max(tooltipRect.height + 12, rect.top);
+                const rect = item.getBoundingClientRect();
+                const tooltipRect = tooltip.getBoundingClientRect();
+                const half = tooltipRect.width / 2;
+                const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
+                const top = Math.max(tooltipRect.height + 12, rect.top);
 
-            tooltip.style.left = `${left}px`;
-            tooltip.style.top = `${top}px`;
+                tooltip.style.left = `${left}px`;
+                tooltip.style.top = `${top}px`;
+            });
+
+            item.addEventListener('pointerleave', hideTooltip);
         });
 
-        item.addEventListener('pointerleave', hideTooltip);
-    });
+        skillBlurHandler = hideTooltip;
+        window.addEventListener('blur', hideTooltip);
+    };
 
-    window.addEventListener('blur', hideTooltip);
+    document.addEventListener('astro:page-load', initSkillWaterfall);
+    document.addEventListener('astro:before-swap', cleanupSkillWaterfall);
 </script>
