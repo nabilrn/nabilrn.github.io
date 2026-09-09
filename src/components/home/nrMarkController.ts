@@ -13,7 +13,7 @@ const formatTime = (seconds: number) => {
     return `${minutes.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
 };
 
-const initNrMark = (root: HTMLElement) => {
+const initNrMark = (root: HTMLElement): (() => void) | undefined => {
     if (root.dataset.nrReady === 'true') return;
     root.dataset.nrReady = 'true';
 
@@ -29,8 +29,13 @@ const initNrMark = (root: HTMLElement) => {
     const connectors = Array.from(root.querySelectorAll<SVGPathElement>('[data-nr-connector]'));
     const bottomStroke = root.querySelector<SVGPathElement>('#nr-bottom-stroke');
 
-    if (!button || !gradient || !top || !audio || !bottomStroke) return;
+    if (!button || !gradient || !top || !audio || !bottomStroke) {
+        delete root.dataset.nrReady;
+        return;
+    }
 
+    const controller = new AbortController();
+    const { signal } = controller;
     const depth = numberFromDataset(root, 'depth', 28);
     const latchDistance = numberFromDataset(root, 'latchDistance', 8);
     const pressDistance = numberFromDataset(root, 'pressDistance', 14);
@@ -402,41 +407,68 @@ const initNrMark = (root: HTMLElement) => {
         if (event.key === 'Enter' || event.key === ' ') release();
     };
 
-    audio.addEventListener('loadedmetadata', updateTimeline);
-    audio.addEventListener('durationchange', updateTimeline);
-    audio.addEventListener('timeupdate', updateTimeline);
-    audio.addEventListener('play', () => applyPlayingState(true));
+    audio.addEventListener('loadedmetadata', updateTimeline, { signal });
+    audio.addEventListener('durationchange', updateTimeline, { signal });
+    audio.addEventListener('timeupdate', updateTimeline, { signal });
+    audio.addEventListener('play', () => applyPlayingState(true), { signal });
     audio.addEventListener('pause', () => {
         if (!audio.ended) applyPlayingState(false);
-    });
+    }, { signal });
     audio.addEventListener('ended', () => {
         audio.currentTime = 0;
         applyPlayingState(false);
         updateTimeline();
-    });
+    }, { signal });
     audio.addEventListener('error', () => {
         isPlaying = false;
         updateMusicState('error');
         if (!pointerHeld) setShiftTarget(0);
         setIdleBars();
-    });
+    }, { signal });
 
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    button.addEventListener('pointerdown', press);
-    button.addEventListener('pointerup', release);
-    button.addEventListener('pointercancel', release);
-    button.addEventListener('pointerleave', release);
-    button.addEventListener('blur', release);
-    button.addEventListener('keydown', onKeyDown);
-    button.addEventListener('keyup', onKeyUp);
+    window.addEventListener('pointermove', onPointerMove, { passive: true, signal });
+    button.addEventListener('pointerdown', press, { signal });
+    button.addEventListener('pointerup', release, { signal });
+    button.addEventListener('pointercancel', release, { signal });
+    button.addEventListener('pointerleave', release, { signal });
+    button.addEventListener('blur', release, { signal });
+    button.addEventListener('keydown', onKeyDown, { signal });
+    button.addEventListener('keyup', onKeyUp, { signal });
     button.addEventListener('click', () => {
         void togglePlayback();
-    });
+    }, { signal });
 
     setIdleBars();
     updateTimeline();
     applyShift(0);
     updateMusicState('idle');
+
+    return () => {
+        controller.abort();
+        audio.pause();
+        if (gradientRaf) cancelAnimationFrame(gradientRaf);
+        if (shiftRaf) cancelAnimationFrame(shiftRaf);
+        if (visualizerRaf) cancelAnimationFrame(visualizerRaf);
+        if (audioContext && audioContext.state !== 'closed') void audioContext.close();
+        if (mechanicalContext && mechanicalContext.state !== 'closed') void mechanicalContext.close();
+        delete root.dataset.nrReady;
+    };
 };
 
-document.querySelectorAll<HTMLElement>('[data-nr-stage]').forEach(initNrMark);
+let nrMarkCleanups: Array<() => void> = [];
+
+const cleanupNrMarks = () => {
+    nrMarkCleanups.forEach((cleanup) => cleanup());
+    nrMarkCleanups = [];
+};
+
+const initNrMarks = () => {
+    cleanupNrMarks();
+    document.querySelectorAll<HTMLElement>('[data-nr-stage]').forEach((root) => {
+        const cleanup = initNrMark(root);
+        if (cleanup) nrMarkCleanups.push(cleanup);
+    });
+};
+
+document.addEventListener('astro:page-load', initNrMarks);
+document.addEventListener('astro:before-swap', cleanupNrMarks);
