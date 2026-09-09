@@ -171,6 +171,32 @@ const siteNavigationJson = JSON.stringify({
         }
       })();
     </script>
+    <script is:inline>
+      (() => {
+        if (window.__portfolioIntervalTrackingBound) return;
+        window.__portfolioIntervalTrackingBound = true;
+
+        const nativeSetInterval = window.setInterval.bind(window);
+        const nativeClearInterval = window.clearInterval.bind(window);
+        const pageIntervals = new Set();
+
+        window.setInterval = (handler, timeout, ...args) => {
+          const id = nativeSetInterval(handler, timeout, ...args);
+          pageIntervals.add(id);
+          return id;
+        };
+
+        window.clearInterval = (id) => {
+          pageIntervals.delete(id);
+          nativeClearInterval(id);
+        };
+
+        document.addEventListener('astro:before-swap', () => {
+          for (const id of pageIntervals) nativeClearInterval(id);
+          pageIntervals.clear();
+        });
+      })();
+    </script>
 
     <!-- Primary Meta Tags -->
     <title>{title}</title>
