@@ -4,6 +4,7 @@ import '@fontsource-variable/jetbrains-mono';
 import { ClientRouter } from 'astro:transitions';
 import SiteShell from './SiteShell.astro';
 import { authorName, getSiteContent, siteUrl } from '../data/siteContent';
+import { withOgVersion } from '../utils/og';
 
 interface Props {
   title?: string;
@@ -44,7 +45,7 @@ const {
 const content = getSiteContent();
 const defaultTitle = content.seo.defaultTitle;
 const defaultDescription = content.seo.defaultDescription;
-const defaultOgImage = '/og/default-og.png';
+const defaultOgImage = withOgVersion('/og/default-og.png');
 const htmlLang = 'en';
 const ogLocale = 'en_US';
 
