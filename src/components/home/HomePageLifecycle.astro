@@ -1,0 +1,302 @@
+<script>
+    type HourPoint = { hour?: string; views?: number; visitors?: number };
+    type Summary = {
+        generatedAt?: string;
+        visitors?: number;
+        pageviews?: number;
+        topPage?: { path?: string; views?: number };
+        last24Hours?: HourPoint[];
+    };
+    type ChartPoint = { label: string; views: number; visitors: number };
+
+    let homeWasSeen = false;
+    let cleanupCurrentHome: (() => void) | null = null;
+
+    const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
+    const exact = new Intl.NumberFormat('en-US');
+    const hourFormat = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const dayFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' });
+
+    const normalizeApiBase = (value?: string) => value?.trim().replace(/\/+$/, '') ?? '';
+
+    const getVisitorId = () => {
+        const key = 'portfolio:visitor-id';
+        const existing = localStorage.getItem(key);
+        if (existing) return existing;
+        const id = crypto.randomUUID();
+        localStorage.setItem(key, id);
+        return id;
+    };
+
+    const cleanupHomeLifecycle = () => {
+        cleanupCurrentHome?.();
+        cleanupCurrentHome = null;
+    };
+
+    const ensureEducationOverlay = () => {
+        const template = document.querySelector<HTMLTemplateElement>('[data-education-template]');
+        const region = document.querySelector<HTMLElement>('.education-region');
+        if (template && region && !region.querySelector('.education-panel')) {
+            region.replaceChildren(template.content.cloneNode(true));
+        }
+    };
+
+    const initContributionTooltips = (controller: AbortController) => {
+        const cells = Array.from(document.querySelectorAll<HTMLElement>('[data-contribution-tooltip]'));
+        if (!cells.length || cells.every((cell) => cell.dataset.tooltipReady === 'true')) return;
+
+        document.querySelector('.contribution-floating-tooltip')?.remove();
+        const tooltip = document.createElement('div');
+        tooltip.className = 'contribution-floating-tooltip';
+        tooltip.setAttribute('role', 'tooltip');
+        document.body.appendChild(tooltip);
+
+        const hideTooltip = () => tooltip.classList.remove('is-visible');
+        const showTooltip = (cell: HTMLElement) => {
+            const label = cell.dataset.contributionTooltip;
+            if (!label) return;
+
+            tooltip.textContent = label;
+            tooltip.style.left = '0px';
+            tooltip.style.top = '0px';
+            tooltip.classList.add('is-visible');
+
+            const rect = cell.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const half = tooltipRect.width / 2;
+            const left = Math.max(8 + half, Math.min(window.innerWidth - 8 - half, rect.left + rect.width / 2));
+            const top = Math.max(tooltipRect.height + 12, rect.top);
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        };
+
+        cells.forEach((cell) => {
+            if (cell.dataset.tooltipReady === 'true') return;
+            cell.dataset.tooltipReady = 'true';
+            cell.addEventListener('pointerenter', () => showTooltip(cell), { signal: controller.signal });
+            cell.addEventListener('pointerleave', hideTooltip, { signal: controller.signal });
+            cell.addEventListener('focus', () => showTooltip(cell), { signal: controller.signal });
+            cell.addEventListener('blur', hideTooltip, { signal: controller.signal });
+        });
+
+        window.addEventListener('blur', hideTooltip, { signal: controller.signal });
+    };
+
+    const initExperienceOverflow = (controller: AbortController) => {
+        const observers: ResizeObserver[] = [];
+
+        document.querySelectorAll<HTMLElement>('.experience-panel').forEach((panel) => {
+            const scroll = panel.querySelector<HTMLElement>('.experience-scroll');
+            if (!scroll) return;
+
+            const updateOverflowState = () => {
+                const scrollable = scroll.scrollHeight - scroll.clientHeight > 2;
+                const atBottom = !scrollable || scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - 2;
+                panel.dataset.scrollable = scrollable ? 'true' : 'false';
+                panel.dataset.atBottom = atBottom ? 'true' : 'false';
+            };
+
+            updateOverflowState();
+            scroll.addEventListener('scroll', updateOverflowState, { passive: true, signal: controller.signal });
+
+            const observer = new ResizeObserver(updateOverflowState);
+            observer.observe(scroll);
+            const timeline = scroll.querySelector<HTMLElement>('.experience-timeline');
+            if (timeline) observer.observe(timeline);
+            observers.push(observer);
+        });
+
+        controller.signal.addEventListener('abort', () => {
+            observers.forEach((observer) => observer.disconnect());
+        }, { once: true });
+    };
+
+    const initLowerSections = (controller: AbortController) => {
+        const template = document.querySelector<HTMLTemplateElement>('[data-lower-sections-template]');
+        const bottomLayout = document.querySelector<HTMLElement>('.bottom-layout');
+        const oldBlogRegion = bottomLayout?.querySelector<HTMLElement>('.blog-region');
+        let inserted = false;
+
+        if (template && bottomLayout && oldBlogRegion && !bottomLayout.querySelector('.analytics-region')) {
+            oldBlogRegion.replaceWith(template.content.cloneNode(true));
+            inserted = true;
+        }
+
+        if (!inserted) return;
+
+        const analyticsRegion = document.querySelector<HTMLElement>('.analytics-region');
+        const blogRegion = document.querySelector<HTMLElement>('.latest-blog-region');
+        const apiBase = normalizeApiBase(analyticsRegion?.dataset.analyticsApi);
+        const blogApiBase = normalizeApiBase(blogRegion?.dataset.blogMetricsApi) || apiBase;
+        const visitorsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-visitors]');
+        const pageviewsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-pageviews]');
+        const topPageEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-top-page]');
+        const sparkEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-spark]');
+
+        let tooltip = document.querySelector<HTMLElement>('.analytics-floating-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'analytics-floating-tooltip';
+            tooltip.setAttribute('role', 'tooltip');
+            document.body.appendChild(tooltip);
+        }
+
+        const activeTooltip = tooltip;
+        const hideTooltip = () => activeTooltip?.classList.remove('is-visible');
+        const showTooltip = (bar: HTMLElement) => {
+            if (!activeTooltip) return;
+            const label = bar.dataset.analyticsTooltip;
+            if (!label) return;
+            activeTooltip.textContent = label;
+            activeTooltip.classList.add('is-visible');
+            const rect = bar.getBoundingClientRect();
+            const tip = activeTooltip.getBoundingClientRect();
+            const half = tip.width / 2;
+            activeTooltip.style.left = `${Math.max(8 + half, Math.min(innerWidth - 8 - half, rect.left + rect.width / 2))}px`;
+            activeTooltip.style.top = `${Math.max(tip.height + 12, rect.top)}px`;
+        };
+
+        const hourlyPoints = (values?: HourPoint[]): ChartPoint[] => (values ?? []).map((item, index) => {
+            const fallback = new Date(Date.now() - (23 - index) * 3_600_000);
+            const parsed = item.hour ? new Date(item.hour) : fallback;
+            const start = Number.isNaN(parsed.getTime()) ? fallback : parsed;
+            const end = new Date(start.getTime() + 3_600_000);
+            return {
+                label: `${dayFormat.format(start)} · ${hourFormat.format(start)}–${hourFormat.format(end)}`,
+                views: Math.max(0, Number(item.views ?? 0)),
+                visitors: Math.max(0, Number(item.visitors ?? 0)),
+            };
+        });
+
+        const renderSpark = (points: ChartPoint[]) => {
+            if (!sparkEl) return;
+            sparkEl.replaceChildren();
+            const max = Math.max(0, ...points.map((point) => point.views));
+
+            for (const point of points) {
+                const empty = point.views === 0 || max === 0;
+                const bar = document.createElement('span');
+                bar.style.height = `${empty ? 0 : Math.max(12, (point.views / max) * 100)}%`;
+                bar.dataset.empty = String(empty);
+                bar.tabIndex = empty ? -1 : 0;
+                bar.setAttribute('role', 'listitem');
+                const label = `${point.label} · ${exact.format(point.views)} pageviews · ${exact.format(point.visitors)} visitors`;
+                bar.setAttribute('aria-label', label);
+                bar.dataset.analyticsTooltip = label;
+                if (!empty) {
+                    bar.addEventListener('pointerenter', () => showTooltip(bar), { signal: controller.signal });
+                    bar.addEventListener('pointerleave', hideTooltip, { signal: controller.signal });
+                    bar.addEventListener('focus', () => showTooltip(bar), { signal: controller.signal });
+                    bar.addEventListener('blur', hideTooltip, { signal: controller.signal });
+                }
+                sparkEl.appendChild(bar);
+            }
+        };
+
+        const renderUnavailable = () => {
+            if (visitorsEl) visitorsEl.textContent = '—';
+            if (pageviewsEl) pageviewsEl.textContent = '—';
+            if (topPageEl) topPageEl.textContent = '—';
+            renderSpark([]);
+        };
+
+        const renderSummary = (summary: Summary) => {
+            const valid = typeof summary.generatedAt === 'string'
+                && Array.isArray(summary.last24Hours)
+                && summary.last24Hours.length === 24;
+            if (!valid) {
+                renderUnavailable();
+                return;
+            }
+            if (visitorsEl) visitorsEl.textContent = compact.format(Number(summary.visitors ?? 0));
+            if (pageviewsEl) pageviewsEl.textContent = compact.format(Number(summary.pageviews ?? 0));
+            if (topPageEl) topPageEl.textContent = summary.topPage?.path || '/';
+            renderSpark(hourlyPoints(summary.last24Hours));
+        };
+
+        renderUnavailable();
+        window.addEventListener('blur', hideTooltip, { signal: controller.signal });
+
+        void (async () => {
+            if (!apiBase) return;
+            const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '::1';
+
+            if (!isLocalPreview) {
+                try {
+                    await fetch(`${apiBase}/analytics/view`, {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/json' },
+                        body: JSON.stringify({ path: location.pathname, visitorId: getVisitorId() }),
+                        keepalive: true,
+                        signal: controller.signal,
+                    });
+                } catch {
+                    // Analytics must never block page rendering.
+                }
+            }
+
+            try {
+                const response = await fetch(`${apiBase}/analytics/summary`, {
+                    headers: { Accept: 'application/json' },
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
+                if (!response.ok) throw new Error(`analytics summary ${response.status}`);
+                const summary = await response.json() as Summary;
+                renderSummary(summary);
+            } catch {
+                if (!controller.signal.aborted) renderUnavailable();
+            }
+        })();
+
+        document.querySelectorAll<HTMLElement>('.tweet-post[data-blog-post-id]').forEach((post) => {
+            const postId = post.dataset.blogPostId?.trim();
+            const views = post.querySelector<HTMLElement>('[data-blog-views]');
+            const likes = post.querySelector<HTMLElement>('[data-blog-likes]');
+            if (!postId || !blogApiBase) return;
+
+            void (async () => {
+                try {
+                    const response = await fetch(`${blogApiBase}/metrics/${encodeURIComponent(postId)}`, {
+                        headers: { Accept: 'application/json' },
+                        signal: controller.signal,
+                    });
+                    if (!response.ok) throw new Error(`blog metrics ${response.status}`);
+                    const metrics = await response.json() as { views?: number; likes?: number };
+                    if (views) views.textContent = compact.format(Number(metrics.views ?? 0));
+                    if (likes) likes.textContent = compact.format(Number(metrics.likes ?? 0));
+                } catch {
+                    if (controller.signal.aborted) return;
+                    if (views) views.textContent = '—';
+                    if (likes) likes.textContent = '—';
+                }
+            })();
+        });
+    };
+
+    const initHomeLifecycle = () => {
+        cleanupHomeLifecycle();
+
+        const home = document.querySelector('.home-redesign');
+        if (!home) return;
+
+        const controller = new AbortController();
+        ensureEducationOverlay();
+        initContributionTooltips(controller);
+        initLowerSections(controller);
+
+        if (homeWasSeen) {
+            initExperienceOverflow(controller);
+        }
+        homeWasSeen = true;
+
+        cleanupCurrentHome = () => {
+            controller.abort();
+            document.querySelector('.analytics-floating-tooltip')?.remove();
+            document.querySelector('.contribution-floating-tooltip')?.remove();
+        };
+    };
+
+    document.addEventListener('astro:page-load', initHomeLifecycle);
+    document.addEventListener('astro:before-swap', cleanupHomeLifecycle);
+</script>
