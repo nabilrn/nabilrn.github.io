@@ -31,7 +31,7 @@ npx wrangler d1 migrations apply portfolio-metrics --remote
 - `analytics_hourly`
 - `analytics_hourly_visitors`
 
-The existing database also contains the older per-visitor tables `post_views` and `post_likes`. `0002_import_legacy_d1.sql` imports those rows into the consolidated schema without dropping the old tables:
+The existing database also contains the older per-visitor tables `post_views` and `post_likes`. Before import they contained 400 view rows and 14 like rows. `0002_import_legacy_d1.sql` imports those rows into the consolidated schema without dropping the old tables:
 
 - every old `(post_id, visitor_id)` view is preserved as `visitor_post_state.viewed = 1`
 - every old like is preserved as `visitor_post_state.liked = 1`
@@ -52,7 +52,7 @@ Verify imported totals:
 npx wrangler d1 execute portfolio-metrics --remote --command="SELECT SUM(views) AS views, SUM(likes) AS likes FROM post_metrics;"
 ```
 
-For the database state observed before `0002`, the imported lower bounds are 400 historical views and 14 historical likes.
+Immediately after `0002`, before any KV reconciliation or new production writes, the totals should be at least 400 historical views and 14 historical likes.
 
 ## 3. Deploy the Worker
 
