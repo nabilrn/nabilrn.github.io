@@ -56,6 +56,16 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         display: contents;
     }
 
+    :global(.full-shell mark.blog-search-hit) {
+        padding: 0 .14em;
+        border-radius: 2px;
+        background: var(--text);
+        box-shadow: none;
+        color: var(--bg);
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+    }
+
     @media (max-width: 760px) {
         .full-shell {
             width: 100%;
