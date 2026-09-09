@@ -106,6 +106,16 @@ Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/wo
 
 The sitemap covers the public portfolio and blog routes, so both remain part of the accessibility gate.
 
+## Use, fork, and remix
+
+This portfolio is open source under the [MIT License](LICENSE).
+
+You are free to fork, copy, modify, redesign, and use the repository for personal or commercial projects. Keep the original copyright and license notice as required by the MIT License. Third-party dependencies and assets, where applicable, remain subject to their own licenses.
+
+If this repository helps you or becomes a starting point for your own portfolio, a GitHub star is appreciated. A star is not a condition of the license.
+
+This repository is maintained as my personal portfolio and is **not accepting external code contributions or pull requests**. If you want to change or extend it, please fork the repository and maintain your own version. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository policy.
+
 ## Repository notes
 
 - The site is a static Astro deployment; no Docker runtime is required.
