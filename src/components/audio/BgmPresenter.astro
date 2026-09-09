@@ -27,8 +27,6 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 	</button>
 
 	<div class="bgm-wave" aria-hidden="true">
-		<span class="bgm-baseline"></span>
-		<span class="bgm-progress" data-bgm-progress></span>
 		{bars.map((bar) => <i data-bgm-bar data-index={bar}></i>)}
 	</div>
 
@@ -195,39 +193,24 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		overflow: hidden;
 	}
 
-	.bgm-baseline,
-	.bgm-progress {
-		position: absolute;
-		left: 0;
-		top: 50%;
-		width: 100%;
-		height: 1px;
-		transform: translateY(-50%);
-		transform-origin: left center;
-		pointer-events: none;
-	}
-
-	.bgm-baseline {
-		background: color-mix(in srgb, var(--muted) 32%, transparent);
-	}
-
-	.bgm-progress {
-		background: color-mix(in srgb, var(--text) 72%, transparent);
-		transform: translateY(-50%) scaleX(0);
-	}
-
 	.bgm-wave i {
 		--level: .18;
 		position: relative;
-		z-index: 2;
 		width: 1px;
 		height: calc(var(--bgm-wave-height) - 4px);
 		justify-self: center;
 		display: block;
-		background: color-mix(in srgb, var(--text) 56%, var(--bg));
+		background: color-mix(in srgb, var(--muted) 52%, var(--bg));
+		opacity: .5;
 		transform: scaleY(var(--level));
 		transform-origin: center;
+		transition: background-color 120ms linear, opacity 120ms linear;
 		will-change: transform;
+	}
+
+	.bgm-wave i[data-bgm-played] {
+		background: color-mix(in srgb, var(--text) 88%, var(--bg));
+		opacity: .96;
 	}
 
 	.bgm-time {
