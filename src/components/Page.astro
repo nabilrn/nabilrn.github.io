@@ -1,6 +1,7 @@
 ---
 import '@fontsource-variable/inter';
 import '@fontsource-variable/jetbrains-mono';
+import { ClientRouter } from 'astro:transitions';
 import SiteShell from './SiteShell.astro';
 import { authorName, getSiteContent, siteUrl } from '../data/siteContent';
 
@@ -147,18 +148,26 @@ const siteNavigationJson = JSON.stringify({
 ---
 
 <!doctype html>
-<html lang={htmlLang} data-theme="dark">
+<html lang={htmlLang} data-theme="dark" transition:animate="none">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script is:inline>
       (() => {
-        try {
-          const stored = localStorage.getItem('portfolio-theme');
-          const theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
-          document.documentElement.dataset.theme = theme;
-        } catch {
-          document.documentElement.dataset.theme = 'dark';
+        const applyStoredTheme = () => {
+          try {
+            const stored = localStorage.getItem('portfolio-theme');
+            const theme = stored === 'light' || stored === 'dark' ? stored : 'dark';
+            document.documentElement.dataset.theme = theme;
+          } catch {
+            document.documentElement.dataset.theme = 'dark';
+          }
+        };
+
+        applyStoredTheme();
+        if (!window.__portfolioThemeSwapBound) {
+          window.__portfolioThemeSwapBound = true;
+          document.addEventListener('astro:after-swap', applyStoredTheme);
         }
       })();
     </script>
@@ -216,6 +225,8 @@ const siteNavigationJson = JSON.stringify({
     {isHomePageForSchema && <script is:inline type="application/ld+json" set:html={websiteJson}></script>}
     <script is:inline type="application/ld+json" set:html={webPageJson}></script>
     <script is:inline type="application/ld+json" set:html={siteNavigationJson}></script>
+
+    <ClientRouter />
 </head>
 <body>
     <SiteShell currentPath={path}>
