@@ -1,0 +1,60 @@
+name: Daily Static Refresh
+
+on:
+  schedule:
+    # GitHub Actions cron uses UTC. 00:10 UTC is 07:10 WIB.
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-static-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'nabilrn/nabilrn.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Astro check
+        run: pnpm exec astro check
+
+      - name: Verify production build
+        env:
+          # The build only needs to refresh build-time GitHub/Duolingo data.
+          # Do not let CI fall back to the live metrics Worker.
+          PUBLIC_ENGAGEMENT_API_BASE: /__ci-disabled-engagement__
+        run: pnpm build
+
+      - name: Trigger static host rebuild
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: refresh build-time profile data [skip ci]"
+          git push origin HEAD:main
