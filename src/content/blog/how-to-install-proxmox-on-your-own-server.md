@@ -3,7 +3,6 @@ title: "How to Install Proxmox VE on Your Own Server"
 description: "A practical bare-metal Proxmox VE 9 guide focused on the decisions that matter most: installation media, storage, networking, repositories, updates, and the first VM."
 pubDate: 2026-04-01
 tags: ["proxmox", "homelab", "virtualization", "linux"]
-featured: true
 draft: false
 ---
 
