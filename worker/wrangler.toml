@@ -7,13 +7,11 @@ workers_dev = true
 [vars]
 ALLOWED_ORIGIN = "https://portfolio.nabilrn.space,https://nabilrn.github.io"
 
-# D1 is the new source of truth for analytics + engagement.
-# Replace this placeholder after running:
-#   npx wrangler d1 create portfolio-metrics
+# D1 is the source of truth for analytics + engagement.
 [[d1_databases]]
 binding = "DB"
 database_name = "portfolio-metrics"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "95fdffb0-37a1-45c5-a108-786c95d50188"
 migrations_dir = "migrations"
 
 # Read-only compatibility binding for the old KV namespace.
