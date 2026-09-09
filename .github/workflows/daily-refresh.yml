@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: daily-static-refresh
@@ -46,15 +46,42 @@ jobs:
 
       - name: Verify production build
         env:
-          # The build only needs to refresh build-time GitHub/Duolingo data.
-          # Do not let CI fall back to the live metrics Worker.
+          # Refresh build-time GitHub/Duolingo data without touching production metrics.
           PUBLIC_ENGAGEMENT_API_BASE: /__ci-disabled-engagement__
         run: pnpm build
 
-      - name: Trigger static host rebuild
+      - name: Trigger MyPaaS redeploy
+        env:
+          MYPAAS_API_URL: ${{ secrets.MYPAAS_API_URL }}
+          MYPAAS_API_TOKEN: ${{ secrets.MYPAAS_API_TOKEN }}
+          MYPAAS_PROJECT_ID: ${{ secrets.MYPAAS_PROJECT_ID }}
         shell: bash
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit --allow-empty -m "chore: refresh build-time profile data [skip ci]"
-          git push origin HEAD:main
+          set -euo pipefail
+
+          : "${MYPAAS_API_URL:?Missing MYPAAS_API_URL repository secret}"
+          : "${MYPAAS_API_TOKEN:?Missing MYPAAS_API_TOKEN repository secret}"
+          : "${MYPAAS_PROJECT_ID:?Missing MYPAAS_PROJECT_ID repository secret}"
+
+          api_base="${MYPAAS_API_URL%/}"
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          http_code="$(curl \
+            --silent \
+            --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer ${MYPAAS_API_TOKEN}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            "${api_base}/projects/${MYPAAS_PROJECT_ID}/deploy")"
+
+          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+            echo "MyPaaS redeploy failed with HTTP ${http_code}."
+            cat "$response_file"
+            exit 1
+          fi
+
+          echo "MyPaaS redeploy accepted with HTTP ${http_code}."
