@@ -22,7 +22,9 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         <slot />
     </main>
 
-    <GlobalSearch />
+    <div class="global-search-host" transition:persist="global-search">
+        <GlobalSearch />
+    </div>
 
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
@@ -42,6 +44,10 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         min-height: calc(100vh - 52px);
         margin: 0;
         padding: 0 0 72px;
+    }
+
+    .global-search-host {
+        display: contents;
     }
 
     @media (max-width: 760px) {
