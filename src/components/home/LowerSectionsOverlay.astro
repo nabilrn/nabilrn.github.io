@@ -402,7 +402,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     tooltip.style.top = `${Math.max(tip.height + 12, rect.top)}px`;
   };
 
-  const hourlyPoints = (values: HourPoint[]): ChartPoint[] => values.map((item, index) => {
+  const hourlyPoints = (values?: HourPoint[]): ChartPoint[] => (values ?? []).map((item, index) => {
     const fallback = new Date(Date.now() - (23 - index) * 3_600_000);
     const parsed = item.hour ? new Date(item.hour) : fallback;
     const start = Number.isNaN(parsed.getTime()) ? fallback : parsed;
