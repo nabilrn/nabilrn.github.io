@@ -1,0 +1,220 @@
+<script>
+    const originalText = new WeakMap<HTMLElement, string>();
+    const combiningMarks = /[\u0300-\u036f]/g;
+
+    const normalize = (value: string) => value
+        .normalize('NFKD')
+        .replace(combiningMarks, '')
+        .toLowerCase();
+
+    const normalizedWithMap = (value: string) => {
+        let normalized = '';
+        const starts: number[] = [];
+        const ends: number[] = [];
+        let offset = 0;
+
+        for (const character of value) {
+            const start = offset;
+            offset += character.length;
+            const folded = normalize(character);
+            for (let index = 0; index < folded.length; index += 1) {
+                normalized += folded[index];
+                starts.push(start);
+                ends.push(offset);
+            }
+        }
+
+        return { normalized, starts, ends };
+    };
+
+    const rememberOriginalText = (node: HTMLElement) => {
+        if (!originalText.has(node)) originalText.set(node, node.textContent ?? '');
+        return originalText.get(node) ?? '';
+    };
+
+    const renderHighlight = (node: HTMLElement, rawQuery: string) => {
+        const source = rememberOriginalText(node);
+        const query = normalize(rawQuery.trim());
+        node.textContent = source;
+        if (!query) return;
+
+        const mapped = normalizedWithMap(source);
+        const ranges: Array<{ start: number; end: number }> = [];
+        let cursor = 0;
+
+        while (cursor <= mapped.normalized.length - query.length) {
+            const match = mapped.normalized.indexOf(query, cursor);
+            if (match < 0) break;
+            const start = mapped.starts[match];
+            const end = mapped.ends[match + query.length - 1];
+            if (typeof start === 'number' && typeof end === 'number' && end > start) {
+                const previous = ranges.at(-1);
+                if (previous && start <= previous.end) previous.end = Math.max(previous.end, end);
+                else ranges.push({ start, end });
+            }
+            cursor = match + Math.max(1, query.length);
+        }
+
+        if (!ranges.length) return;
+
+        const fragment = document.createDocumentFragment();
+        let sourceCursor = 0;
+        for (const range of ranges) {
+            if (range.start > sourceCursor) fragment.append(document.createTextNode(source.slice(sourceCursor, range.start)));
+            const mark = document.createElement('mark');
+            mark.className = 'blog-search-hit';
+            mark.textContent = source.slice(range.start, range.end);
+            fragment.append(mark);
+            sourceCursor = range.end;
+        }
+        if (sourceCursor < source.length) fragment.append(document.createTextNode(source.slice(sourceCursor)));
+        node.replaceChildren(fragment);
+    };
+
+    const searchTargets = (card: HTMLElement) => {
+        const targets: HTMLElement[] = [];
+        const title = card.querySelector<HTMLElement>('.post-content-link h2');
+        const description = card.querySelector<HTMLElement>('.post-content-link p');
+        if (title) targets.push(title);
+        if (description) targets.push(description);
+        const meta = Array.from(card.querySelectorAll<HTMLElement>('.post-submeta span'));
+        targets.push(...meta.slice(1));
+        return targets;
+    };
+
+    const initializeBlogSearch = () => {
+        const root = document.querySelector<HTMLElement>('[data-blog-feed-root]');
+        const search = root?.querySelector<HTMLInputElement>('[data-blog-search]');
+        if (!root || !search) return;
+
+        const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-post-search]'));
+        const emptyState = root.querySelector<HTMLElement>('[data-empty-state]');
+
+        const apply = () => {
+            const rawQuery = search.value.trim();
+            const query = normalize(rawQuery);
+            let visible = 0;
+
+            for (const card of cards) {
+                const haystack = card.getAttribute('data-post-search') || '';
+                const matches = !query || haystack.includes(query);
+                card.hidden = !matches;
+                if (matches) visible += 1;
+
+                for (const target of searchTargets(card)) {
+                    renderHighlight(target, matches ? rawQuery : '');
+                }
+            }
+
+            if (emptyState) emptyState.hidden = visible > 0;
+            root.dataset.searchActive = String(Boolean(query));
+        };
+
+        if (search.dataset.highlightBound !== 'true') {
+            search.dataset.highlightBound = 'true';
+            search.addEventListener('input', apply);
+            search.addEventListener('search', apply);
+        }
+        apply();
+    };
+
+    const initializeArticleBackLink = () => {
+        const header = document.querySelector<HTMLElement>('.article-header');
+        if (!header || header.querySelector('[data-article-back]')) return;
+
+        const link = document.createElement('a');
+        link.href = '/blog/';
+        link.className = 'article-back-link';
+        link.dataset.articleBack = 'true';
+        link.setAttribute('aria-label', 'Back to posts');
+        link.innerHTML = `
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"></path></svg>
+            <span>Back to posts</span>
+        `;
+        header.prepend(link);
+    };
+
+    const initialize = () => {
+        initializeBlogSearch();
+        initializeArticleBackLink();
+    };
+
+    const portfolioWindow = window as Window & { __portfolioBlogUXBound?: boolean };
+    if (!portfolioWindow.__portfolioBlogUXBound) {
+        portfolioWindow.__portfolioBlogUXBound = true;
+        document.addEventListener('astro:page-load', initialize);
+    }
+    initialize();
+</script>
+
+<style is:global>
+    .article-back-link {
+        width: max-content;
+        min-height: 30px;
+        margin: -2px 0 11px;
+        padding: 0 8px 0 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid transparent;
+        border-radius: 999px;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 520;
+        line-height: 1;
+        text-decoration: none;
+        transition: color 130ms ease, background-color 130ms ease, border-color 130ms ease, transform 130ms ease;
+    }
+
+    .article-back-link svg {
+        width: 15px;
+        height: 15px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .article-back-link:hover,
+    .article-back-link:focus-visible {
+        border-color: var(--border);
+        background: color-mix(in srgb, var(--surface-2) 68%, transparent);
+        color: var(--text);
+        outline: none;
+        transform: translateX(-1px);
+    }
+
+    mark.blog-search-hit {
+        margin: 0;
+        padding: 0 1px;
+        border-radius: 2px;
+        background: color-mix(in srgb, var(--text) 12%, transparent);
+        box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--text) 62%, transparent);
+        color: var(--text);
+        font: inherit;
+    }
+
+    [data-blog-feed-root][data-search-active='true'] .feed-post:not([hidden]) {
+        background: color-mix(in srgb, var(--surface) 20%, transparent);
+    }
+
+    [data-blog-feed-root][data-search-active='true'] .feed-post:not([hidden]):hover {
+        background: color-mix(in srgb, var(--surface) 50%, transparent);
+    }
+
+    @media (max-width: 520px) {
+        .article-back-link {
+            margin-bottom: 9px;
+            min-height: 28px;
+            font-size: 10.5px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .article-back-link { transition: none; }
+        .article-back-link:hover,
+        .article-back-link:focus-visible { transform: none; }
+    }
+</style>
