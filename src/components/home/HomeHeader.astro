@@ -167,15 +167,6 @@ const blogPath = '/blog/';
         visibility: visible;
     }
 
-    :global(.home-redesign .nr-song-credit) {
-        line-height: 1;
-    }
-
-    :global(.home-redesign .nr-song-credit::before) {
-        position: relative;
-        top: -0.5px;
-    }
-
     .design-reference {
         position: absolute;
         left: 50%;
@@ -195,27 +186,24 @@ const blogPath = '/blog/';
     }
 
     .design-reference strong {
-        --design-reference-shimmer: color-mix(in srgb, var(--text) 64%, #fff);
-
-        color: var(--text);
+        color: transparent;
         font: inherit;
         font-weight: 600;
         background: linear-gradient(
-            105deg,
-            var(--text) 0%,
-            var(--text) 38%,
-            var(--design-reference-shimmer) 47%,
-            #fff 50%,
-            var(--design-reference-shimmer) 53%,
-            var(--text) 62%,
-            var(--text) 100%
+            90deg,
+            color-mix(in srgb, var(--muted) 82%, transparent) 0%,
+            color-mix(in srgb, var(--text) 90%, var(--muted)) 36%,
+            var(--text) 50%,
+            color-mix(in srgb, var(--text) 90%, var(--muted)) 64%,
+            color-mix(in srgb, var(--muted) 82%, transparent) 100%
         );
-        background-size: 240% 100%;
-        background-position: 140% 0;
-        -webkit-background-clip: text;
+        background-size: 220% 100%;
+        background-position: 115% 0;
         background-clip: text;
+        -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        animation: design-reference-shimmer 3.2s ease-in-out infinite;
+        filter: drop-shadow(0 0 4px color-mix(in srgb, var(--text) 18%, transparent));
+        animation: design-reference-shimmer 4.2s ease-in-out infinite;
     }
 
     .design-reference-copy { color: var(--muted); }
@@ -251,15 +239,8 @@ const blogPath = '/blog/';
     }
 
     @keyframes design-reference-shimmer {
-        0%,
-        18% {
-            background-position: 140% 0;
-        }
-
-        62%,
-        100% {
-            background-position: -40% 0;
-        }
+        0% { background-position: 115% 0; }
+        54%, 100% { background-position: -115% 0; }
     }
 
     .home-nav {
@@ -368,7 +349,9 @@ const blogPath = '/blog/';
         .design-reference strong {
             animation: none;
             background: none;
+            color: var(--text);
             -webkit-text-fill-color: currentColor;
+            filter: none;
         }
     }
 </style>
