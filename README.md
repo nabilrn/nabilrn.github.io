@@ -142,7 +142,7 @@ Wrangler returns a generated namespace ID. Put that ID in the `[[kv_namespaces]]
 
 `ALLOWED_ORIGIN` is a comma-separated CORS allowlist. Include every frontend origin that should be allowed to send analytics/engagement writes. Add `http://localhost:4321` if you want the remote Worker to accept writes from the local Astro development server.
 
-Deploy the Worker:
+Deploy the Worker manually:
 
 ```bash
 pnpm dlx wrangler deploy --config worker/wrangler.toml
@@ -174,9 +174,7 @@ PUBLIC_ENGAGEMENT_API_BASE=https://portfolio-metrics-api.<your-workers-subdomain
 
 Never commit Cloudflare API tokens or other credentials. The KV namespace ID and account ID are identifiers, not authentication secrets, but forks should still replace the original deployment identifiers with their own resources.
 
-### Automated Worker deployment
-
-For manual deployment, use the Wrangler command above. To deploy Worker changes from GitHub Actions instead, configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret. `.github/workflows/deploy-metrics-worker.yml` uses it for the Worker deployment workflow.
+Worker deployment is intentionally **manual** in this repository. There is no GitHub Actions workflow that publishes the Cloudflare Worker automatically.
 
 ## CI
 
