@@ -30,3 +30,8 @@ declare module '*.svg' {
 	const image: import('astro:assets').ImageMetadata;
 	export default image;
 }
+
+interface Window {
+	__portfolioEngagementControllerBound?: boolean;
+	__portfolioBlogUXBound?: boolean;
+}
