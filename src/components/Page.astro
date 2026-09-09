@@ -8,6 +8,8 @@ import { authorName, getSiteContent, siteUrl } from '../data/siteContent';
 interface Props {
   title?: string;
   description?: string;
+  socialTitle?: string;
+  socialDescription?: string;
   path?: string;
   robots?: string;
   ogImage?: string;
@@ -24,6 +26,8 @@ interface Props {
 const {
   title: pageTitle,
   description: pageDesc,
+  socialTitle: pageSocialTitle,
+  socialDescription: pageSocialDescription,
   path,
   robots = 'index, follow',
   ogImage: pageOgImage,
@@ -49,6 +53,8 @@ const description = pageDesc || defaultDescription;
 const currentUrl = path ? new URL(path, siteUrl).toString() : siteUrl;
 const normalizedPath = path ?? '/';
 const isHomePageForSchema = normalizedPath === '/';
+const socialTitle = pageSocialTitle ?? (isHomePageForSchema ? authorName : title);
+const socialDescription = pageSocialDescription ?? (isHomePageForSchema ? 'daily prompter.' : description);
 const ogImageUrl = new URL(pageOgImage ?? defaultOgImage, siteUrl).toString();
 const personEntity = {
   '@type': 'Person',
@@ -214,8 +220,8 @@ const siteNavigationJson = JSON.stringify({
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content={ogType} />
     <meta property="og:url" content={currentUrl} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={socialTitle} />
+    <meta property="og:description" content={socialDescription} />
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:type" content="image/png" />
     {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
@@ -234,8 +240,8 @@ const siteNavigationJson = JSON.stringify({
     <!-- Twitter -->
     <meta name="twitter:card" content={twitterCard} />
     <meta name="twitter:url" content={currentUrl} />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={socialTitle} />
+    <meta name="twitter:description" content={socialDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:creator" content="@NabilrizkiN" />
     {ogImageAlt && <meta name="twitter:image:alt" content={ogImageAlt} />}
