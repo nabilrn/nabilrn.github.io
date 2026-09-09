@@ -1,18 +1,22 @@
 # D1 metrics cutover
 
-The Worker now uses Cloudflare D1 as the source of truth for engagement and rolling analytics.
+The Worker uses Cloudflare D1 as the source of truth for engagement and rolling analytics.
 The previous KV namespace remains bound as `LEGACY_METRICS` in read-only mode during the cutover so existing post counters and per-visitor viewed/liked state can be lazily copied into D1.
 
-## 1. Create the database
+## 1. Verify the database binding
 
-From the repository root:
+The repository is currently bound to the existing Cloudflare D1 database:
+
+- database name: `portfolio-metrics`
+- database ID: `95fdffb0-37a1-45c5-a108-786c95d50188`
+
+From `worker/`, verify Wrangler resolves the same database:
 
 ```bash
-cd worker
-npx wrangler d1 create portfolio-metrics
+npx wrangler d1 info portfolio-metrics --json
 ```
 
-Copy the returned database ID and replace `REPLACE_WITH_D1_DATABASE_ID` in `worker/wrangler.toml`.
+If this database ever needs to be reprovisioned, use `npx wrangler d1 list --json` first and only create a new database when no `portfolio-metrics` database exists.
 
 ## 2. Apply migrations
 
@@ -26,6 +30,12 @@ The initial migration creates:
 - `visitor_post_state`
 - `analytics_hourly`
 - `analytics_hourly_visitors`
+
+Verify the remote schema after the migration:
+
+```bash
+npx wrangler d1 execute portfolio-metrics --remote --command="SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;"
+```
 
 ## 3. Deploy the Worker
 
