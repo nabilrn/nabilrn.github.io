@@ -5,7 +5,7 @@ export function normalizeApiBase(value?: string): string {
 }
 
 export function getMetricsApiBase(): string {
-  const configured = normalizeApiBase(import.meta.env.PUBLIC_METRICS_API_BASE);
+  const configured = normalizeApiBase(import.meta.env.PUBLIC_ENGAGEMENT_API_BASE);
   if (configured) return configured;
   return import.meta.env.PROD ? DEFAULT_METRICS_API_BASE : '';
 }
