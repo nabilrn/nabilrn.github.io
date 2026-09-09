@@ -27,13 +27,14 @@ Use only when relevant:
 - Do not reintroduce the legacy terminal-theme homepage.
 - Prefer semantic design tokens over one-off colors.
 - Keep keyboard focus and `prefers-reduced-motion` behavior intact.
-- Prototype risky visual changes in a dev surface before promoting them.
-- Run `pnpm build` before completion.
+- For risky visual changes, use a temporary branch-local fixture and remove it before merge; do not add permanent public dev routes.
+- Run `pnpm check` and `pnpm build` before completion.
 
 ## Commands
 
 ```bash
 pnpm dev
+pnpm check
 pnpm build
 pnpm preview
 ```
