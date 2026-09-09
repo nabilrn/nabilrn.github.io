@@ -179,7 +179,7 @@ Worker deployment is intentionally **manual** in this repository. There is no Gi
 
 ## CI
 
-`.github/workflows/ci.yml` runs:
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`:
 
 1. frozen pnpm install
 2. `astro check`
@@ -188,6 +188,10 @@ Worker deployment is intentionally **manual** in this repository. There is no Gi
 5. accessibility audit against the generated sitemap
 
 The sitemap covers the public portfolio and blog routes, so both remain part of the accessibility gate.
+
+`.github/workflows/daily-refresh.yml` handles build-time profile data that would otherwise remain frozen until the next code deployment. It runs once per day at approximately 00:10 UTC (07:10 WIB), with a manual `workflow_dispatch` option. The job performs a frozen install, `astro check`, and production build first. Only after that succeeds does it push an empty `main` commit so the existing MyPaaS GitHub push webhook performs a fresh static deployment. That rebuild refreshes the GitHub contribution graph and Duolingo streak without moving those features to runtime polling.
+
+The refresh commit uses `[skip ci]` because the scheduled job has already validated the build and should not recursively start the normal quality workflow. It does not deploy the Cloudflare Worker. Forks that use a different hosting platform should adapt or remove the final host-rebuild trigger.
 
 ## Use, fork, and remix
 
