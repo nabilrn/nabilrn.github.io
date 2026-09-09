@@ -1,11 +1,10 @@
 import sharp from 'sharp';
-import { buildOgSvg } from '../../utils/og';
+import { buildPortfolioOgSvg } from '../../utils/og';
 
 export async function GET() {
-	const svg = buildOgSvg({
-		title: 'Nabil Rizki Navisa',
-		excerpt: 'Software engineer and Information Systems graduate from Universitas Andalas. GPA 3.71. AI agents, web, mobile, and IT infrastructure.',
-		kicker: 'nabilrn / portfolio',
+	const svg = buildPortfolioOgSvg({
+		name: 'Nabil Rizki Navisa',
+		tagline: 'daily prompter.',
 	});
 
 	const png = await sharp(new TextEncoder().encode(svg)).png({ compressionLevel: 9 }).toBuffer();
