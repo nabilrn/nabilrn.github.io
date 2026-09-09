@@ -40,6 +40,13 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		--bgm-wave-width: 154px;
 		--bgm-wave-height: 30px;
 		--bgm-vinyl-size: 31px;
+		--bgm-vinyl-disc: #171717;
+		--bgm-vinyl-edge: rgb(255 255 255 / 16%);
+		--bgm-vinyl-groove: rgb(255 255 255 / 10%);
+		--bgm-vinyl-highlight: rgb(255 255 255 / 16%);
+		--bgm-vinyl-label: #5b5b5b;
+		--bgm-vinyl-label-mark: rgb(255 255 255 / 48%);
+		--bgm-vinyl-spindle: #090909;
 		position: relative;
 		display: inline-flex;
 		align-items: center;
@@ -49,6 +56,16 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		color: color-mix(in srgb, var(--text) 72%, var(--muted));
 		font-family: var(--font-mono);
 		pointer-events: auto;
+	}
+
+	:global(html[data-theme='light']) .bgm-presenter {
+		--bgm-vinyl-disc: #2b2b2b;
+		--bgm-vinyl-edge: rgb(0 0 0 / 32%);
+		--bgm-vinyl-groove: rgb(255 255 255 / 18%);
+		--bgm-vinyl-highlight: rgb(255 255 255 / 34%);
+		--bgm-vinyl-label: #b7b7b7;
+		--bgm-vinyl-label-mark: rgb(38 38 38 / 72%);
+		--bgm-vinyl-spindle: #252525;
 	}
 
 	.bgm-toggle {
@@ -79,11 +96,13 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		overflow: hidden;
 		border-radius: 50%;
 		background:
-			radial-gradient(circle at 50% 50%, #161616 0 100%);
+			radial-gradient(circle at 42% 34%, color-mix(in srgb, var(--bgm-vinyl-highlight) 24%, transparent) 0 9%, transparent 24%),
+			var(--bgm-vinyl-disc);
 		box-shadow:
-			inset 0 0 0 1px color-mix(in srgb, var(--text) 34%, transparent),
-			inset 0 0 5px rgb(255 255 255 / 4%),
-			0 0 0 1px rgb(0 0 0 / 30%);
+			inset 0 0 0 1px var(--bgm-vinyl-edge),
+			inset 0 0 6px rgb(255 255 255 / 5%),
+			0 1px 2px rgb(0 0 0 / 26%);
+		transform-origin: 50% 50%;
 		will-change: transform;
 	}
 
@@ -94,14 +113,14 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		border-radius: 50%;
 		background:
 			radial-gradient(circle at 50% 50%,
-				transparent 0 29%,
-				rgb(255 255 255 / 10%) 30% 31%,
-				transparent 32% 47%,
-				rgb(255 255 255 / 8%) 48% 49%,
-				transparent 50% 68%,
-				rgb(255 255 255 / 6%) 69% 70%,
-				transparent 71% 100%);
-		opacity: .82;
+				transparent 0 30%,
+				var(--bgm-vinyl-groove) 31% 32%,
+				transparent 33% 49%,
+				var(--bgm-vinyl-groove) 50% 51%,
+				transparent 52% 69%,
+				var(--bgm-vinyl-groove) 70% 71%,
+				transparent 72% 100%);
+		opacity: .92;
 		pointer-events: none;
 	}
 
@@ -111,12 +130,12 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		inset: 1px;
 		border-radius: 50%;
 		background: conic-gradient(
-			from -28deg,
-			transparent 0 18%,
-			rgb(255 255 255 / 8%) 23%,
-			transparent 29% 63%,
-			rgb(255 255 255 / 4%) 69%,
-			transparent 75% 100%
+			from -38deg,
+			transparent 0 10%,
+			var(--bgm-vinyl-highlight) 14% 17%,
+			transparent 21% 58%,
+			color-mix(in srgb, var(--bgm-vinyl-highlight) 56%, transparent) 62% 64%,
+			transparent 68% 100%
 		);
 		pointer-events: none;
 	}
@@ -127,10 +146,24 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		z-index: 2;
 		display: block;
 		border-radius: 50%;
-		background: color-mix(in srgb, var(--text) 68%, #222);
+		background: var(--bgm-vinyl-label);
 		box-shadow:
-			0 0 0 1px rgb(255 255 255 / 8%),
-			inset 0 0 0 1px rgb(0 0 0 / 28%);
+			0 0 0 1px color-mix(in srgb, var(--bgm-vinyl-edge) 82%, transparent),
+			inset 0 0 0 1px rgb(255 255 255 / 8%);
+	}
+
+	.bgm-vinyl > span::before {
+		content: '';
+		position: absolute;
+		width: 26%;
+		height: 1px;
+		left: 57%;
+		top: 31%;
+		border-radius: 999px;
+		background: var(--bgm-vinyl-label-mark);
+		box-shadow: 0 3px 0 color-mix(in srgb, var(--bgm-vinyl-label-mark) 62%, transparent);
+		transform: rotate(-24deg);
+		transform-origin: center;
 	}
 
 	.bgm-vinyl > span::after {
@@ -138,12 +171,12 @@ const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 		position: absolute;
 		inset: 39%;
 		border-radius: 50%;
-		background: #080808;
-		box-shadow: 0 0 0 1px rgb(255 255 255 / 10%);
+		background: var(--bgm-vinyl-spindle);
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--bgm-vinyl-edge) 64%, transparent);
 	}
 
 	:global(html[data-bgm-state='playing']) .bgm-vinyl {
-		animation: bgm-vinyl-spin 2.8s linear infinite;
+		animation: bgm-vinyl-spin 2.2s linear infinite;
 	}
 
 	@keyframes bgm-vinyl-spin {
