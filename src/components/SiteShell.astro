@@ -2,6 +2,7 @@
 import GlobalSearch from './GlobalSearch.astro';
 import HomeHeader from './home/HomeHeader.astro';
 import HomeLightModePolish from './home/HomeLightModePolish.astro';
+import HomePageLifecycle from './home/HomePageLifecycle.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
 
 interface Props {
@@ -26,6 +27,7 @@ const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
         <GlobalSearch />
     </div>
 
+    <HomePageLifecycle />
     {isHomePage && <HomeResponsiveArchitecture />}
     {isHomePage && <HomeLightModePolish />}
 </div>
