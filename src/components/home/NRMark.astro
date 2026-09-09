@@ -1,544 +1,269 @@
 ---
 import {
-    NR_BOTTOM_STROKE as BOTTOM_STROKE,
-    NR_CONNECTOR_POINTS as CONNECTOR_POINTS,
-    NR_DEPTH as DEPTH,
-    NR_GLYPHS as GLYPHS,
-    NR_GUIDE_PATHS as GUIDE_PATHS,
-    NR_TOP_STROKE as TOP_STROKE,
-    NR_VIEWBOX as VIEWBOX,
-    NR_WALLS as WALLS,
-    nrConnectorPath as connectorPath,
-    nrWallPath as wallPath,
+	NR_BOTTOM_STROKE as BOTTOM_STROKE,
+	NR_CONNECTOR_POINTS as CONNECTOR_POINTS,
+	NR_DEPTH as DEPTH,
+	NR_GLYPHS as GLYPHS,
+	NR_GUIDE_PATHS as GUIDE_PATHS,
+	NR_TOP_STROKE as TOP_STROKE,
+	NR_VIEWBOX as VIEWBOX,
+	NR_WALLS as WALLS,
+	nrConnectorPath as connectorPath,
+	nrWallPath as wallPath,
 } from '../../lib/nrGeometry';
+import { BGM_TRACK } from '../../lib/bgm';
+import BgmPresenter from '../audio/BgmPresenter.astro';
 import HandwrittenNote from './HandwrittenNote.astro';
 
 const LATCH_DISTANCE = 8;
 const PRESS_DISTANCE = 14;
-const AUDIO_SRC = '/audio/2_23_AM.mp3';
-const TRACK_TITLE = '2:23 AM';
-const TRACK_ARTIST = 'Sharou';
-const TRACK_ARTIST_JP = 'しゃろう';
-const TRACK_ARTIST_URL = 'https://www.youtube.com/c/Sharou';
-const HUD_BARS = Array.from({ length: 18 }, (_, index) => index);
+const playLabel = `Play ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
+const pauseLabel = `Pause ${BGM_TRACK.title} by ${BGM_TRACK.artist}`;
 ---
 
 <div
-    class="nr-stage"
-    data-nr-stage
-    data-music-state="idle"
-    data-track-title={TRACK_TITLE}
-    data-track-artist={TRACK_ARTIST}
-    data-depth={DEPTH}
-    data-latch-distance={LATCH_DISTANCE}
-    data-press-distance={PRESS_DISTANCE}
-    data-viewbox-x={VIEWBOX.x}
-    data-viewbox-y={VIEWBOX.y}
-    data-viewbox-width={VIEWBOX.width}
-    data-viewbox-height={VIEWBOX.height}
+	class="nr-stage"
+	data-nr-stage
+	data-depth={DEPTH}
+	data-latch-distance={LATCH_DISTANCE}
+	data-press-distance={PRESS_DISTANCE}
+	data-viewbox-x={VIEWBOX.x}
+	data-viewbox-y={VIEWBOX.y}
+	data-viewbox-width={VIEWBOX.width}
+	data-viewbox-height={VIEWBOX.height}
 >
-    <button
-        class="nr-button"
-        type="button"
-        data-nr-button
-        aria-label={`Play ${TRACK_TITLE} by ${TRACK_ARTIST}`}
-        aria-pressed="false"
-    >
-        <svg
-            class="nr-svg"
-            data-nr-svg
-            viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.width} ${VIEWBOX.height}`}
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            role="img"
-            aria-label="Interactive isometric NR music switch"
-        >
-            <defs>
-                <pattern id="nr-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
-                    <path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nr-pattern-line" />
-                </pattern>
+	<button
+		class="nr-button"
+		type="button"
+		data-nr-button
+		data-bgm-toggle
+		data-play-label={playLabel}
+		data-pause-label={pauseLabel}
+		aria-label={playLabel}
+		aria-pressed="false"
+	>
+		<svg
+			class="nr-svg"
+			data-nr-svg
+			viewBox={`${VIEWBOX.x} ${VIEWBOX.y} ${VIEWBOX.width} ${VIEWBOX.height}`}
+			fill="none"
+			xmlns="http://www.w3.org/2000/svg"
+			role="img"
+			aria-label="Interactive isometric NR music switch"
+		>
+			<defs>
+				<pattern id="nr-pattern" x="0" y="0" width="10" height="10" patternUnits="userSpaceOnUse">
+					<path d="M-1 1l2 -2M0 10l10 -10M9 11l2 -2" class="nr-pattern-line" />
+				</pattern>
+				<path id="nr-top-stroke" d={TOP_STROKE} />
+				<path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
+				<radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
+					<stop offset="0" class="nr-glow-start" />
+					<stop offset="1" class="nr-glow-end" />
+				</radialGradient>
+			</defs>
 
-                <path id="nr-top-stroke" d={TOP_STROKE} />
-                <path id="nr-bottom-stroke" d={BOTTOM_STROKE} />
+			<g class="nr-guides nr-guides-base" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+				{GUIDE_PATHS.map((path) => <path d={path} />)}
+			</g>
+			<g class="nr-guides nr-guides-glow" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
+				{GUIDE_PATHS.map((path) => <path d={path} />)}
+			</g>
 
-                <radialGradient id="nr-gradient" data-nr-gradient cx="385" cy="190" r="200" gradientUnits="userSpaceOnUse">
-                    <stop offset="0" class="nr-glow-start" />
-                    <stop offset="1" class="nr-glow-end" />
-                </radialGradient>
-            </defs>
+			<g class="nr-walls" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+				{WALLS.map((wall) => (
+					<path data-nr-wall data-ax={wall.a.x} data-ay={wall.a.y} data-bx={wall.b.x} data-by={wall.b.y} d={wallPath(wall.a, wall.b)} />
+				))}
+			</g>
 
-            <g class="nr-guides nr-guides-base" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
-                {GUIDE_PATHS.map((path) => <path d={path} />)}
-            </g>
-            <g class="nr-guides nr-guides-glow" stroke-width="1" stroke-dasharray="4 2" aria-hidden="true">
-                {GUIDE_PATHS.map((path) => <path d={path} />)}
-            </g>
+			<use href="#nr-bottom-stroke" class="nr-stroke-base" />
+			<use href="#nr-bottom-stroke" class="nr-stroke-glow" />
 
-            <g class="nr-walls" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
-                {WALLS.map((wall) => (
-                    <path
-                        data-nr-wall
-                        data-ax={wall.a.x}
-                        data-ay={wall.a.y}
-                        data-bx={wall.b.x}
-                        data-by={wall.b.y}
-                        d={wallPath(wall.a, wall.b)}
-                    />
-                ))}
-            </g>
+			<g class="nr-connectors" aria-hidden="true">
+				{CONNECTOR_POINTS.map((point) => (
+					<g>
+						<path data-nr-connector data-x={point.x} data-y={point.y} d={connectorPath(point)} class="nr-stroke-base" />
+						<path data-nr-connector data-x={point.x} data-y={point.y} d={connectorPath(point)} class="nr-stroke-glow" />
+					</g>
+				))}
+			</g>
 
-            <use href="#nr-bottom-stroke" class="nr-stroke-base" />
-            <use href="#nr-bottom-stroke" class="nr-stroke-glow" />
+			<g data-nr-top class="nr-top">
+				<g class="nr-face-background" aria-hidden="true">
+					{GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+				</g>
+				<g class="nr-face-pattern" aria-hidden="true">
+					{GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
+				</g>
+				<use href="#nr-top-stroke" class="nr-stroke-base" />
+				<use href="#nr-top-stroke" class="nr-stroke-glow" />
+			</g>
+		</svg>
+	</button>
 
-            <g class="nr-connectors" aria-hidden="true">
-                {CONNECTOR_POINTS.map((point) => (
-                    <g>
-                        <path
-                            data-nr-connector
-                            data-x={point.x}
-                            data-y={point.y}
-                            d={connectorPath(point)}
-                            class="nr-stroke-base"
-                        />
-                        <path
-                            data-nr-connector
-                            data-x={point.x}
-                            data-y={point.y}
-                            d={connectorPath(point)}
-                            class="nr-stroke-glow"
-                        />
-                    </g>
-                ))}
-            </g>
+	<div class="nr-annotation nr-annotation-play" aria-hidden="true">
+		<HandwrittenNote text="click to play song" class="nr-music-note" arrowVariant="curve" />
+	</div>
+	<div class="nr-annotation nr-annotation-pause" aria-hidden="true">
+		<HandwrittenNote text="click to pause" class="nr-music-note nr-pause-note" arrowVariant="curve" />
+	</div>
 
-            <g data-nr-top class="nr-top">
-                <g class="nr-face-background" aria-hidden="true">
-                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
-                </g>
-                <g class="nr-face-pattern" aria-hidden="true">
-                    {GLYPHS.map((glyph) => <path d={glyph.path} fill-rule={glyph.fillRule} clip-rule={glyph.fillRule} />)}
-                </g>
-                <use href="#nr-top-stroke" class="nr-stroke-base" />
-                <use href="#nr-top-stroke" class="nr-stroke-glow" />
-            </g>
-        </svg>
-    </button>
+	<BgmPresenter variant="home" />
 
-    <div class="nr-annotation nr-annotation-play" aria-hidden="true">
-        <HandwrittenNote text="click to play song" class="nr-music-note" arrowVariant="curve" />
-    </div>
-    <div class="nr-annotation nr-annotation-pause" aria-hidden="true">
-        <HandwrittenNote text="click to pause" class="nr-music-note nr-pause-note" arrowVariant="curve" />
-    </div>
-
-    <div class="nr-music-hud" aria-hidden="true">
-        <div class="nr-hud-meta">
-            <span>BGM / 01</span>
-            <span data-nr-hud-state>paused</span>
-        </div>
-        <div class="nr-hud-title">
-            <strong>{TRACK_TITLE}</strong>
-            <span>{TRACK_ARTIST}</span>
-        </div>
-        <div class="nr-hud-wave" aria-hidden="true">
-            {HUD_BARS.map((bar) => <i data-nr-bar data-index={bar}></i>)}
-        </div>
-        <div class="nr-hud-footer">
-            <span data-nr-time>00:00 / 03:16</span>
-            <span>LOCAL AUDIO</span>
-        </div>
-        <div class="nr-hud-progress" aria-hidden="true">
-            <span data-nr-progress></span>
-        </div>
-    </div>
-
-    <a
-        class="nr-song-credit"
-        href={TRACK_ARTIST_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label={`Open ${TRACK_ARTIST_JP} ${TRACK_ARTIST}'s YouTube channel`}
-    >
-        <span>song by</span>
-        <strong>{TRACK_ARTIST_JP} / {TRACK_ARTIST}</strong>
-        <span aria-hidden="true">↗</span>
-    </a>
-
-    <audio data-nr-audio src={AUDIO_SRC} preload="metadata" aria-hidden="true"></audio>
+	<a
+		class="nr-song-credit"
+		href={BGM_TRACK.artistUrl}
+		target="_blank"
+		rel="noopener noreferrer"
+		aria-label={`Open ${BGM_TRACK.artistJp} ${BGM_TRACK.artist}'s YouTube channel`}
+	>
+		<span>song by</span>
+		<strong>{BGM_TRACK.artistJp} / {BGM_TRACK.artist}</strong>
+		<span aria-hidden="true">↗</span>
+	</a>
 </div>
 
 <style>
-    .nr-stage {
-        width: 100%;
-        height: 100%;
-        min-height: 0;
-        position: relative;
-        overflow: hidden;
-        isolation: isolate;
-        background: var(--bg);
-        --nr-background: var(--bg);
-        --nr-foreground: var(--text);
-        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 12%, var(--nr-background));
-        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
-        --nr-line: color-mix(in oklab, var(--border) 64%, var(--nr-background));
-        --nr-glow-start: #fff;
-        --nr-glow-start-opacity: 1;
-        --nr-glow-end: #52525b;
-        --nr-guide-base-opacity: .58;
-        --nr-guide-glow-opacity: .34;
-    }
+	.nr-stage {
+		width: 100%;
+		height: 100%;
+		min-height: 0;
+		position: relative;
+		overflow: hidden;
+		isolation: isolate;
+		background: var(--bg);
+		--nr-background: var(--bg);
+		--nr-foreground: var(--text);
+		--nr-pattern: color-mix(in oklab, var(--nr-foreground) 12%, var(--nr-background));
+		--nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
+		--nr-line: color-mix(in oklab, var(--border) 64%, var(--nr-background));
+		--nr-glow-start: #fff;
+		--nr-glow-start-opacity: 1;
+		--nr-glow-end: #52525b;
+		--nr-guide-base-opacity: .58;
+		--nr-guide-glow-opacity: .34;
+	}
 
-    .nr-button {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        width: 100%;
-        height: 100%;
-        border: 0;
-        padding: 0;
-        background: transparent;
-        cursor: pointer;
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
-    }
+	.nr-button {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		border: 0;
+		padding: 0;
+		background: transparent;
+		cursor: pointer;
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
 
-    .nr-button:focus-visible {
-        outline: 1px solid color-mix(in srgb, var(--text) 60%, transparent);
-        outline-offset: -4px;
-    }
+	.nr-button:focus-visible {
+		outline: 1px solid color-mix(in srgb, var(--text) 60%, transparent);
+		outline-offset: -4px;
+	}
 
-    .nr-svg {
-        display: block;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-    }
+	.nr-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+	.nr-pattern-line { fill: none; stroke: var(--nr-pattern); stroke-width: 1; }
+	.nr-guides { fill: none; pointer-events: none; }
+	.nr-guides-base { stroke: var(--nr-line); opacity: var(--nr-guide-base-opacity); }
+	.nr-guides-glow { stroke: url(#nr-gradient); opacity: var(--nr-guide-glow-opacity); }
+	.nr-walls, .nr-face-background { fill: var(--nr-background); }
+	.nr-face-pattern { fill: url(#nr-pattern); transition: opacity 220ms ease; }
+	.nr-top { transform-box: fill-box; transform-origin: center; will-change: transform; }
+	.nr-stroke-base, .nr-stroke-glow {
+		fill: none;
+		stroke-width: 1;
+		stroke-linecap: butt;
+		stroke-linejoin: miter;
+		pointer-events: none;
+	}
+	.nr-stroke-base { stroke: var(--nr-stroke); transition: stroke 220ms ease; }
+	.nr-stroke-glow { stroke: url(#nr-gradient); }
+	.nr-glow-start { stop-color: var(--nr-glow-start); stop-opacity: var(--nr-glow-start-opacity); }
+	.nr-glow-end { stop-color: var(--nr-glow-end); stop-opacity: 0; }
 
-    .nr-pattern-line {
-        fill: none;
-        stroke: var(--nr-pattern);
-        stroke-width: 1;
-    }
+	:global(html[data-theme='light']) .nr-stage {
+		--nr-pattern: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+		--nr-stroke: color-mix(in oklab, var(--nr-foreground) 13%, var(--nr-background));
+		--nr-line: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
+		--nr-glow-start: #525252;
+		--nr-glow-start-opacity: .38;
+		--nr-glow-end: #a3a3a3;
+		--nr-guide-base-opacity: .64;
+		--nr-guide-glow-opacity: .30;
+	}
 
-    .nr-guides {
-        fill: none;
-        pointer-events: none;
-    }
+	.nr-annotation {
+		position: absolute;
+		top: clamp(74px, 8vw, 108px);
+		right: clamp(18px, 1.8vw, 30px);
+		z-index: 3;
+		width: 164px;
+		height: 74px;
+		pointer-events: none;
+		transition: opacity 180ms ease, transform 220ms ease;
+	}
 
-    .nr-guides-base {
-        stroke: var(--nr-line);
-        opacity: var(--nr-guide-base-opacity);
-    }
+	:global(.nr-annotation .nr-music-note) {
+		top: 0;
+		right: 0;
+		--note-font-size: 14px;
+		--note-arrow-width: 34px;
+		--note-arrow-height: 34px;
+		--note-arrow-gap: -2px;
+		transform: rotate(-4deg);
+		transform-origin: right top;
+	}
 
-    .nr-guides-glow {
-        stroke: url(#nr-gradient);
-        opacity: var(--nr-guide-glow-opacity);
-    }
+	:global(.nr-annotation .nr-music-note .arrow-curve) { transform: rotate(8deg); transform-origin: center; }
+	.nr-annotation-pause { opacity: 0; transform: translateY(6px); }
+	:global(.nr-annotation-pause .nr-pause-note) { transform: rotate(2deg); }
+	:global(html[data-bgm-state='playing']) .nr-annotation-play { opacity: 0; transform: translateY(4px); }
+	:global(html[data-bgm-state='playing']) .nr-annotation-pause { opacity: 1; transform: translateY(8px); }
+	:global(.nr-region > .nr-note) { display: none !important; }
 
-    .nr-walls,
-    .nr-face-background {
-        fill: var(--nr-background);
-    }
+	.nr-song-credit {
+		position: absolute;
+		right: clamp(16px, 1.5vw, 24px);
+		bottom: clamp(14px, 1.2vw, 20px);
+		z-index: 5;
+		display: inline-flex;
+		align-items: baseline;
+		gap: 4px;
+		color: color-mix(in srgb, var(--muted) 62%, var(--bg));
+		font-family: var(--font-mono);
+		font-size: 8px;
+		letter-spacing: .04em;
+		text-decoration: none;
+		transition: color 180ms ease, transform 180ms ease;
+	}
+	.nr-song-credit strong { color: color-mix(in srgb, var(--text) 56%, var(--bg)); font-weight: 500; transition: color 180ms ease; }
+	.nr-song-credit:hover, .nr-song-credit:focus-visible { color: color-mix(in srgb, var(--text) 72%, var(--bg)); transform: translateY(-1px); }
+	.nr-song-credit:hover strong, .nr-song-credit:focus-visible strong { color: var(--text); }
+	.nr-song-credit:focus-visible { outline: 1px solid color-mix(in srgb, var(--text) 38%, transparent); outline-offset: 4px; }
 
-    .nr-face-pattern {
-        fill: url(#nr-pattern);
-        transition: opacity 220ms ease;
-    }
+	:global(html[data-bgm-state='playing']) .nr-stage {
+		--nr-pattern: color-mix(in oklab, var(--nr-foreground) 18%, var(--nr-background));
+		--nr-stroke: color-mix(in oklab, var(--nr-foreground) 24%, var(--nr-background));
+	}
+	:global(html[data-theme='light'][data-bgm-state='playing']) .nr-stage {
+		--nr-pattern: color-mix(in oklab, var(--nr-foreground) 11%, var(--nr-background));
+		--nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
+	}
 
-    .nr-top {
-        transform-box: fill-box;
-        transform-origin: center;
-        will-change: transform;
-    }
-
-    .nr-stroke-base,
-    .nr-stroke-glow {
-        fill: none;
-        stroke-width: 1;
-        stroke-linecap: butt;
-        stroke-linejoin: miter;
-        pointer-events: none;
-    }
-
-    .nr-stroke-base {
-        stroke: var(--nr-stroke);
-        transition: stroke 220ms ease;
-    }
-
-    .nr-stroke-glow { stroke: url(#nr-gradient); }
-
-    .nr-glow-start {
-        stop-color: var(--nr-glow-start);
-        stop-opacity: var(--nr-glow-start-opacity);
-    }
-
-    .nr-glow-end {
-        stop-color: var(--nr-glow-end);
-        stop-opacity: 0;
-    }
-
-    :global(html[data-theme='light']) .nr-stage {
-        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
-        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 13%, var(--nr-background));
-        --nr-line: color-mix(in oklab, var(--nr-foreground) 8%, var(--nr-background));
-        --nr-glow-start: #525252;
-        --nr-glow-start-opacity: .38;
-        --nr-glow-end: #a3a3a3;
-        --nr-guide-base-opacity: .64;
-        --nr-guide-glow-opacity: .30;
-    }
-
-    .nr-annotation {
-        position: absolute;
-        top: clamp(74px, 8vw, 108px);
-        right: clamp(18px, 1.8vw, 30px);
-        z-index: 3;
-        width: 164px;
-        height: 74px;
-        pointer-events: none;
-        transition: opacity 180ms ease, transform 220ms ease;
-    }
-
-    :global(.nr-annotation .nr-music-note) {
-        top: 0;
-        right: 0;
-        --note-font-size: 14px;
-        --note-arrow-width: 34px;
-        --note-arrow-height: 34px;
-        --note-arrow-gap: -2px;
-        transform: rotate(-4deg);
-        transform-origin: right top;
-    }
-
-    :global(.nr-annotation .nr-music-note .arrow-curve) {
-        transform: rotate(8deg);
-        transform-origin: center;
-    }
-
-    .nr-annotation-pause {
-        opacity: 0;
-        transform: translateY(6px);
-    }
-
-    :global(.nr-annotation-pause .nr-pause-note) {
-        transform: rotate(2deg);
-    }
-
-    .nr-stage[data-music-state="playing"] .nr-annotation-play {
-        opacity: 0;
-        transform: translateY(4px);
-    }
-
-    .nr-stage[data-music-state="playing"] .nr-annotation-pause {
-        opacity: 1;
-        transform: translateY(8px);
-    }
-
-    /* Replaces the old italic index-level hint with the shared handwritten primitive. */
-    :global(.nr-region > .nr-note) {
-        display: none !important;
-    }
-
-    .nr-music-hud {
-        position: absolute;
-        top: clamp(14px, 1.2vw, 20px);
-        left: clamp(16px, 1.4vw, 24px);
-        z-index: 4;
-        width: 196px;
-        height: 78px;
-        box-sizing: border-box;
-        padding: 7px 9px 8px;
-        border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-        background: color-mix(in srgb, var(--bg) 94%, transparent);
-        font-family: var(--font-mono);
-        pointer-events: none;
-        transition: border-color 180ms ease, opacity 180ms ease;
-    }
-
-    .nr-hud-meta,
-    .nr-hud-footer,
-    .nr-hud-title {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 8px;
-    }
-
-    .nr-hud-meta,
-    .nr-hud-footer {
-        color: color-mix(in srgb, var(--muted) 70%, var(--bg));
-        font-size: 7px;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .nr-hud-title {
-        margin-top: 3px;
-    }
-
-    .nr-hud-title strong {
-        color: color-mix(in srgb, var(--text) 74%, var(--bg));
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: .03em;
-    }
-
-    .nr-hud-title span {
-        color: var(--muted);
-        font-size: 8px;
-    }
-
-    .nr-hud-wave {
-        height: 19px;
-        margin: 4px 0 2px;
-        display: flex;
-        align-items: end;
-        gap: 2px;
-    }
-
-    .nr-hud-wave i {
-        --level: .25;
-        display: block;
-        width: 3px;
-        height: 100%;
-        flex: 1 1 0;
-        background: color-mix(in srgb, var(--muted) 52%, var(--bg));
-        transform: scaleY(var(--level));
-        transform-origin: center bottom;
-        transition: transform 85ms linear, background-color 180ms ease;
-    }
-
-    .nr-hud-progress {
-        position: relative;
-        height: 1px;
-        margin-top: 3px;
-        overflow: hidden;
-        background: color-mix(in srgb, var(--border) 60%, transparent);
-    }
-
-    .nr-hud-progress span {
-        display: block;
-        width: 100%;
-        height: 100%;
-        background: color-mix(in srgb, var(--text) 62%, var(--bg));
-        transform: scaleX(0);
-        transform-origin: left center;
-    }
-
-    .nr-song-credit {
-        position: absolute;
-        right: clamp(16px, 1.5vw, 24px);
-        bottom: clamp(14px, 1.2vw, 20px);
-        z-index: 5;
-        display: inline-flex;
-        align-items: baseline;
-        gap: 4px;
-        color: color-mix(in srgb, var(--muted) 62%, var(--bg));
-        font-family: var(--font-mono);
-        font-size: 8px;
-        letter-spacing: .04em;
-        text-decoration: none;
-        transition: color 180ms ease, transform 180ms ease;
-    }
-
-    .nr-song-credit strong {
-        color: color-mix(in srgb, var(--text) 56%, var(--bg));
-        font-weight: 500;
-        transition: color 180ms ease;
-    }
-
-    .nr-song-credit:hover,
-    .nr-song-credit:focus-visible {
-        color: color-mix(in srgb, var(--text) 72%, var(--bg));
-        transform: translateY(-1px);
-    }
-
-    .nr-song-credit:hover strong,
-    .nr-song-credit:focus-visible strong {
-        color: var(--text);
-    }
-
-    .nr-song-credit:focus-visible {
-        outline: 1px solid color-mix(in srgb, var(--text) 38%, transparent);
-        outline-offset: 4px;
-    }
-
-    .nr-stage[data-music-state="playing"] {
-        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 18%, var(--nr-background));
-        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 24%, var(--nr-background));
-    }
-
-    :global(html[data-theme='light']) .nr-stage[data-music-state="playing"] {
-        --nr-pattern: color-mix(in oklab, var(--nr-foreground) 11%, var(--nr-background));
-        --nr-stroke: color-mix(in oklab, var(--nr-foreground) 16%, var(--nr-background));
-    }
-
-    .nr-stage[data-music-state="playing"] .nr-face-pattern {
-        opacity: 1;
-    }
-
-    .nr-stage[data-music-state="playing"] .nr-music-hud {
-        border-color: color-mix(in srgb, var(--text) 28%, var(--border));
-    }
-
-    .nr-stage[data-music-state="playing"] .nr-hud-wave i {
-        background: color-mix(in srgb, var(--text) 66%, var(--bg));
-    }
-
-    .nr-stage[data-music-state="error"] .nr-music-hud {
-        opacity: .58;
-    }
-
-    audio[data-nr-audio] {
-        display: none;
-    }
-
-    @media (min-width: 1100px) and (max-height: 859px) {
-        .nr-music-hud {
-            top: 12px;
-            left: 12px;
-            transform-origin: left top;
-            scale: .92;
-        }
-
-        .nr-annotation {
-            top: 70px;
-            right: 16px;
-        }
-
-        .nr-song-credit {
-            right: 14px;
-            bottom: 12px;
-        }
-    }
-
-    @media (max-width: 1099px) {
-        .nr-music-hud {
-            top: 10px;
-            left: 10px;
-            transform-origin: left top;
-            scale: .88;
-        }
-
-        .nr-song-credit {
-            right: 12px;
-            bottom: 10px;
-            font-size: 7px;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .nr-annotation,
-        .nr-face-pattern,
-        .nr-stroke-base,
-        .nr-music-hud,
-        .nr-hud-wave i,
-        .nr-song-credit {
-            transition: none;
-        }
-    }
+	@media (min-width: 1100px) and (max-height: 859px) {
+		.nr-annotation { top: 70px; right: 16px; }
+		.nr-song-credit { right: 14px; bottom: 12px; }
+	}
+	@media (max-width: 1099px) {
+		.nr-song-credit { right: 12px; bottom: 10px; font-size: 7px; }
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.nr-annotation, .nr-face-pattern, .nr-stroke-base, .nr-song-credit { transition: none; }
+	}
 </style>
 
 <script>
-    import './nrMarkController';
+	import './nrMarkController';
 </script>

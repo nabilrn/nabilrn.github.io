@@ -1,0 +1,26 @@
+---
+import { BGM_TRACK } from '../../lib/bgm';
+---
+
+<div class="persistent-bgm-engine" data-bgm-engine transition:persist="portfolio-bgm-engine">
+	<audio
+		data-bgm-audio
+		src={BGM_TRACK.src}
+		preload="metadata"
+		aria-hidden="true"
+	></audio>
+</div>
+
+<style>
+	.persistent-bgm-engine {
+		display: contents;
+	}
+
+	.persistent-bgm-engine audio {
+		display: none;
+	}
+</style>
+
+<script>
+	import './bgmController';
+</script>

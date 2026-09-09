@@ -1,269 +1,138 @@
 ---
+import BgmPresenter from '../audio/BgmPresenter.astro';
 import EngagementBar from '../EngagementBar.astro';
 
 interface Props {
-    postId: string;
-    title: string;
-    postsHref: string;
-    homeHref: string;
+	postId: string;
+	title: string;
+	postsHref: string;
+	homeHref: string;
 }
 
 const { postId, title, postsHref, homeHref } = Astro.props;
-const copy = {
-    posts: 'Back to posts',
-    home: 'Home',
-};
 ---
 
-<div class="article-dock" role="toolbar" aria-label="Article navigation and engagement">
-    <a class="dock-action dock-nav" href={postsHref} aria-label={copy.posts} data-dock-tooltip={copy.posts}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M19 12H5M11 18l-6-6 6-6" />
-        </svg>
-    </a>
+<div class="article-dock" role="toolbar" aria-label="Article navigation, music and engagement">
+	<a class="dock-action dock-nav" href={postsHref} aria-label="Back to posts" data-dock-tooltip="Back to posts">
+		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6" /></svg>
+	</a>
+	<a class="dock-action dock-nav" href={homeHref} aria-label="Home" data-dock-tooltip="Home">
+		<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3l8.5 7.5" /><path d="M5.5 9.5V21h13V9.5M9.5 21v-6h5v6" /></svg>
+	</a>
 
-    <a class="dock-action dock-nav" href={homeHref} aria-label={copy.home} data-dock-tooltip={copy.home}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3.5 10.5 12 3l8.5 7.5" />
-            <path d="M5.5 9.5V21h13V9.5M9.5 21v-6h5v6" />
-        </svg>
-    </a>
-
-    <span class="dock-separator" aria-hidden="true"></span>
-
-    <EngagementBar postId={postId} title={title} variant="floating" />
+	<span class="dock-separator" aria-hidden="true"></span>
+	<BgmPresenter variant="dock" />
+	<span class="dock-separator" aria-hidden="true"></span>
+	<EngagementBar postId={postId} title={title} variant="floating" />
 </div>
 
 <style>
-    .article-dock {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: max(16px, env(safe-area-inset-bottom));
-        z-index: 120;
-        width: max-content;
-        min-height: 50px;
-        margin-inline: auto;
-        padding: 4px 5px;
-        display: flex;
-        align-items: center;
-        gap: 2px;
-        border: 1px solid color-mix(in srgb, var(--border-strong) 82%, transparent);
-        border-radius: 999px;
-        background: transparent;
-        box-shadow:
-            0 10px 34px color-mix(in srgb, #000 16%, transparent),
-            inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
-        isolation: isolate;
-    }
+	.article-dock {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: max(16px, env(safe-area-inset-bottom));
+		z-index: 120;
+		width: max-content;
+		max-width: calc(100vw - 20px);
+		min-height: 50px;
+		margin-inline: auto;
+		padding: 4px 5px;
+		display: flex;
+		align-items: center;
+		gap: 2px;
+		border: 1px solid color-mix(in srgb, var(--border-strong) 82%, transparent);
+		border-radius: 999px;
+		background: transparent;
+		box-shadow: 0 10px 34px color-mix(in srgb, #000 16%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
+		isolation: isolate;
+	}
+	.article-dock::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background: color-mix(in srgb, var(--bg) 84%, transparent);
+		backdrop-filter: blur(16px) saturate(1.08);
+		-webkit-backdrop-filter: blur(16px) saturate(1.08);
+		pointer-events: none;
+	}
+	.dock-action {
+		position: relative;
+		width: 40px;
+		height: 40px;
+		flex: none;
+		display: grid;
+		place-items: center;
+		border-radius: 999px;
+		color: var(--muted);
+		text-decoration: none;
+		transition: color 140ms ease, background 140ms ease, transform 140ms ease;
+	}
+	.dock-action svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.55; stroke-linecap: round; stroke-linejoin: round; }
+	.dock-action:hover, .dock-action:focus-visible { color: var(--text); background: color-mix(in srgb, var(--surface-2) 76%, transparent); transform: translateY(-1px); outline: none; }
+	.dock-action:focus-visible { box-shadow: 0 0 0 1px var(--border-strong); }
+	.dock-separator { width: 1px; height: 24px; margin: 0 3px; flex: none; background: color-mix(in srgb, var(--border-strong) 78%, transparent); }
 
-    .article-dock::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        border-radius: inherit;
-        background: color-mix(in srgb, var(--bg) 84%, transparent);
-        backdrop-filter: blur(16px) saturate(1.08);
-        -webkit-backdrop-filter: blur(16px) saturate(1.08);
-        pointer-events: none;
-    }
+	:global(.article-dock .engage.floating) { display: contents; }
+	:global(.article-dock .engage-item) { position: relative; min-width: 40px; height: 40px; padding: 0 8px; gap: 5px; border-radius: 999px; font-size: 10px; }
+	:global(.article-dock .view-item) { cursor: default; }
+	:global(.article-dock .share-action strong) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+	:global(.article-dock .engage-action:hover), :global(.article-dock .engage-action:focus-visible) { transform: translateY(-1px); }
 
-    .dock-action {
-        position: relative;
-        width: 40px;
-        height: 40px;
-        flex: none;
-        display: grid;
-        place-items: center;
-        border-radius: 999px;
-        color: var(--muted);
-        text-decoration: none;
-        transition: color 140ms ease, background 140ms ease, transform 140ms ease;
-    }
+	.dock-action::after,
+	:global(.article-dock .view-item::after),
+	:global(.article-dock .like-action::after),
+	:global(.article-dock .share-action::after) {
+		position: absolute;
+		left: 50%;
+		bottom: calc(100% + 9px);
+		z-index: 5;
+		width: max-content;
+		max-width: 170px;
+		padding: 5px 7px;
+		border: 1px solid var(--border-strong);
+		border-radius: 5px;
+		background: color-mix(in srgb, var(--surface) 96%, var(--bg));
+		color: var(--text);
+		font-family: var(--font-sans);
+		font-size: 10px;
+		font-weight: 450;
+		line-height: 1.2;
+		white-space: nowrap;
+		pointer-events: none;
+		opacity: 0;
+		transform: translate(-50%, 3px);
+		transition: opacity 120ms ease, transform 120ms ease;
+	}
+	.dock-action::after { content: attr(data-dock-tooltip); }
+	:global(.article-dock .view-item::after) { content: 'Views'; }
+	:global(.article-dock .like-action::after) { content: 'Like'; }
+	:global(.article-dock .share-action::after) { content: 'Share'; }
+	.dock-action:hover::after, .dock-action:focus-visible::after,
+	:global(.article-dock .view-item:hover::after),
+	:global(.article-dock .like-action:hover::after), :global(.article-dock .like-action:focus-visible::after),
+	:global(.article-dock .share-action:hover::after), :global(.article-dock .share-action:focus-visible::after) { opacity: 1; transform: translate(-50%, 0); }
 
-    .dock-action svg {
-        width: 17px;
-        height: 17px;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: 1.55;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-    }
+	:global(.article-dock .engage-toast) { bottom: max(78px, calc(env(safe-area-inset-bottom) + 66px)); }
+	:global(html[data-theme='light']) .article-dock { border-color: color-mix(in srgb, var(--text) 18%, var(--border)); box-shadow: 0 10px 28px color-mix(in srgb, #000 11%, transparent), inset 0 1px 0 #fff; }
+	:global(html[data-theme='light']) .article-dock::before { background: color-mix(in srgb, #fff 90%, transparent); }
 
-    .dock-action:hover,
-    .dock-action:focus-visible {
-        color: var(--text);
-        background: color-mix(in srgb, var(--surface-2) 76%, transparent);
-        transform: translateY(-1px);
-        outline: none;
-    }
+	@media (max-width: 520px) {
+		:global(.article-page) { margin-bottom: calc(12px + env(safe-area-inset-bottom)); }
+		.article-dock { bottom: max(8px, env(safe-area-inset-bottom)); width: min(calc(100vw - 12px), 390px); min-height: 50px; padding: 4px; justify-content: center; gap: 1px; }
+		.dock-action { width: 34px; height: 40px; }
+		:global(.article-dock .engage-item) { width: auto; min-width: 38px; height: 40px; padding-inline: 5px; }
+		:global(.article-dock .view-item), :global(.article-dock .like-action) { min-width: 42px; }
+		.dock-separator { height: 22px; margin-inline: 1px; }
+		.dock-action:first-child::after { left: 0; transform: translateY(3px); }
+		.dock-action:first-child:hover::after, .dock-action:first-child:focus-visible::after { transform: translateY(0); }
+		:global(.article-dock .share-action::after) { left: auto; right: 0; transform: translateY(3px); }
+		:global(.article-dock .share-action:hover::after), :global(.article-dock .share-action:focus-visible::after) { transform: translateY(0); }
+	}
 
-    .dock-action:focus-visible {
-        box-shadow: 0 0 0 1px var(--border-strong);
-    }
-
-    .dock-separator {
-        width: 1px;
-        height: 24px;
-        margin: 0 3px;
-        flex: none;
-        background: color-mix(in srgb, var(--border-strong) 78%, transparent);
-    }
-
-    :global(.article-dock .engage.floating) {
-        display: contents;
-    }
-
-    :global(.article-dock .engage-item) {
-        position: relative;
-        min-width: 40px;
-        height: 40px;
-        padding: 0 8px;
-        gap: 5px;
-        border-radius: 999px;
-        font-size: 10px;
-    }
-
-    :global(.article-dock .view-item) {
-        cursor: default;
-    }
-
-    :global(.article-dock .share-action strong) {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-    }
-
-    :global(.article-dock .engage-action:hover),
-    :global(.article-dock .engage-action:focus-visible) {
-        transform: translateY(-1px);
-    }
-
-    .dock-action::after,
-    :global(.article-dock .view-item::after),
-    :global(.article-dock .like-action::after),
-    :global(.article-dock .share-action::after) {
-        position: absolute;
-        left: 50%;
-        bottom: calc(100% + 9px);
-        z-index: 5;
-        width: max-content;
-        max-width: 170px;
-        padding: 5px 7px;
-        border: 1px solid var(--border-strong);
-        border-radius: 5px;
-        background: color-mix(in srgb, var(--surface) 96%, var(--bg));
-        color: var(--text);
-        font-family: var(--font-sans);
-        font-size: 10px;
-        font-weight: 450;
-        line-height: 1.2;
-        white-space: nowrap;
-        pointer-events: none;
-        opacity: 0;
-        transform: translate(-50%, 3px);
-        transition: opacity 120ms ease, transform 120ms ease;
-    }
-
-    .dock-action::after { content: attr(data-dock-tooltip); }
-    :global(.article-dock .view-item::after) { content: 'Views'; }
-    :global(.article-dock .like-action::after) { content: 'Like'; }
-    :global(.article-dock .share-action::after) { content: 'Share'; }
-
-    .dock-action:hover::after,
-    .dock-action:focus-visible::after,
-    :global(.article-dock .view-item:hover::after),
-    :global(.article-dock .like-action:hover::after),
-    :global(.article-dock .like-action:focus-visible::after),
-    :global(.article-dock .share-action:hover::after),
-    :global(.article-dock .share-action:focus-visible::after) {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-
-    :global(.article-dock .engage-toast) {
-        bottom: max(78px, calc(env(safe-area-inset-bottom) + 66px));
-    }
-
-    :global(html[data-theme='light']) .article-dock {
-        border-color: color-mix(in srgb, var(--text) 18%, var(--border));
-        box-shadow:
-            0 10px 28px color-mix(in srgb, #000 11%, transparent),
-            inset 0 1px 0 #fff;
-    }
-
-    :global(html[data-theme='light']) .article-dock::before {
-        background: color-mix(in srgb, #fff 90%, transparent);
-    }
-
-    @media (max-width: 520px) {
-        :global(.article-page) {
-            margin-bottom: calc(12px + env(safe-area-inset-bottom));
-        }
-
-        .article-dock {
-            bottom: max(10px, env(safe-area-inset-bottom));
-            width: min(calc(100vw - 20px), 360px);
-            min-height: 54px;
-            padding: 5px;
-            justify-content: center;
-        }
-
-        .dock-action,
-        :global(.article-dock .engage-item) {
-            width: auto;
-            min-width: 44px;
-            height: 44px;
-        }
-
-        :global(.article-dock .view-item),
-        :global(.article-dock .like-action) {
-            min-width: 52px;
-        }
-
-        .dock-separator {
-            height: 26px;
-            margin-inline: 2px;
-        }
-
-        .dock-action:first-child::after {
-            left: 0;
-            transform: translateY(3px);
-        }
-
-        .dock-action:first-child:hover::after,
-        .dock-action:first-child:focus-visible::after {
-            transform: translateY(0);
-        }
-
-        :global(.article-dock .share-action::after) {
-            left: auto;
-            right: 0;
-            transform: translateY(3px);
-        }
-
-        :global(.article-dock .share-action:hover::after),
-        :global(.article-dock .share-action:focus-visible::after) {
-            transform: translateY(0);
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        .dock-action,
-        .dock-action::after,
-        :global(.article-dock .engage-action),
-        :global(.article-dock .view-item::after),
-        :global(.article-dock .like-action::after),
-        :global(.article-dock .share-action::after) {
-            transition: none;
-        }
-    }
+	@media (prefers-reduced-motion: reduce) {
+		.dock-action, .dock-action::after, :global(.article-dock .engage-action), :global(.article-dock .view-item::after), :global(.article-dock .like-action::after), :global(.article-dock .share-action::after) { transition: none; }
+	}
 </style>

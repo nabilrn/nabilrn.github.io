@@ -1,4 +1,6 @@
 ---
+import BgmPresenter from './audio/BgmPresenter.astro';
+import PersistentBgm from './audio/PersistentBgm.astro';
 import EngagementEnhancements from './EngagementEnhancements.astro';
 import GlobalSearch from './GlobalSearch.astro';
 import BlogUXEnhancements from './blog/BlogUXEnhancements.astro';
@@ -8,72 +10,68 @@ import HomePageLifecycle from './home/HomePageLifecycle.astro';
 import HomeResponsiveArchitecture from './home/HomeResponsiveArchitecture.astro';
 
 interface Props {
-    currentPath?: string;
+	currentPath?: string;
 }
 
 const currentPath = Astro.props.currentPath ?? Astro.url.pathname;
 const normalizedPath = (currentPath || '/').endsWith('/') ? (currentPath || '/') : `${currentPath}/`;
 const isHomePage = normalizedPath === '/';
 const isBlogPage = normalizedPath.startsWith('/blog/');
+const isBlogIndex = normalizedPath === '/blog/';
 const activeSection = isBlogPage ? 'blog' : isHomePage ? 'overview' : 'none';
 ---
 
 <div class="full-shell">
-    {!isHomePage && <HomeHeader activeSection={activeSection} />}
+	<PersistentBgm />
+	{!isHomePage && <HomeHeader activeSection={activeSection} />}
 
-    <main class="full-main">
-        <slot />
-    </main>
+	<main class="full-main">
+		<slot />
+	</main>
 
-    <div class="global-search-host" transition:persist="global-search">
-        <GlobalSearch />
-    </div>
+	{isBlogIndex && <BgmPresenter variant="floating" />}
 
-    <HomePageLifecycle />
-    <EngagementEnhancements />
-    <BlogUXEnhancements />
-    {isHomePage && <HomeResponsiveArchitecture />}
-    {isHomePage && <HomeLightModePolish />}
+	<div class="global-search-host" transition:persist="global-search">
+		<GlobalSearch />
+	</div>
+
+	<HomePageLifecycle />
+	<EngagementEnhancements />
+	<BlogUXEnhancements />
+	{isHomePage && <HomeResponsiveArchitecture />}
+	{isHomePage && <HomeLightModePolish />}
 </div>
 
 <style>
-    .full-shell {
-        width: min(1920px, calc(100vw - 32px));
-        min-height: 100vh;
-        margin: 0 auto;
-        --content-gutter: 0px;
-        --sheet-line: color-mix(in srgb, var(--border) 72%, var(--bg));
-    }
+	.full-shell {
+		width: min(1920px, calc(100vw - 32px));
+		min-height: 100vh;
+		margin: 0 auto;
+		--content-gutter: 0px;
+		--sheet-line: color-mix(in srgb, var(--border) 72%, var(--bg));
+	}
 
-    .full-main {
-        width: 100%;
-        min-height: calc(100vh - 52px);
-        margin: 0;
-        padding: 0 0 72px;
-    }
+	.full-main {
+		width: 100%;
+		min-height: calc(100vh - 52px);
+		margin: 0;
+		padding: 0 0 72px;
+	}
 
-    .global-search-host {
-        display: contents;
-    }
+	.global-search-host { display: contents; }
 
-    :global(.full-shell mark.blog-search-hit) {
-        padding: 0 .14em;
-        border-radius: 2px;
-        background: var(--text);
-        box-shadow: none;
-        color: var(--bg);
-        -webkit-box-decoration-break: clone;
-        box-decoration-break: clone;
-    }
+	:global(.full-shell mark.blog-search-hit) {
+		padding: 0 .14em;
+		border-radius: 2px;
+		background: var(--text);
+		box-shadow: none;
+		color: var(--bg);
+		-webkit-box-decoration-break: clone;
+		box-decoration-break: clone;
+	}
 
-    @media (max-width: 760px) {
-        .full-shell {
-            width: 100%;
-        }
-
-        .full-main {
-            min-height: calc(100vh - 48px);
-            padding-bottom: 56px;
-        }
-    }
+	@media (max-width: 760px) {
+		.full-shell { width: 100%; }
+		.full-main { min-height: calc(100vh - 48px); padding-bottom: 56px; }
+	}
 </style>
