@@ -1,0 +1,87 @@
+name: Daily Static Refresh
+
+on:
+  schedule:
+    # GitHub Actions cron uses UTC. 00:10 UTC is 07:10 WIB.
+    - cron: '10 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-static-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'nabilrn/nabilrn.github.io'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.22.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Astro check
+        run: pnpm exec astro check
+
+      - name: Verify production build
+        env:
+          # Refresh build-time GitHub/Duolingo data without touching production metrics.
+          PUBLIC_ENGAGEMENT_API_BASE: /__ci-disabled-engagement__
+        run: pnpm build
+
+      - name: Trigger MyPaaS redeploy
+        env:
+          MYPAAS_API_URL: ${{ secrets.MYPAAS_API_URL }}
+          MYPAAS_API_TOKEN: ${{ secrets.MYPAAS_API_TOKEN }}
+          MYPAAS_PROJECT_ID: ${{ secrets.MYPAAS_PROJECT_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          : "${MYPAAS_API_URL:?Missing MYPAAS_API_URL repository secret}"
+          : "${MYPAAS_API_TOKEN:?Missing MYPAAS_API_TOKEN repository secret}"
+          : "${MYPAAS_PROJECT_ID:?Missing MYPAAS_PROJECT_ID repository secret}"
+
+          api_base="${MYPAAS_API_URL%/}"
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          http_code="$(curl \
+            --silent \
+            --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --request POST \
+            --header "Authorization: Bearer ${MYPAAS_API_TOKEN}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            "${api_base}/projects/${MYPAAS_PROJECT_ID}/deploy")"
+
+          if [[ "$http_code" -lt 200 || "$http_code" -ge 300 ]]; then
+            echo "MyPaaS redeploy failed with HTTP ${http_code}."
+            cat "$response_file"
+            exit 1
+          fi
+
+          echo "MyPaaS redeploy accepted with HTTP ${http_code}."

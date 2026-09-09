@@ -187,7 +187,7 @@ For the current production cutover procedure, see [`worker/D1_SETUP.md`](worker/
 
 ## CI
 
-`.github/workflows/ci.yml` runs:
+`.github/workflows/ci.yml` runs on pushes and pull requests to `main`:
 
 1. frozen pnpm install
 2. Astro check
@@ -196,6 +196,20 @@ For the current production cutover procedure, see [`worker/D1_SETUP.md`](worker/
 5. accessibility audit against the generated sitemap
 
 The sitemap covers the public portfolio and blog routes, so both remain part of the accessibility gate.
+
+`.github/workflows/daily-refresh.yml` refreshes profile data fetched at Astro build time, currently the GitHub contribution graph and Duolingo streak. It runs once per day at 00:10 UTC (07:10 WIB) and can also be started manually with `workflow_dispatch`.
+
+The refresh job validates a frozen install, `astro check`, and production build first. It then calls the MyPaaS project deploy API directly instead of creating an empty commit on `main`, so scheduled refreshes do not pollute repository history or recursively trigger the normal CI workflow.
+
+Configure these repository Actions secrets for the scheduled deploy step:
+
+- `MYPAAS_API_URL` — MyPaaS API base ending in `/api`
+- `MYPAAS_API_TOKEN` — bearer token authorized to deploy the portfolio project
+- `MYPAAS_PROJECT_ID` — UUID of the portfolio project in MyPaaS
+
+If any required secret is missing, the refresh job fails explicitly instead of mutating repository history or silently pretending the static data was refreshed.
+
+The daily refresh only redeploys the static portfolio. It does not deploy the Cloudflare Worker or modify D1.
 
 ## Use, fork, and remix
 
