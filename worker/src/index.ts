@@ -181,7 +181,6 @@ async function readMetrics(db: D1Database, postId: string) {
 
 async function seedLegacyPostMetrics(env: Env, postId: string) {
   if (!env.LEGACY_METRICS) return;
-  if (await readMetrics(env.DB, postId)) return;
 
   const [viewsRaw, likesRaw, sharesRaw] = await Promise.all([
     env.LEGACY_METRICS.get(`metrics:${postId}:views`),
@@ -197,8 +196,16 @@ async function seedLegacyPostMetrics(env: Env, postId: string) {
 
   await env.DB
     .prepare(`
-      INSERT OR IGNORE INTO post_metrics (post_id, views, likes, shares)
+      INSERT INTO post_metrics (post_id, views, likes, shares)
       VALUES (?1, ?2, ?3, ?4)
+      ON CONFLICT(post_id) DO UPDATE SET
+        views = MAX(post_metrics.views, excluded.views),
+        likes = MAX(post_metrics.likes, excluded.likes),
+        shares = MAX(post_metrics.shares, excluded.shares),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE post_metrics.views < excluded.views
+         OR post_metrics.likes < excluded.likes
+         OR post_metrics.shares < excluded.shares
     `)
     .bind(postId, views, likes, shares)
     .run();
