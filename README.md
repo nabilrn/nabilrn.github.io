@@ -23,14 +23,25 @@ Personal portfolio and blog built as a static Astro site.
 - Cloudflare Worker + Workers KV for metrics
 - GitHub Actions for type/build/accessibility gates
 
-## Development
+## Local development
 
 Requires Node.js 22 and pnpm 10.
 
+Clone the repository and install dependencies:
+
 ```bash
+git clone https://github.com/nabilrn/nabilrn.github.io.git
+cd nabilrn.github.io
 pnpm install
+```
+
+Start the Astro development server:
+
+```bash
 pnpm dev
 ```
+
+Open `http://localhost:4321`.
 
 Quality and production commands:
 
@@ -41,6 +52,8 @@ pnpm preview
 ```
 
 The Astro production output is static and is written to `dist/`.
+
+The portfolio itself can run without deploying the metrics backend. In that case the pages still render, but production engagement/analytics data requires a reachable Metrics Worker.
 
 ## Routes
 
@@ -73,30 +86,99 @@ draft: false
 
 The blog index intentionally uses a simple client-side substring filter over title, description, and tags. Full article-body search belongs to the global Ctrl/Cmd+K search instead.
 
-## Metrics Worker
+## Metrics Worker and Workers KV
 
 Worker source and configuration live under `worker/`.
 
-The Worker exposes the blog engagement endpoints plus site-analytics endpoints and stores counters in the existing `METRICS` Workers KV binding. The homepage analytics contract is strictly rolling 24 hours:
+The Worker provides two related features:
 
-- `last24Hours` contains exactly 24 hourly buckets
-- `pageviews` is the sum of those 24 hourly buckets
-- `visitors` is deduplicated across visitor keys from those 24 hours
-- `topPage` is aggregated only from hourly page counters in the same 24-hour window
+- blog engagement counters for views, likes, and shares;
+- site analytics used by the homepage.
 
-Hourly keys use TTLs and live in the same KV namespace; no KV migration is required.
+Both use the `METRICS` Cloudflare Workers KV binding. The homepage analytics contract is strictly rolling 24 hours:
 
-Deploy manually with:
+- `last24Hours` contains exactly 24 hourly buckets;
+- `pageviews` is the sum of those 24 hourly buckets;
+- `visitors` is deduplicated across visitor keys from those 24 hours;
+- `topPage` is aggregated only from hourly page counters in the same 24-hour window.
+
+Hourly keys use TTLs and live in the same KV namespace. A separate database or KV migration is not required.
+
+### Set up your own Worker and KV namespace
+
+A fork should use its **own Cloudflare account, Worker, and KV namespace**. Do not reuse the account ID or KV namespace ID committed for the original deployment.
+
+Authenticate Wrangler:
+
+```bash
+pnpm dlx wrangler login
+pnpm dlx wrangler whoami
+```
+
+Update `worker/wrangler.toml` for your Cloudflare account. A fork should end up with configuration equivalent to:
+
+```toml
+name = "portfolio-metrics-api"
+main = "src/index.ts"
+compatibility_date = "2026-03-15"
+account_id = "<YOUR_CLOUDFLARE_ACCOUNT_ID>"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "http://localhost:4321,https://your-domain.example"
+
+[[kv_namespaces]]
+binding = "METRICS"
+id = "<YOUR_KV_NAMESPACE_ID>"
+```
+
+Create the KV namespace after setting your account information:
+
+```bash
+pnpm dlx wrangler kv namespace create METRICS --config worker/wrangler.toml
+```
+
+Wrangler returns a generated namespace ID. Put that ID in the `[[kv_namespaces]]` block as the `METRICS` binding.
+
+`ALLOWED_ORIGIN` is a comma-separated CORS allowlist. Include every frontend origin that should be allowed to send analytics/engagement writes. Add `http://localhost:4321` if you want the remote Worker to accept writes from the local Astro development server.
+
+Deploy the Worker manually:
 
 ```bash
 pnpm dlx wrangler deploy --config worker/wrangler.toml
 ```
 
-Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/workflows/deploy-metrics-worker.yml` can deploy Worker changes automatically.
+Wrangler will print the deployed `workers.dev` URL. A typical endpoint looks like:
+
+```text
+https://portfolio-metrics-api.<your-workers-subdomain>.workers.dev
+```
+
+You can verify the analytics API with:
+
+```bash
+curl https://portfolio-metrics-api.<your-workers-subdomain>.workers.dev/analytics/summary
+```
+
+A current Worker response contains `generatedAt`, `visitors`, `pageviews`, `topPage`, and exactly 24 entries under `last24Hours`.
+
+### Point a fork at its own Worker
+
+Copy `.env.example` to `.env` and set the public engagement API base:
+
+```bash
+PUBLIC_ENGAGEMENT_API_BASE=https://portfolio-metrics-api.<your-workers-subdomain>.workers.dev
+```
+
+`EngagementBar.astro` reads this variable for blog engagement. The homepage analytics section currently has its production Worker default in `src/components/home/LowerSectionsOverlay.astro`; forks using another Worker should replace that `METRICS_API` value with their deployed Worker URL as well.
+
+Never commit Cloudflare API tokens or other credentials. The KV namespace ID and account ID are identifiers, not authentication secrets, but forks should still replace the original deployment identifiers with their own resources.
+
+Worker deployment is intentionally **manual** in this repository. There is no GitHub Actions workflow that publishes the Cloudflare Worker automatically.
 
 ## CI
 
-`.github/workflows/portfolio-redesign-ci.yml` currently runs:
+`.github/workflows/ci.yml` runs:
 
 1. frozen pnpm install
 2. `astro check`
@@ -105,6 +187,16 @@ Or configure `CLOUDFLARE_API_TOKEN` as a GitHub repository secret so `.github/wo
 5. accessibility audit against the generated sitemap
 
 The sitemap covers the public portfolio and blog routes, so both remain part of the accessibility gate.
+
+## Use, fork, and remix
+
+This portfolio is open source under the [MIT License](LICENSE).
+
+You are free to fork, copy, modify, redesign, and use the repository for personal or commercial projects. Keep the original copyright and license notice as required by the MIT License. Third-party dependencies and assets, where applicable, remain subject to their own licenses.
+
+If this repository helps you or becomes a starting point for your own portfolio, a GitHub star is appreciated. A star is not a condition of the license.
+
+This repository is maintained as my personal portfolio and is **not accepting external code contributions or pull requests**. If you want to change or extend it, please fork the repository and maintain your own version. See [CONTRIBUTING.md](CONTRIBUTING.md) for the repository policy.
 
 ## Repository notes
 

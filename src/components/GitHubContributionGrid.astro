@@ -1,6 +1,5 @@
 ---
 import { getSiteContent } from '../data/siteContent';
-import HandwrittenNote from './home/HandwrittenNote.astro';
 import { getGitHubContributions } from '../lib/githubContributions';
 
 interface Props {
@@ -93,10 +92,6 @@ const formatTooltipDate = (date: string) => {
 ---
 
 <figure class="contribution-panel" aria-labelledby="github-activity-caption">
-    <div class="contribution-annotation-layer" aria-hidden="true">
-        <HandwrittenNote text="my activity" class="activity-note" arrowVariant="shallow" />
-    </div>
-
     {activities.length > 0 ? (
         <>
             <div class="contribution-calendar" aria-label={copy.chartAlt} style={`--week-count:${weekCount};`}>
@@ -145,8 +140,6 @@ const formatTooltipDate = (date: string) => {
 </figure>
 
 <style>
-    /* Transitional parent integration while the home board still owns the old
-       contribution-region shell. The graph itself is now the section title. */
     :global(.contribution-region) {
         padding: clamp(9px, .8vw, 13px) clamp(12px, 1vw, 16px) !important;
     }
@@ -160,8 +153,6 @@ const formatTooltipDate = (date: string) => {
     }
 
     .contribution-panel {
-        /* 53 weeks + 52 one-pixel gaps. This makes the cells consume the
-           available inline size instead of relying on a viewport-specific guess. */
         --cell-gap: 1px;
         --cell-size: clamp(8px, calc((100cqw - 52px) / 53), 12px);
         --level-0: color-mix(in srgb, var(--muted) 9%, transparent);
@@ -180,25 +171,6 @@ const formatTooltipDate = (date: string) => {
         justify-content: center;
         container-type: inline-size;
         overflow: visible;
-    }
-
-    .contribution-annotation-layer {
-        position: absolute;
-        inset: 0;
-        z-index: 4;
-        pointer-events: none;
-        overflow: visible;
-    }
-
-    :global(.contribution-annotation-layer .activity-note) {
-        right: 14px;
-        top: -2px;
-        --note-font-size: 13.5px;
-        --note-arrow-width: 34px;
-        --note-arrow-height: 14px;
-        --note-arrow-gap: -1px;
-        transform: rotate(-2deg);
-        transform-origin: right top;
     }
 
     .contribution-calendar {
@@ -359,14 +331,6 @@ const formatTooltipDate = (date: string) => {
             --cell-size: clamp(7px, calc((100cqw - 52px) / 53), 11.5px);
         }
 
-        :global(.contribution-annotation-layer .activity-note) {
-            right: 12px;
-            top: -3px;
-            --note-font-size: 12.5px;
-            --note-arrow-width: 32px;
-            --note-arrow-height: 13px;
-        }
-
         .graph-footer {
             margin-top: 9px;
         }
@@ -406,10 +370,6 @@ const formatTooltipDate = (date: string) => {
 
         .month-row {
             font-size: 7px;
-        }
-
-        .contribution-annotation-layer {
-            display: none;
         }
     }
 </style>

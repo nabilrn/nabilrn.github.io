@@ -21,14 +21,8 @@ const isActivity = (value: unknown): value is GitHubContributionActivity => {
 };
 
 /**
- * Fetches one rolling year of GitHub contribution activity.
- *
- * Data source follows the same API contract used by ChanhDai's open-source
- * GitHub Contributions component:
- * https://github.com/grubersjoe/github-contributions-api
- *
- * The site is statically generated, so this runs at build time and fails soft
- * to an empty dataset if the public API is unavailable.
+ * Fetches one rolling year of GitHub contribution activity at build time.
+ * Fails soft to an empty dataset when the public API is unavailable.
  */
 export async function getGitHubContributions(
     username: string,
@@ -41,7 +35,7 @@ export async function getGitHubContributions(
         const response = await fetch(`${apiBase}/${encodeURIComponent(username)}?y=last`, {
             headers: {
                 accept: 'application/json',
-                'user-agent': 'nabilrizkinavisa.me portfolio build',
+                'user-agent': 'portfolio.nabilrn.space static build',
             },
             signal: controller.signal,
         });
