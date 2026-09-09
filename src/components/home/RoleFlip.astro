@@ -88,70 +88,86 @@ const roles = Astro.props.roles.length > 0 ? Astro.props.roles : ['i use a cheap
 
 <script>
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let roleFlipCleanups: Array<() => void> = [];
 
-    document.querySelectorAll<HTMLElement>('[data-role-flip]').forEach((root) => {
-        if (root.dataset.initialized === 'true') return;
-        root.dataset.initialized = 'true';
+    const cleanupRoleFlips = () => {
+        roleFlipCleanups.forEach((cleanup) => cleanup());
+        roleFlipCleanups = [];
+    };
 
-        const text = root.querySelector<HTMLElement>('[data-role-text]');
-        if (!text) return;
+    const initRoleFlips = () => {
+        cleanupRoleFlips();
 
-        let roles: string[] = [];
-        try {
-            roles = JSON.parse(root.dataset.roles ?? '[]') as string[];
-        } catch {
-            roles = [];
-        }
+        document.querySelectorAll<HTMLElement>('[data-role-flip]').forEach((root) => {
+            if (root.dataset.initialized === 'true') return;
+            root.dataset.initialized = 'true';
 
-        if (roles.length < 2 || reducedMotion.matches) return;
+            const text = root.querySelector<HTMLElement>('[data-role-text]');
+            if (!text) return;
 
-        let index = 0;
-        let timer = 0;
-        let enterCleanup = 0;
-        let inView = true;
+            let roles: string[] = [];
+            try {
+                roles = JSON.parse(root.dataset.roles ?? '[]') as string[];
+            } catch {
+                roles = [];
+            }
 
-        const stop = () => {
-            if (timer) window.clearInterval(timer);
-            timer = 0;
-        };
+            if (roles.length < 2 || reducedMotion.matches) return;
 
-        const cycle = () => {
-            text.classList.remove('is-entering');
-            text.classList.add('is-leaving');
+            let index = 0;
+            let timer = 0;
+            let cycleTimeout = 0;
+            let enterCleanup = 0;
+            let inView = true;
 
-            window.setTimeout(() => {
-                index = (index + 1) % roles.length;
-                text.textContent = roles[index];
-                text.classList.remove('is-leaving');
-                text.classList.add('is-entering');
+            const stop = () => {
+                if (timer) window.clearInterval(timer);
+                timer = 0;
+            };
 
-                if (enterCleanup) window.clearTimeout(enterCleanup);
-                enterCleanup = window.setTimeout(() => {
-                    text.classList.remove('is-entering');
-                }, 1520);
-            }, 185);
-        };
+            const cycle = () => {
+                text.classList.remove('is-entering');
+                text.classList.add('is-leaving');
 
-        const syncPlayback = () => {
-            stop();
-            if (document.visibilityState !== 'visible' || !inView) return;
-            timer = window.setInterval(cycle, 3000);
-        };
+                if (cycleTimeout) window.clearTimeout(cycleTimeout);
+                cycleTimeout = window.setTimeout(() => {
+                    index = (index + 1) % roles.length;
+                    text.textContent = roles[index];
+                    text.classList.remove('is-leaving');
+                    text.classList.add('is-entering');
 
-        const observer = new IntersectionObserver((entries) => {
-            inView = entries[0]?.isIntersecting ?? true;
+                    if (enterCleanup) window.clearTimeout(enterCleanup);
+                    enterCleanup = window.setTimeout(() => {
+                        text.classList.remove('is-entering');
+                    }, 1520);
+                }, 185);
+            };
+
+            const syncPlayback = () => {
+                stop();
+                if (document.visibilityState !== 'visible' || !inView) return;
+                timer = window.setInterval(cycle, 3000);
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                inView = entries[0]?.isIntersecting ?? true;
+                syncPlayback();
+            }, { threshold: 0.15 });
+
+            observer.observe(root);
+            document.addEventListener('visibilitychange', syncPlayback);
             syncPlayback();
-        }, { threshold: 0.15 });
 
-        observer.observe(root);
-        document.addEventListener('visibilitychange', syncPlayback);
-        syncPlayback();
+            roleFlipCleanups.push(() => {
+                stop();
+                observer.disconnect();
+                document.removeEventListener('visibilitychange', syncPlayback);
+                if (cycleTimeout) window.clearTimeout(cycleTimeout);
+                if (enterCleanup) window.clearTimeout(enterCleanup);
+            });
+        });
+    };
 
-        window.addEventListener('pagehide', () => {
-            stop();
-            observer.disconnect();
-            document.removeEventListener('visibilitychange', syncPlayback);
-            if (enterCleanup) window.clearTimeout(enterCleanup);
-        }, { once: true });
-    });
+    document.addEventListener('astro:page-load', initRoleFlips);
+    document.addEventListener('astro:before-swap', cleanupRoleFlips);
 </script>
