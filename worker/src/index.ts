@@ -1,23 +1,26 @@
-type KVPutOptions = {
-  expirationTtl?: number;
+type D1Meta = {
+  changes?: number;
 };
 
-type KVListOptions = {
-  prefix?: string;
-  cursor?: string;
+type D1Result<T = Record<string, unknown>> = {
+  results?: T[];
+  success: boolean;
+  meta?: D1Meta;
 };
 
-type KVListResult = {
-  keys: Array<{ name: string }>;
-  list_complete: boolean;
-  cursor?: string;
-};
+interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  first<T = Record<string, unknown>>(): Promise<T | null>;
+  all<T = Record<string, unknown>>(): Promise<D1Result<T>>;
+  run<T = Record<string, unknown>>(): Promise<D1Result<T>>;
+}
 
-interface KVNamespace {
+interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+}
+
+interface LegacyKVNamespace {
   get(key: string): Promise<string | null>;
-  put(key: string, value: string, options?: KVPutOptions): Promise<void>;
-  delete(key: string): Promise<void>;
-  list(options?: KVListOptions): Promise<KVListResult>;
 }
 
 type ExportedHandler<TEnv> = {
@@ -25,7 +28,8 @@ type ExportedHandler<TEnv> = {
 };
 
 export interface Env {
-  METRICS: KVNamespace;
+  DB: D1Database;
+  LEGACY_METRICS?: LegacyKVNamespace;
   ALLOWED_ORIGIN?: string;
 }
 
@@ -40,9 +44,36 @@ type EngagementPayload = {
   liked?: boolean;
 };
 
-const ANALYTICS_PREFIX = 'analytics:';
-const HOURLY_VISITOR_TTL_SECONDS = 30 * 60 * 60;
-const HOURLY_COUNTER_TTL_SECONDS = 72 * 60 * 60;
+type MetricsRow = {
+  views: number;
+  likes: number;
+  shares: number;
+};
+
+type VisitorStateRow = {
+  viewed: number;
+  liked: number;
+};
+
+type HourViewsRow = {
+  hour: string;
+  views: number;
+};
+
+type HourVisitorsRow = {
+  hour: string;
+  visitors: number;
+};
+
+type VisitorCountRow = {
+  visitors: number;
+};
+
+type TopPageRow = {
+  path: string;
+  views: number;
+};
+
 const ROLLING_HOURS = 24;
 
 function allowedOrigins(env: Env) {
@@ -92,7 +123,8 @@ function badRequest(request: Request, env: Env, message: string) {
 function extractPostId(url: URL) {
   const parts = url.pathname.split('/').filter(Boolean);
   if (parts.length !== 2 || parts[0] !== 'metrics') return null;
-  return parts[1];
+  const postId = parts[1]?.trim();
+  return postId ? postId.slice(0, 160) : null;
 }
 
 function normalizePath(input?: string) {
@@ -128,146 +160,306 @@ function rollingHours() {
   });
 }
 
-async function getMetrics(kv: KVNamespace, postId: string) {
-  const [views, likes, shares] = await Promise.all([
-    kv.get(`metrics:${postId}:views`),
-    kv.get(`metrics:${postId}:likes`),
-    kv.get(`metrics:${postId}:shares`),
+function changed(result: D1Result) {
+  return Number(result.meta?.changes ?? 0) > 0;
+}
+
+async function readMetrics(db: D1Database, postId: string) {
+  const row = await db
+    .prepare('SELECT views, likes, shares FROM post_metrics WHERE post_id = ?1')
+    .bind(postId)
+    .first<MetricsRow>();
+
+  return row
+    ? {
+        views: Number(row.views ?? 0),
+        likes: Number(row.likes ?? 0),
+        shares: Number(row.shares ?? 0),
+      }
+    : null;
+}
+
+async function seedLegacyPostMetrics(env: Env, postId: string) {
+  if (!env.LEGACY_METRICS) return;
+
+  const [viewsRaw, likesRaw, sharesRaw] = await Promise.all([
+    env.LEGACY_METRICS.get(`metrics:${postId}:views`),
+    env.LEGACY_METRICS.get(`metrics:${postId}:likes`),
+    env.LEGACY_METRICS.get(`metrics:${postId}:shares`),
   ]);
-  return {
-    views: Number(views ?? '0'),
-    likes: Number(likes ?? '0'),
-    shares: Number(shares ?? '0'),
-  };
+
+  const views = Math.max(0, Number(viewsRaw ?? '0') || 0);
+  const likes = Math.max(0, Number(likesRaw ?? '0') || 0);
+  const shares = Math.max(0, Number(sharesRaw ?? '0') || 0);
+
+  if (views === 0 && likes === 0 && shares === 0) return;
+
+  await env.DB
+    .prepare(`
+      INSERT INTO post_metrics (post_id, views, likes, shares)
+      VALUES (?1, ?2, ?3, ?4)
+      ON CONFLICT(post_id) DO UPDATE SET
+        views = MAX(post_metrics.views, excluded.views),
+        likes = MAX(post_metrics.likes, excluded.likes),
+        shares = MAX(post_metrics.shares, excluded.shares),
+        updated_at = CURRENT_TIMESTAMP
+      WHERE post_metrics.views < excluded.views
+         OR post_metrics.likes < excluded.likes
+         OR post_metrics.shares < excluded.shares
+    `)
+    .bind(postId, views, likes, shares)
+    .run();
 }
 
-async function getEngagementState(kv: KVNamespace, postId: string, visitorInput?: string) {
-  const metrics = await getMetrics(kv, postId);
+async function getMetrics(env: Env, postId: string) {
+  await seedLegacyPostMetrics(env, postId);
+  return (await readMetrics(env.DB, postId)) ?? { views: 0, likes: 0, shares: 0 };
+}
+
+async function readVisitorState(db: D1Database, postId: string, visitorId: string) {
+  return db
+    .prepare(`
+      SELECT viewed, liked
+      FROM visitor_post_state
+      WHERE post_id = ?1 AND visitor_id = ?2
+    `)
+    .bind(postId, visitorId)
+    .first<VisitorStateRow>();
+}
+
+async function seedLegacyVisitorState(env: Env, postId: string, visitorId: string) {
+  if (!env.LEGACY_METRICS) return;
+  if (await readVisitorState(env.DB, postId, visitorId)) return;
+
+  const [viewedRaw, likedRaw] = await Promise.all([
+    env.LEGACY_METRICS.get(`visitor:${postId}:${visitorId}:viewed`),
+    env.LEGACY_METRICS.get(`visitor:${postId}:${visitorId}:liked`),
+  ]);
+
+  const viewed = viewedRaw ? 1 : 0;
+  const liked = likedRaw ? 1 : 0;
+  if (!viewed && !liked) return;
+
+  await env.DB
+    .prepare(`
+      INSERT OR IGNORE INTO visitor_post_state (post_id, visitor_id, viewed, liked)
+      VALUES (?1, ?2, ?3, ?4)
+    `)
+    .bind(postId, visitorId, viewed, liked)
+    .run();
+}
+
+async function getEngagementState(env: Env, postId: string, visitorInput?: string) {
   const visitorId = normalizeVisitorId(visitorInput);
-  if (!visitorId) return metrics;
+  const metricsPromise = getMetrics(env, postId);
 
-  const liked = Boolean(await kv.get(`visitor:${postId}:${visitorId}:liked`));
-  return { ...metrics, liked };
+  if (!visitorId) return metricsPromise;
+
+  await seedLegacyVisitorState(env, postId, visitorId);
+  const [metrics, state] = await Promise.all([
+    metricsPromise,
+    readVisitorState(env.DB, postId, visitorId),
+  ]);
+
+  return { ...metrics, liked: Boolean(state?.liked) };
 }
 
-async function increment(kv: KVNamespace, key: string, delta = 1, options?: KVPutOptions) {
-  const current = Number((await kv.get(key)) ?? '0');
-  const next = Math.max(0, current + delta);
-  await kv.put(key, String(next), options);
-  return next;
+async function incrementPostMetric(
+  db: D1Database,
+  postId: string,
+  column: 'views' | 'likes' | 'shares',
+  delta = 1,
+) {
+  if (delta >= 0) {
+    await db
+      .prepare(`
+        INSERT INTO post_metrics (post_id, ${column})
+        VALUES (?1, ?2)
+        ON CONFLICT(post_id) DO UPDATE SET
+          ${column} = post_metrics.${column} + excluded.${column},
+          updated_at = CURRENT_TIMESTAMP
+      `)
+      .bind(postId, delta)
+      .run();
+    return;
+  }
+
+  await db
+    .prepare('INSERT OR IGNORE INTO post_metrics (post_id) VALUES (?1)')
+    .bind(postId)
+    .run();
+
+  await db
+    .prepare(`
+      UPDATE post_metrics
+      SET ${column} = MAX(0, ${column} + ?2),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE post_id = ?1
+    `)
+    .bind(postId, delta)
+    .run();
 }
 
-async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, visitorInput: string | undefined) {
+async function trackSiteView(
+  db: D1Database,
+  pathInput: string | undefined,
+  visitorInput: string | undefined,
+) {
   const path = normalizePath(pathInput);
   const visitorId = normalizeVisitorId(visitorInput);
   if (!visitorId) throw new Error('Missing visitorId for analytics view.');
 
   const hour = utcHourKey();
-  const encodedPath = encodeURIComponent(path);
-  const hourlyVisitorKey = `${ANALYTICS_PREFIX}hour:${hour}:visitor:${visitorId}`;
-  const knownThisHour = await kv.get(hourlyVisitorKey);
 
   await Promise.all([
-    increment(
-      kv,
-      `${ANALYTICS_PREFIX}hour:${hour}:views`,
-      1,
-      { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
-    ),
-    increment(
-      kv,
-      `${ANALYTICS_PREFIX}hour:${hour}:page:${encodedPath}:views`,
-      1,
-      { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
-    ),
+    db
+      .prepare(`
+        INSERT INTO analytics_hourly (hour, path, views)
+        VALUES (?1, ?2, 1)
+        ON CONFLICT(hour, path) DO UPDATE SET views = analytics_hourly.views + 1
+      `)
+      .bind(hour, path)
+      .run(),
+    db
+      .prepare(`
+        INSERT OR IGNORE INTO analytics_hourly_visitors (hour, visitor_id)
+        VALUES (?1, ?2)
+      `)
+      .bind(hour, visitorId)
+      .run(),
   ]);
-
-  if (!knownThisHour) {
-    await Promise.all([
-      kv.put(hourlyVisitorKey, '1', { expirationTtl: HOURLY_VISITOR_TTL_SECONDS }),
-      increment(
-        kv,
-        `${ANALYTICS_PREFIX}hour:${hour}:visitors`,
-        1,
-        { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
-      ),
-    ]);
-  }
 
   return { path };
 }
 
-async function listKeysByPrefix(kv: KVNamespace, prefix: string) {
-  const names: string[] = [];
-  let cursor: string | undefined;
-
-  do {
-    const page = await kv.list({ prefix, ...(cursor ? { cursor } : {}) });
-    names.push(...page.keys.map((key) => key.name));
-    cursor = page.list_complete ? undefined : page.cursor;
-  } while (cursor);
-
-  return names;
-}
-
-async function getAnalyticsSummary(kv: KVNamespace) {
+async function getAnalyticsSummary(db: D1Database) {
   const hours = rollingHours();
+  const startHour = hours[0] ?? utcHourKey();
+  const endHour = hours.at(-1) ?? utcHourKey();
 
-  const hourlyValues = await Promise.all(
-    hours.map(async (hour) => {
-      const [views, visitors] = await Promise.all([
-        kv.get(`${ANALYTICS_PREFIX}hour:${hour}:views`),
-        kv.get(`${ANALYTICS_PREFIX}hour:${hour}:visitors`),
-      ]);
-      return {
-        hour: utcHourStart(hour),
-        views: Number(views ?? '0'),
-        visitors: Number(visitors ?? '0'),
-      };
-    }),
+  const [viewsResult, visitorsResult, uniqueVisitorRow, topPageRow] = await Promise.all([
+    db
+      .prepare(`
+        SELECT hour, SUM(views) AS views
+        FROM analytics_hourly
+        WHERE hour BETWEEN ?1 AND ?2
+        GROUP BY hour
+        ORDER BY hour ASC
+      `)
+      .bind(startHour, endHour)
+      .all<HourViewsRow>(),
+    db
+      .prepare(`
+        SELECT hour, COUNT(*) AS visitors
+        FROM analytics_hourly_visitors
+        WHERE hour BETWEEN ?1 AND ?2
+        GROUP BY hour
+        ORDER BY hour ASC
+      `)
+      .bind(startHour, endHour)
+      .all<HourVisitorsRow>(),
+    db
+      .prepare(`
+        SELECT COUNT(DISTINCT visitor_id) AS visitors
+        FROM analytics_hourly_visitors
+        WHERE hour BETWEEN ?1 AND ?2
+      `)
+      .bind(startHour, endHour)
+      .first<VisitorCountRow>(),
+    db
+      .prepare(`
+        SELECT path, SUM(views) AS views
+        FROM analytics_hourly
+        WHERE hour BETWEEN ?1 AND ?2
+        GROUP BY path
+        ORDER BY views DESC, path ASC
+        LIMIT 1
+      `)
+      .bind(startHour, endHour)
+      .first<TopPageRow>(),
+  ]);
+
+  const viewsByHour = new Map(
+    (viewsResult.results ?? []).map((row) => [row.hour, Number(row.views ?? 0)]),
+  );
+  const visitorsByHour = new Map(
+    (visitorsResult.results ?? []).map((row) => [row.hour, Number(row.visitors ?? 0)]),
   );
 
-  const visitorKeyPages = await Promise.all(
-    hours.map((hour) => listKeysByPrefix(kv, `${ANALYTICS_PREFIX}hour:${hour}:visitor:`)),
-  );
-  const uniqueVisitors = new Set<string>();
-  visitorKeyPages.forEach((keys, index) => {
-    const prefix = `${ANALYTICS_PREFIX}hour:${hours[index]}:visitor:`;
-    keys.forEach((name) => uniqueVisitors.add(name.slice(prefix.length)));
-  });
-
-  const pageKeyPages = await Promise.all(
-    hours.map((hour) => listKeysByPrefix(kv, `${ANALYTICS_PREFIX}hour:${hour}:page:`)),
-  );
-  const pageCounts = new Map<string, number>();
-
-  for (const names of pageKeyPages) {
-    const viewKeys = names.filter((name) => name.endsWith(':views'));
-    const values = await Promise.all(viewKeys.map((name) => kv.get(name)));
-    viewKeys.forEach((name, index) => {
-      const marker = ':page:';
-      const start = name.indexOf(marker);
-      if (start < 0) return;
-      const encoded = name.slice(start + marker.length, -':views'.length);
-      const path = decodeURIComponent(encoded);
-      pageCounts.set(path, (pageCounts.get(path) ?? 0) + Number(values[index] ?? '0'));
-    });
-  }
-
-  const sortedPages = [...pageCounts.entries()]
-    .map(([path, views]) => ({ path, views }))
-    .sort((a, b) => b.views - a.views || a.path.localeCompare(b.path));
-
-  const pageviews = hourlyValues.reduce((sum, point) => sum + point.views, 0);
-  const topPage = sortedPages[0] ?? { path: '/', views: 0 };
+  const last24Hours = hours.map((hour) => ({
+    hour: utcHourStart(hour),
+    views: viewsByHour.get(hour) ?? 0,
+    visitors: visitorsByHour.get(hour) ?? 0,
+  }));
+  const pageviews = last24Hours.reduce((sum, point) => sum + point.views, 0);
 
   return {
     generatedAt: new Date().toISOString(),
-    visitors: uniqueVisitors.size,
+    visitors: Number(uniqueVisitorRow?.visitors ?? 0),
     pageviews,
-    topPage,
-    last24Hours: hourlyValues,
+    topPage: topPageRow
+      ? { path: topPageRow.path, views: Number(topPageRow.views ?? 0) }
+      : { path: '/', views: 0 },
+    last24Hours,
   };
+}
+
+async function registerArticleView(env: Env, postId: string, visitorId: string) {
+  await Promise.all([
+    seedLegacyPostMetrics(env, postId),
+    seedLegacyVisitorState(env, postId, visitorId),
+  ]);
+
+  const stateWrite = await env.DB
+    .prepare(`
+      INSERT INTO visitor_post_state (post_id, visitor_id, viewed, liked)
+      VALUES (?1, ?2, 1, 0)
+      ON CONFLICT(post_id, visitor_id) DO UPDATE SET
+        viewed = 1,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE visitor_post_state.viewed = 0
+    `)
+    .bind(postId, visitorId)
+    .run();
+
+  if (changed(stateWrite)) {
+    await incrementPostMetric(env.DB, postId, 'views', 1);
+  }
+
+  await trackSiteView(env.DB, `/blog/${postId}/`, visitorId);
+}
+
+async function setLikeState(
+  env: Env,
+  postId: string,
+  visitorId: string,
+  requestedLiked?: boolean,
+) {
+  await Promise.all([
+    seedLegacyPostMetrics(env, postId),
+    seedLegacyVisitorState(env, postId, visitorId),
+  ]);
+
+  const existing = await readVisitorState(env.DB, postId, visitorId);
+  const desiredLiked = typeof requestedLiked === 'boolean'
+    ? requestedLiked
+    : !Boolean(existing?.liked);
+
+  const stateWrite = await env.DB
+    .prepare(`
+      INSERT INTO visitor_post_state (post_id, visitor_id, viewed, liked)
+      VALUES (?1, ?2, 0, ?3)
+      ON CONFLICT(post_id, visitor_id) DO UPDATE SET
+        liked = excluded.liked,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE visitor_post_state.liked <> excluded.liked
+    `)
+    .bind(postId, visitorId, desiredLiked ? 1 : 0)
+    .run();
+
+  if (changed(stateWrite)) {
+    await incrementPostMetric(env.DB, postId, 'likes', desiredLiked ? 1 : -1);
+  }
 }
 
 export default {
@@ -286,7 +478,7 @@ export default {
       if (request.method !== 'GET') {
         return json(request, env, { error: 'Method not allowed' }, { status: 405 });
       }
-      return json(request, env, await getAnalyticsSummary(env.METRICS));
+      return json(request, env, await getAnalyticsSummary(env.DB));
     }
 
     if (url.pathname === '/analytics/view') {
@@ -304,7 +496,7 @@ export default {
       const visitorId = normalizeVisitorId(payload.visitorId);
       if (!visitorId) return badRequest(request, env, 'Missing visitorId for analytics view.');
 
-      await trackSiteView(env.METRICS, payload.path, visitorId);
+      await trackSiteView(env.DB, payload.path, visitorId);
       return json(request, env, { ok: true });
     }
 
@@ -313,7 +505,7 @@ export default {
 
     if (request.method === 'GET') {
       const visitorId = normalizeVisitorId(url.searchParams.get('visitorId') ?? undefined);
-      return json(request, env, await getEngagementState(env.METRICS, postId, visitorId ?? undefined));
+      return json(request, env, await getEngagementState(env, postId, visitorId ?? undefined));
     }
 
     if (request.method !== 'POST') {
@@ -331,41 +523,24 @@ export default {
     const action = payload.action;
     if (!action) return badRequest(request, env, 'Missing action.');
 
-    const kv = env.METRICS;
-
     if (action === 'view') {
       if (!visitorId) return badRequest(request, env, 'Missing visitorId for view.');
-      const viewedKey = `visitor:${postId}:${visitorId}:viewed`;
-      const already = await kv.get(viewedKey);
-      if (!already) {
-        await kv.put(viewedKey, '1');
-        await increment(kv, `metrics:${postId}:views`);
-      }
 
-      await trackSiteView(kv, `/blog/${postId}/`, visitorId);
-      return json(request, env, await getEngagementState(kv, postId, visitorId));
+      await registerArticleView(env, postId, visitorId);
+      return json(request, env, await getEngagementState(env, postId, visitorId));
     }
 
     if (action === 'like') {
       if (!visitorId) return badRequest(request, env, 'Missing visitorId for like.');
-      const likedKey = `visitor:${postId}:${visitorId}:liked`;
-      const already = Boolean(await kv.get(likedKey));
-      const desiredLiked = typeof payload.liked === 'boolean' ? payload.liked : !already;
 
-      if (desiredLiked && !already) {
-        await kv.put(likedKey, '1');
-        await increment(kv, `metrics:${postId}:likes`);
-      } else if (!desiredLiked && already) {
-        await kv.delete(likedKey);
-        await increment(kv, `metrics:${postId}:likes`, -1);
-      }
-
-      return json(request, env, await getEngagementState(kv, postId, visitorId));
+      await setLikeState(env, postId, visitorId, payload.liked);
+      return json(request, env, await getEngagementState(env, postId, visitorId));
     }
 
     if (action === 'share') {
-      await increment(kv, `metrics:${postId}:shares`);
-      return json(request, env, await getEngagementState(kv, postId, visitorId ?? undefined));
+      await seedLegacyPostMetrics(env, postId);
+      await incrementPostMetric(env.DB, postId, 'shares', 1);
+      return json(request, env, await getEngagementState(env, postId, visitorId ?? undefined));
     }
 
     return badRequest(request, env, 'Unknown action.');
