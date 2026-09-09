@@ -35,6 +35,11 @@ const formatTime = (seconds: number) => {
 
 const getAudio = () => document.querySelector<HTMLAudioElement>('[data-bgm-audio]');
 
+const ensureAudioContext = () => {
+	if (!audioContext) audioContext = new AudioContext();
+	return audioContext;
+};
+
 const setToggleState = (playing: boolean) => {
 	document.querySelectorAll<HTMLElement>('[data-bgm-toggle]').forEach((toggle) => {
 		toggle.setAttribute('aria-pressed', String(playing));
@@ -57,12 +62,14 @@ const updateTimeline = () => {
 	const duration = Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : FALLBACK_DURATION;
 	const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
 	const ratio = duration > 0 ? Math.min(1, Math.max(0, current / duration)) : 0;
+	const playedBars = ratio <= 0 ? 0 : Math.min(BAR_COUNT, Math.ceil(ratio * BAR_COUNT));
 
 	document.querySelectorAll<HTMLElement>('[data-bgm-presenter]').forEach((presenter) => {
 		const time = presenter.querySelector<HTMLElement>('[data-bgm-time]');
-		const progress = presenter.querySelector<HTMLElement>('[data-bgm-progress]');
 		if (time) time.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
-		if (progress) progress.style.transform = `translateY(-50%) scaleX(${ratio.toFixed(5)})`;
+		presenter.querySelectorAll<HTMLElement>('[data-bgm-bar]').forEach((bar, index) => {
+			bar.toggleAttribute('data-bgm-played', index < playedBars);
+		});
 	});
 };
 
@@ -118,30 +125,29 @@ const ensureAudioGraph = async () => {
 	if (!audio) audio = getAudio();
 	if (!audio) throw new Error('BGM audio element unavailable');
 
-	if (!audioContext) audioContext = new AudioContext();
+	const context = ensureAudioContext();
 	if (!source) {
-		source = audioContext.createMediaElementSource(audio);
-		analyser = audioContext.createAnalyser();
+		source = context.createMediaElementSource(audio);
+		analyser = context.createAnalyser();
 		analyser.fftSize = 128;
 		analyser.smoothingTimeConstant = 0.78;
 		source.connect(analyser);
-		analyser.connect(audioContext.destination);
+		analyser.connect(context.destination);
 		frequencyData = new Uint8Array(analyser.frequencyBinCount);
 	}
-	if (audioContext.state === 'suspended') await audioContext.resume();
+	if (context.state === 'suspended') await context.resume();
 };
 
-const playKeyboardTick = async () => {
+const playKeyboardTick = () => {
 	try {
-		await ensureAudioGraph();
-		if (!audioContext) return;
-		const context = audioContext;
-		const now = context.currentTime;
-		const length = Math.max(1, Math.floor(context.sampleRate * 0.014));
+		const context = ensureAudioContext();
+		if (context.state === 'suspended') void context.resume();
+		const now = context.currentTime + 0.004;
+		const length = Math.max(1, Math.floor(context.sampleRate * 0.018));
 		const buffer = context.createBuffer(1, length, context.sampleRate);
 		const channel = buffer.getChannelData(0);
 		for (let index = 0; index < length; index += 1) {
-			const envelope = Math.exp(-index / Math.max(1, length * 0.2));
+			const envelope = Math.exp(-index / Math.max(1, length * 0.17));
 			channel[index] = (Math.random() * 2 - 1) * envelope;
 		}
 
@@ -149,29 +155,29 @@ const playKeyboardTick = async () => {
 		noise.buffer = buffer;
 		const filter = context.createBiquadFilter();
 		filter.type = 'bandpass';
-		filter.frequency.setValueAtTime(2300, now);
-		filter.Q.setValueAtTime(0.85, now);
+		filter.frequency.setValueAtTime(2050, now);
+		filter.Q.setValueAtTime(0.72, now);
 		const tickGain = context.createGain();
 		tickGain.gain.setValueAtTime(0.0001, now);
-		tickGain.gain.exponentialRampToValueAtTime(0.028, now + 0.0015);
-		tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.018);
+		tickGain.gain.exponentialRampToValueAtTime(0.09, now + 0.0012);
+		tickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.021);
 		noise.connect(filter).connect(tickGain).connect(context.destination);
 		noise.start(now);
-		noise.stop(now + 0.02);
+		noise.stop(now + 0.024);
 
 		const body = context.createOscillator();
 		const bodyGain = context.createGain();
-		body.type = 'sine';
-		body.frequency.setValueAtTime(190, now + 0.002);
-		body.frequency.exponentialRampToValueAtTime(118, now + 0.034);
-		bodyGain.gain.setValueAtTime(0.0001, now + 0.002);
-		bodyGain.gain.exponentialRampToValueAtTime(0.011, now + 0.006);
-		bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+		body.type = 'triangle';
+		body.frequency.setValueAtTime(220, now + 0.001);
+		body.frequency.exponentialRampToValueAtTime(128, now + 0.038);
+		bodyGain.gain.setValueAtTime(0.0001, now + 0.001);
+		bodyGain.gain.exponentialRampToValueAtTime(0.026, now + 0.004);
+		bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.044);
 		body.connect(bodyGain).connect(context.destination);
-		body.start(now + 0.002);
-		body.stop(now + 0.042);
+		body.start(now + 0.001);
+		body.stop(now + 0.046);
 	} catch {
-		// The tick is decorative. Playback still works if Web Audio is unavailable.
+		// Decorative feedback must never block NR interaction or playback.
 	}
 };
 
@@ -255,9 +261,7 @@ if (!portfolioWindow.__portfolioBgmControllerBound) {
 		void togglePlayback();
 	});
 
-	document.addEventListener('portfolio:bgm-tick', () => {
-		void playKeyboardTick();
-	});
+	document.addEventListener('portfolio:bgm-tick', playKeyboardTick);
 
 	document.addEventListener('astro:page-load', syncPresenters);
 	document.addEventListener('visibilitychange', () => {
