@@ -7,6 +7,18 @@ workers_dev = true
 [vars]
 ALLOWED_ORIGIN = "https://portfolio.nabilrn.space,https://nabilrn.github.io"
 
+# D1 is the new source of truth for analytics + engagement.
+# Replace this placeholder after running:
+#   npx wrangler d1 create portfolio-metrics
+[[d1_databases]]
+binding = "DB"
+database_name = "portfolio-metrics"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Read-only compatibility binding for the old KV namespace.
+# The worker lazily seeds existing post counters / visitor like+view state into D1.
+# Remove this binding only after D1 has been verified in production.
 [[kv_namespaces]]
-binding = "METRICS"
+binding = "LEGACY_METRICS"
 id = "fead888804e44d66b861ef936027f2ae"
