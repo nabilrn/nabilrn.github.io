@@ -1,3 +1,53 @@
+<div class="portfolio-share-backdrop" data-portfolio-share-dialog hidden>
+    <section
+        class="portfolio-share-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="portfolio-share-title"
+        tabindex="-1"
+    >
+        <header class="portfolio-share-header">
+            <div>
+                <span class="portfolio-share-eyebrow">Share</span>
+                <h2 id="portfolio-share-title" data-portfolio-share-title>Share this post</h2>
+            </div>
+            <button type="button" class="portfolio-share-close" aria-label="Close share dialog" data-portfolio-share-close>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+            </button>
+        </header>
+
+        <div class="portfolio-share-platforms" aria-label="Share options">
+            <a class="portfolio-share-platform whatsapp" href="#" target="_blank" rel="noopener noreferrer" data-portfolio-share-platform="whatsapp">
+                <span class="portfolio-share-platform-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12.04 2a9.75 9.75 0 0 0-8.31 14.85L2.4 21.7l4.96-1.3A9.78 9.78 0 1 0 12.04 2Zm0 17.78a8 8 0 0 1-4.08-1.12l-.29-.17-2.94.77.79-2.87-.19-.3a8.02 8.02 0 1 1 6.71 3.69Zm4.4-5.99c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.93-1.19a7.23 7.23 0 0 1-1.33-1.65c-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41h-.46c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.69 2.58 4.1 3.62.57.25 1.02.4 1.37.51.58.18 1.1.16 1.51.1.46-.07 1.43-.58 1.63-1.15.2-.57.2-1.06.14-1.16-.06-.1-.22-.16-.46-.28Z" /></svg></span>
+                <span>WhatsApp</span>
+            </a>
+            <a class="portfolio-share-platform x-platform" href="#" target="_blank" rel="noopener noreferrer" data-portfolio-share-platform="x">
+                <span class="portfolio-share-platform-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18.9 2H22l-6.77 7.74L23.2 22h-6.24l-4.89-6.39L6.48 22H3.37l7.25-8.29L2.98 2h6.4l4.42 5.84L18.9 2Zm-1.09 17.84h1.72L8.44 4.05H6.6l11.21 15.79Z" /></svg></span>
+                <span>X</span>
+            </a>
+            <a class="portfolio-share-platform linkedin" href="#" target="_blank" rel="noopener noreferrer" data-portfolio-share-platform="linkedin">
+                <span class="portfolio-share-platform-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5.34 3.5A1.84 1.84 0 1 1 5.33 7.2a1.84 1.84 0 0 1 .01-3.69ZM3.75 8.65h3.18V20H3.75V8.65Zm5.16 0h3.05v1.55H12c.43-.81 1.49-1.88 3.55-1.88 3.8 0 4.5 2.5 4.5 5.76V20h-3.18v-5.25c0-1.25-.02-2.87-1.75-2.87-1.75 0-2.02 1.37-2.02 2.78V20H8.91V8.65Z" /></svg></span>
+                <span>LinkedIn</span>
+            </a>
+            <a class="portfolio-share-platform facebook" href="#" target="_blank" rel="noopener noreferrer" data-portfolio-share-platform="facebook">
+                <span class="portfolio-share-platform-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13.7 22v-8.7h2.92l.44-3.39H13.7V7.75c0-.98.27-1.65 1.68-1.65h1.8V3.07c-.31-.04-1.38-.13-2.62-.13-2.59 0-4.36 1.58-4.36 4.49v2.5H7.27v3.39h2.93V22h3.5Z" /></svg></span>
+                <span>Facebook</span>
+            </a>
+            <a class="portfolio-share-platform telegram" href="#" target="_blank" rel="noopener noreferrer" data-portfolio-share-platform="telegram">
+                <span class="portfolio-share-platform-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m21.56 3.27-3.07 14.46c-.23 1.02-.83 1.27-1.68.79l-4.67-3.44-2.25 2.17c-.25.25-.46.46-.94.46l.33-4.75 8.65-7.82c.38-.34-.08-.53-.58-.19L6.66 11.68 2.05 10.2c-1-.31-1.02-1 .21-1.48l18.01-6.94c.84-.3 1.57.2 1.29 1.49Z" /></svg></span>
+                <span>Telegram</span>
+            </a>
+        </div>
+
+        <div class="portfolio-share-copy-row">
+            <input type="text" readonly value="" aria-label="Post link" data-portfolio-share-url />
+            <button type="button" data-portfolio-share-copy>Copy</button>
+        </div>
+    </section>
+</div>
+
+<div class="portfolio-engagement-toast" role="status" aria-live="polite" data-portfolio-engagement-toast></div>
+
 <script>
     type MetricsState = {
         views?: number;
@@ -6,12 +56,36 @@
         liked?: boolean;
     };
 
+    type EngagementContext = {
+        postId: string;
+        apiBase: string;
+        title: string;
+        url: string;
+        likeButton: HTMLButtonElement | null;
+        likeCount: HTMLElement | null;
+        shareButton: HTMLButtonElement | null;
+        shareCount: HTMLElement | null;
+        viewsCount: HTMLElement | null;
+    };
+
     const compact = new Intl.NumberFormat('en-US', {
         notation: 'compact',
         maximumFractionDigits: 1,
     });
-
     const visitorKey = 'portfolio:visitor-id';
+    const desiredLikes = new Map<string, boolean>();
+    const syncingLikes = new Set<string>();
+    const likeRetryTimers = new Map<string, number>();
+    let activeShare: EngagementContext | null = null;
+    let previousBodyOverflow = '';
+    let toastTimer = 0;
+    let copyResetTimer = 0;
+
+    const normalizeApiBase = (value?: string) => value?.trim().replace(/\/+$/, '') ?? '';
+    const likedKey = (postId: string) => `portfolio:liked:${postId}`;
+    const pendingLikeKey = (postId: string) => `portfolio:like-pending:${postId}`;
+    const localLikesKey = (postId: string) => `portfolio:likes:${postId}`;
+    const localSharesKey = (postId: string) => `portfolio:shares:${postId}`;
 
     const getVisitorId = () => {
         const existing = localStorage.getItem(visitorKey);
@@ -20,8 +94,6 @@
         localStorage.setItem(visitorKey, id);
         return id;
     };
-
-    const normalizeApiBase = (value?: string) => value?.trim().replace(/\/+$/, '') ?? '';
 
     const countFrom = (node: Element | null) => {
         const raw = node?.textContent?.trim() ?? '0';
@@ -34,46 +106,12 @@
         node.textContent = compact.format(Math.max(0, Number(value) || 0));
     };
 
-    const likedKey = (postId: string) => `portfolio:liked:${postId}`;
-    const localLikesKey = (postId: string) => `portfolio:likes:${postId}`;
-    const localSharesKey = (postId: string) => `portfolio:shares:${postId}`;
-
-    const copyText = async (value: string) => {
-        try {
-            await navigator.clipboard.writeText(value);
-            return true;
-        } catch {
-            const textarea = document.createElement('textarea');
-            textarea.value = value;
-            textarea.setAttribute('readonly', '');
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            const copied = document.execCommand('copy');
-            textarea.remove();
-            return copied;
-        }
-    };
-
-    const sharePost = async (title: string, url: string) => {
-        if (typeof navigator.share === 'function') {
-            try {
-                await navigator.share({ title, url });
-                return true;
-            } catch (error) {
-                if (error instanceof DOMException && error.name === 'AbortError') return false;
-            }
-        }
-        return copyText(url);
-    };
-
     const requestState = async (apiBase: string, postId: string): Promise<MetricsState | null> => {
         if (!apiBase) return null;
         try {
             const response = await fetch(
                 `${apiBase}/metrics/${encodeURIComponent(postId)}?visitorId=${encodeURIComponent(getVisitorId())}`,
-                { headers: { Accept: 'application/json' } },
+                { headers: { Accept: 'application/json' }, cache: 'no-store' },
             );
             if (!response.ok) return null;
             return await response.json() as MetricsState;
@@ -101,53 +139,85 @@
         }
     };
 
-    const renderLiked = (button: HTMLButtonElement, liked: boolean) => {
+    const renderLiked = (button: HTMLButtonElement | null, liked: boolean, animate = false) => {
+        if (!button) return;
+        button.classList.toggle('liked', liked);
         button.classList.toggle('is-liked', liked);
         button.setAttribute('aria-pressed', String(liked));
+        if (!animate || !liked || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        button.classList.remove('bursting');
+        void button.offsetWidth;
+        button.classList.add('bursting');
+        window.setTimeout(() => button.classList.remove('bursting'), 480);
     };
 
-    const initBlogFeed = () => {
-        document.querySelectorAll<HTMLElement>('.engage.feed[data-post-id]').forEach((root) => {
-            if (root.dataset.feedEngagementReady === 'true') return;
-            root.dataset.feedEngagementReady = 'true';
-
-            const postId = root.dataset.postId?.trim();
-            if (!postId) return;
-
-            const apiBase = normalizeApiBase(root.dataset.apiBase);
-            const likeButton = root.querySelector<HTMLButtonElement>('[data-like-btn]');
-            const shareButton = root.querySelector<HTMLButtonElement>('[data-share-trigger]');
-            const likes = root.querySelector<HTMLElement>('[data-likes]');
-            const shares = root.querySelector<HTMLElement>('[data-shares]');
-
-            if (shareButton) {
-                shareButton.removeAttribute('aria-haspopup');
-                shareButton.removeAttribute('aria-expanded');
-                shareButton.title = 'Share post';
-            }
-
-            if (likeButton) {
-                renderLiked(likeButton, localStorage.getItem(likedKey(postId)) === '1');
-            }
-
-            void (async () => {
-                const state = await requestState(apiBase, postId);
-                if (state) {
-                    setCount(root.querySelector('[data-views]'), state.views);
-                    setCount(likes, state.likes);
-                    setCount(shares, state.shares);
-                    if (likeButton && typeof state.liked === 'boolean') {
-                        localStorage.setItem(likedKey(postId), state.liked ? '1' : '0');
-                        renderLiked(likeButton, state.liked);
-                    }
-                    return;
-                }
-
-                setCount(likes, localStorage.getItem(localLikesKey(postId)) ?? likes?.textContent ?? 0);
-                setCount(shares, localStorage.getItem(localSharesKey(postId)) ?? shares?.textContent ?? 0);
-            })();
+    const allContextsForPost = (postId: string) => {
+        const contexts: EngagementContext[] = [];
+        document.querySelectorAll<HTMLElement>(`.engage[data-post-id="${CSS.escape(postId)}"]`).forEach((root) => {
+            const context = contextFromEngagementRoot(root);
+            if (context) contexts.push(context);
         });
+        document.querySelectorAll<HTMLElement>(`.tweet-post[data-blog-post-id="${CSS.escape(postId)}"]`).forEach((post) => {
+            const context = contextFromHomePost(post);
+            if (context) contexts.push(context);
+        });
+        return contexts;
     };
+
+    const applyState = (context: EngagementContext, state: MetricsState, includeLike = true) => {
+        setCount(context.viewsCount, state.views);
+        if (includeLike) setCount(context.likeCount, state.likes);
+        setCount(context.shareCount, state.shares);
+        if (includeLike && typeof state.liked === 'boolean') {
+            localStorage.setItem(likedKey(context.postId), state.liked ? '1' : '0');
+            desiredLikes.set(context.postId, state.liked);
+            renderLiked(context.likeButton, state.liked, false);
+        }
+    };
+
+    const applyStateEverywhere = (postId: string, state: MetricsState, includeLike = true) => {
+        for (const context of allContextsForPost(postId)) applyState(context, state, includeLike);
+    };
+
+    function contextFromEngagementRoot(root: HTMLElement): EngagementContext | null {
+        const postId = root.dataset.postId?.trim();
+        if (!postId) return null;
+        const link = root.closest('.feed-post')?.querySelector<HTMLAnchorElement>('.post-content-link[href]');
+        const url = link
+            ? new URL(link.getAttribute('href') || '/', location.origin).toString()
+            : location.href;
+        return {
+            postId,
+            apiBase: normalizeApiBase(root.dataset.apiBase),
+            title: root.dataset.title || document.title,
+            url,
+            likeButton: root.querySelector<HTMLButtonElement>('[data-like-btn]'),
+            likeCount: root.querySelector<HTMLElement>('[data-likes]'),
+            shareButton: root.querySelector<HTMLButtonElement>('[data-share-trigger]'),
+            shareCount: root.querySelector<HTMLElement>('[data-shares]'),
+            viewsCount: root.querySelector<HTMLElement>('[data-views]'),
+        };
+    }
+
+    function contextFromHomePost(post: HTMLElement): EngagementContext | null {
+        const postId = post.dataset.blogPostId?.trim();
+        const region = post.closest<HTMLElement>('.latest-blog-region[data-blog-metrics-api]');
+        const link = post.querySelector<HTMLAnchorElement>('.tweet-copy[href]');
+        if (!postId || !link) return null;
+        const likeButton = post.querySelector<HTMLButtonElement>('[data-home-like]');
+        const shareButton = post.querySelector<HTMLButtonElement>('[data-home-share]');
+        return {
+            postId,
+            apiBase: normalizeApiBase(post.dataset.engagementApi || region?.dataset.blogMetricsApi),
+            title: post.dataset.engagementTitle || link.querySelector('strong')?.textContent?.trim() || document.title,
+            url: post.dataset.engagementUrl || new URL(link.getAttribute('href') || '/', location.origin).toString(),
+            likeButton,
+            likeCount: post.querySelector<HTMLElement>('[data-blog-likes]'),
+            shareButton,
+            shareCount: post.querySelector<HTMLElement>('[data-home-shares]'),
+            viewsCount: post.querySelector<HTMLElement>('[data-blog-views]'),
+        };
+    }
 
     const makeHomeLikeButton = (metric: HTMLElement, postId: string) => {
         const button = document.createElement('button');
@@ -156,7 +226,9 @@
         button.dataset.homeLike = postId;
         button.setAttribute('aria-label', 'Like post');
         button.setAttribute('aria-pressed', 'false');
-        button.innerHTML = metric.innerHTML;
+        const icon = metric.querySelector('svg')?.outerHTML ?? '';
+        const count = metric.querySelector<HTMLElement>('[data-blog-likes]')?.textContent ?? '0';
+        button.innerHTML = `<span class="heart-shell" aria-hidden="true">${icon}</span><span data-blog-likes>${count}</span>`;
         metric.replaceWith(button);
         return button;
     };
@@ -167,6 +239,8 @@
         button.className = 'tweet-metric tweet-action tweet-share-action';
         button.dataset.homeShare = postId;
         button.setAttribute('aria-label', 'Share post');
+        button.setAttribute('aria-haspopup', 'dialog');
+        button.setAttribute('aria-expanded', 'false');
         button.title = 'Share post';
         button.innerHTML = `
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -181,200 +255,543 @@
         return button;
     };
 
-    const initHomeFeed = () => {
-        const region = document.querySelector<HTMLElement>('.latest-blog-region[data-blog-metrics-api]');
-        if (!region) return;
-        const apiBase = normalizeApiBase(region.dataset.blogMetricsApi);
+    const initializeHomePost = (post: HTMLElement) => {
+        if (post.dataset.homeEngagementReady === 'true') return;
+        const postId = post.dataset.blogPostId?.trim();
+        const engagement = post.querySelector<HTMLElement>('.tweet-engagement');
+        const link = post.querySelector<HTMLAnchorElement>('.tweet-copy[href]');
+        const region = post.closest<HTMLElement>('.latest-blog-region[data-blog-metrics-api]');
+        if (!postId || !engagement || !link) return;
 
-        region.querySelectorAll<HTMLElement>('.tweet-post[data-blog-post-id]').forEach((post) => {
-            if (post.dataset.homeEngagementReady === 'true') return;
-            post.dataset.homeEngagementReady = 'true';
+        post.dataset.homeEngagementReady = 'true';
+        post.dataset.engagementTitle = link.querySelector('strong')?.textContent?.trim() || document.title;
+        post.dataset.engagementUrl = new URL(link.getAttribute('href') || '/', location.origin).toString();
+        post.dataset.engagementApi = normalizeApiBase(region?.dataset.blogMetricsApi);
 
-            const postId = post.dataset.blogPostId?.trim();
-            const engagement = post.querySelector<HTMLElement>('.tweet-engagement');
-            const copyLink = post.querySelector<HTMLAnchorElement>('.tweet-copy[href]');
-            if (!postId || !engagement || !copyLink) return;
+        const existingLikeMetric = Array.from(engagement.querySelectorAll<HTMLElement>('.tweet-metric'))
+            .find((metric) => metric.querySelector('[data-blog-likes]'));
+        const likeButton = existingLikeMetric instanceof HTMLButtonElement
+            ? existingLikeMetric
+            : existingLikeMetric
+                ? makeHomeLikeButton(existingLikeMetric, postId)
+                : null;
 
-            const title = copyLink.querySelector('strong')?.textContent?.trim() || document.title;
-            post.dataset.engagementTitle = title;
-            post.dataset.engagementUrl = new URL(copyLink.getAttribute('href') || '/', location.origin).toString();
-            post.dataset.engagementApi = apiBase;
+        let shareButton = engagement.querySelector<HTMLButtonElement>('[data-home-share]');
+        if (!shareButton) {
+            shareButton = makeHomeShareButton(postId);
+            engagement.appendChild(shareButton);
+        }
 
-            const existingLike = Array.from(engagement.querySelectorAll<HTMLElement>('.tweet-metric'))
-                .find((metric) => metric.querySelector('[data-blog-likes]'));
-            const likeButton = existingLike instanceof HTMLButtonElement
-                ? existingLike
-                : existingLike
-                    ? makeHomeLikeButton(existingLike, postId)
-                    : null;
+        const liked = localStorage.getItem(likedKey(postId)) === '1';
+        desiredLikes.set(postId, liked);
+        renderLiked(likeButton, liked, false);
 
-            let shareButton = engagement.querySelector<HTMLButtonElement>('[data-home-share]');
-            if (!shareButton) {
-                shareButton = makeHomeShareButton(postId);
-                engagement.appendChild(shareButton);
+        const context = contextFromHomePost(post);
+        if (!context) return;
+        void hydrateContext(context);
+    };
+
+    const hydrateContext = async (context: EngagementContext) => {
+        const liked = localStorage.getItem(likedKey(context.postId)) === '1';
+        desiredLikes.set(context.postId, liked);
+        renderLiked(context.likeButton, liked, false);
+
+        if (!context.apiBase) {
+            setCount(context.likeCount, localStorage.getItem(localLikesKey(context.postId)) ?? context.likeCount?.textContent ?? 0);
+            setCount(context.shareCount, localStorage.getItem(localSharesKey(context.postId)) ?? context.shareCount?.textContent ?? 0);
+            return;
+        }
+
+        const state = await requestState(context.apiBase, context.postId);
+        if (!state) return;
+        const hasPendingLike = localStorage.getItem(pendingLikeKey(context.postId)) === '1';
+        applyState(context, state, !hasPendingLike);
+        if (hasPendingLike) {
+            const desired = desiredLikes.get(context.postId) ?? liked;
+            const serverLiked = Boolean(state.liked);
+            setCount(context.likeCount, Number(state.likes ?? 0) + (desired === serverLiked ? 0 : desired ? 1 : -1));
+            void syncLike(context);
+        }
+    };
+
+    const syncLike = async (context: EngagementContext) => {
+        const { postId, apiBase } = context;
+        if (!apiBase || syncingLikes.has(postId) || localStorage.getItem(pendingLikeKey(postId)) !== '1') return;
+        syncingLikes.add(postId);
+        const retry = likeRetryTimers.get(postId);
+        if (retry) window.clearTimeout(retry);
+
+        try {
+            while (localStorage.getItem(pendingLikeKey(postId)) === '1') {
+                const target = desiredLikes.get(postId) ?? false;
+                const state = await postAction(apiBase, postId, { action: 'like', liked: target });
+                if (!state) throw new Error('like-sync-failed');
+                if ((desiredLikes.get(postId) ?? false) !== target) continue;
+
+                localStorage.removeItem(pendingLikeKey(postId));
+                const serverLiked = typeof state.liked === 'boolean' ? state.liked : target;
+                desiredLikes.set(postId, serverLiked);
+                localStorage.setItem(likedKey(postId), serverLiked ? '1' : '0');
+                applyStateEverywhere(postId, state, true);
             }
+        } catch {
+            likeRetryTimers.set(postId, window.setTimeout(() => void syncLike(context), 4000));
+        } finally {
+            syncingLikes.delete(postId);
+        }
+    };
 
-            if (likeButton) {
-                renderLiked(likeButton, localStorage.getItem(likedKey(postId)) === '1');
-            }
+    const optimisticLike = (context: EngagementContext) => {
+        const currentLiked = context.likeButton?.getAttribute('aria-pressed') === 'true';
+        const nextLiked = !currentLiked;
+        desiredLikes.set(context.postId, nextLiked);
+        localStorage.setItem(likedKey(context.postId), nextLiked ? '1' : '0');
+        localStorage.setItem(pendingLikeKey(context.postId), '1');
 
-            void (async () => {
-                const state = await requestState(apiBase, postId);
-                const likes = post.querySelector<HTMLElement>('[data-blog-likes]');
-                const shares = post.querySelector<HTMLElement>('[data-home-shares]');
-                if (state) {
-                    setCount(post.querySelector('[data-blog-views]'), state.views);
-                    setCount(likes, state.likes);
-                    setCount(shares, state.shares);
-                    if (likeButton && typeof state.liked === 'boolean') {
-                        localStorage.setItem(likedKey(postId), state.liked ? '1' : '0');
-                        renderLiked(likeButton, state.liked);
-                    }
-                    return;
-                }
+        for (const surface of allContextsForPost(context.postId)) {
+            setCount(surface.likeCount, countFrom(surface.likeCount) + (nextLiked ? 1 : -1));
+            renderLiked(surface.likeButton, nextLiked, nextLiked);
+        }
 
-                setCount(likes, localStorage.getItem(localLikesKey(postId)) ?? likes?.textContent ?? 0);
-                setCount(shares, localStorage.getItem(localSharesKey(postId)) ?? 0);
-            })();
+        if (context.apiBase) {
+            void syncLike(context);
+            return;
+        }
+
+        localStorage.removeItem(pendingLikeKey(context.postId));
+        localStorage.setItem(localLikesKey(context.postId), String(countFrom(context.likeCount)));
+    };
+
+    const dialogElements = () => {
+        const backdrop = document.querySelector<HTMLElement>('[data-portfolio-share-dialog]');
+        return {
+            backdrop,
+            panel: backdrop?.querySelector<HTMLElement>('.portfolio-share-dialog') ?? null,
+            title: backdrop?.querySelector<HTMLElement>('[data-portfolio-share-title]') ?? null,
+            urlInput: backdrop?.querySelector<HTMLInputElement>('[data-portfolio-share-url]') ?? null,
+            copyButton: backdrop?.querySelector<HTMLButtonElement>('[data-portfolio-share-copy]') ?? null,
+            closeButton: backdrop?.querySelector<HTMLButtonElement>('[data-portfolio-share-close]') ?? null,
+            platforms: Array.from(backdrop?.querySelectorAll<HTMLAnchorElement>('[data-portfolio-share-platform]') ?? []),
+        };
+    };
+
+    const configureShareDialog = (context: EngagementContext) => {
+        const { title, url } = context;
+        const elements = dialogElements();
+        if (elements.title) elements.title.textContent = title;
+        if (elements.urlInput) elements.urlInput.value = url;
+        for (const option of elements.platforms) {
+            const platform = option.dataset.portfolioSharePlatform;
+            if (platform === 'whatsapp') option.href = `https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`;
+            if (platform === 'x') option.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
+            if (platform === 'linkedin') option.href = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
+            if (platform === 'facebook') option.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+            if (platform === 'telegram') option.href = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
+        }
+    };
+
+    const openShareDialog = (context: EngagementContext) => {
+        const { backdrop, panel, platforms } = dialogElements();
+        if (!backdrop) return;
+        activeShare = context;
+        configureShareDialog(context);
+        backdrop.hidden = false;
+        context.shareButton?.setAttribute('aria-expanded', 'true');
+        previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        window.requestAnimationFrame(() => {
+            const first = platforms[0];
+            if (first) first.focus();
+            else panel?.focus();
         });
     };
 
-    const handleLike = async (
-        postId: string,
-        apiBase: string,
-        button: HTMLButtonElement,
-        count: HTMLElement | null,
-    ) => {
-        const nextLiked = button.getAttribute('aria-pressed') !== 'true';
-        const current = countFrom(count);
-        localStorage.setItem(likedKey(postId), nextLiked ? '1' : '0');
-        renderLiked(button, nextLiked);
-        setCount(count, current + (nextLiked ? 1 : -1));
+    const closeShareDialog = (restoreFocus = true) => {
+        const { backdrop } = dialogElements();
+        if (!backdrop) return;
+        backdrop.hidden = true;
+        document.body.style.overflow = previousBodyOverflow;
+        const trigger = activeShare?.shareButton;
+        trigger?.setAttribute('aria-expanded', 'false');
+        if (restoreFocus) trigger?.focus();
+        activeShare = null;
+    };
 
-        if (!apiBase) {
-            localStorage.setItem(localLikesKey(postId), String(countFrom(count)));
-            return;
-        }
+    const showToast = (message: string) => {
+        const toast = document.querySelector<HTMLElement>('[data-portfolio-engagement-toast]');
+        if (!toast) return;
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('visible');
+        toastTimer = window.setTimeout(() => toast.classList.remove('visible'), 1800);
+    };
 
-        const state = await postAction(apiBase, postId, { action: 'like', liked: nextLiked });
-        if (!state) return;
-        setCount(count, state.likes);
-        if (typeof state.liked === 'boolean') {
-            localStorage.setItem(likedKey(postId), state.liked ? '1' : '0');
-            renderLiked(button, state.liked);
+    const copyText = async (value: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            return true;
+        } catch {
+            const textarea = document.createElement('textarea');
+            textarea.value = value;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            const copied = document.execCommand('copy');
+            textarea.remove();
+            return copied;
         }
     };
 
-    const handleShare = async (
-        postId: string,
-        apiBase: string,
-        title: string,
-        url: string,
-        button: HTMLButtonElement,
-        count: HTMLElement | null,
-    ) => {
-        const shared = await sharePost(title, url);
-        if (!shared) return;
+    const recordShare = (context: EngagementContext) => {
+        for (const surface of allContextsForPost(context.postId)) {
+            setCount(surface.shareCount, countFrom(surface.shareCount) + 1);
+        }
 
-        button.classList.add('is-confirmed');
-        const oldTitle = button.title;
-        button.title = 'Shared / link copied';
-        window.setTimeout(() => {
-            button.classList.remove('is-confirmed');
-            button.title = oldTitle || 'Share post';
-        }, 1400);
-
-        setCount(count, countFrom(count) + 1);
-        if (!apiBase) {
-            localStorage.setItem(localSharesKey(postId), String(countFrom(count)));
+        if (!context.apiBase) {
+            localStorage.setItem(localSharesKey(context.postId), String(countFrom(context.shareCount)));
             return;
         }
 
-        const state = await postAction(apiBase, postId, { action: 'share' });
-        if (state) setCount(count, state.shares);
+        void postAction(context.apiBase, context.postId, { action: 'share' }).then((state) => {
+            if (state) applyStateEverywhere(context.postId, state, false);
+        });
     };
 
-    document.addEventListener('click', (event) => {
+    const contextFromTarget = (target: Element, type: 'like' | 'share'): EngagementContext | null => {
+        const engageRoot = target.closest<HTMLElement>('.engage[data-post-id]');
+        if (engageRoot) return contextFromEngagementRoot(engageRoot);
+        const homePost = target.closest<HTMLElement>('.tweet-post[data-blog-post-id]');
+        if (homePost) return contextFromHomePost(homePost);
+        return null;
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
         const target = event.target;
         if (!(target instanceof Element)) return;
 
-        const blogLike = target.closest<HTMLButtonElement>('.engage.feed [data-like-btn]');
-        if (blogLike) {
+        const likeButton = target.closest<HTMLButtonElement>('[data-like-btn], [data-home-like]');
+        if (likeButton) {
+            const context = contextFromTarget(likeButton, 'like');
+            if (!context) return;
             event.preventDefault();
             event.stopPropagation();
-            const root = blogLike.closest<HTMLElement>('.engage.feed[data-post-id]');
-            const postId = root?.dataset.postId?.trim();
-            if (!root || !postId) return;
-            void handleLike(
-                postId,
-                normalizeApiBase(root.dataset.apiBase),
-                blogLike,
-                root.querySelector<HTMLElement>('[data-likes]'),
-            );
+            optimisticLike(context);
             return;
         }
 
-        const blogShare = target.closest<HTMLButtonElement>('.engage.feed [data-share-trigger]');
-        if (blogShare) {
+        const shareButton = target.closest<HTMLButtonElement>('[data-share-trigger], [data-home-share]');
+        if (shareButton) {
+            const context = contextFromTarget(shareButton, 'share');
+            if (!context) return;
             event.preventDefault();
             event.stopPropagation();
-            const root = blogShare.closest<HTMLElement>('.engage.feed[data-post-id]');
-            const postId = root?.dataset.postId?.trim();
-            if (!root || !postId) return;
-            const postLink = root.closest('.feed-post')?.querySelector<HTMLAnchorElement>('.post-content-link[href]');
-            const url = new URL(postLink?.getAttribute('href') || location.href, location.origin).toString();
-            void handleShare(
-                postId,
-                normalizeApiBase(root.dataset.apiBase),
-                root.dataset.title || document.title,
-                url,
-                blogShare,
-                root.querySelector<HTMLElement>('[data-shares]'),
-            );
+            openShareDialog(context);
             return;
         }
 
-        const homeLike = target.closest<HTMLButtonElement>('[data-home-like]');
-        if (homeLike) {
-            const post = homeLike.closest<HTMLElement>('.tweet-post[data-blog-post-id]');
-            const postId = post?.dataset.blogPostId?.trim();
-            if (!post || !postId) return;
-            void handleLike(
-                postId,
-                normalizeApiBase(post.dataset.engagementApi),
-                homeLike,
-                homeLike.querySelector<HTMLElement>('[data-blog-likes]'),
-            );
+        const closeButton = target.closest<HTMLButtonElement>('[data-portfolio-share-close]');
+        if (closeButton) {
+            event.preventDefault();
+            closeShareDialog(true);
             return;
         }
 
-        const homeShare = target.closest<HTMLButtonElement>('[data-home-share]');
-        if (homeShare) {
-            const post = homeShare.closest<HTMLElement>('.tweet-post[data-blog-post-id]');
-            const postId = post?.dataset.blogPostId?.trim();
-            if (!post || !postId) return;
-            void handleShare(
-                postId,
-                normalizeApiBase(post.dataset.engagementApi),
-                post.dataset.engagementTitle || document.title,
-                post.dataset.engagementUrl || location.href,
-                homeShare,
-                homeShare.querySelector<HTMLElement>('[data-home-shares]'),
-            );
+        const copyButton = target.closest<HTMLButtonElement>('[data-portfolio-share-copy]');
+        if (copyButton && activeShare) {
+            event.preventDefault();
+            const context = activeShare;
+            void (async () => {
+                const copied = await copyText(context.url);
+                if (!copied) return;
+                recordShare(context);
+                showToast('Link copied');
+                window.clearTimeout(copyResetTimer);
+                copyButton.textContent = 'Copied';
+                copyResetTimer = window.setTimeout(() => { copyButton.textContent = 'Copy'; }, 1500);
+            })();
+            return;
         }
-    }, { capture: true });
 
-    const initialize = () => {
-        queueMicrotask(() => {
-            initBlogFeed();
-            initHomeFeed();
-        });
+        const platform = target.closest<HTMLAnchorElement>('[data-portfolio-share-platform]');
+        if (platform && activeShare) {
+            const context = activeShare;
+            recordShare(context);
+            closeShareDialog(false);
+        }
     };
 
-    document.addEventListener('astro:page-load', initialize);
+    const handleDialogBackdrop = (event: MouseEvent) => {
+        const target = event.target;
+        if (target instanceof HTMLElement && target.matches('[data-portfolio-share-dialog]')) closeShareDialog(true);
+    };
+
+    const handleKeydown = (event: KeyboardEvent) => {
+        const { backdrop } = dialogElements();
+        if (!backdrop || backdrop.hidden) return;
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeShareDialog(true);
+            return;
+        }
+        if (event.key !== 'Tab') return;
+        const focusable = Array.from(backdrop.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled])'))
+            .filter((node) => !node.hasAttribute('hidden'));
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first?.focus();
+        }
+    };
+
+    const initialize = () => {
+        document.querySelectorAll<HTMLElement>('.tweet-post[data-blog-post-id]').forEach(initializeHomePost);
+        document.querySelectorAll<HTMLElement>('.engage[data-post-id]').forEach((root) => {
+            const context = contextFromEngagementRoot(root);
+            if (context) void hydrateContext(context);
+        });
+
+        const { backdrop } = dialogElements();
+        if (backdrop && backdrop.dataset.portfolioBackdropBound !== 'true') {
+            backdrop.dataset.portfolioBackdropBound = 'true';
+            backdrop.addEventListener('click', handleDialogBackdrop);
+        }
+    };
+
+    if (!window.__portfolioEngagementControllerBound) {
+        window.__portfolioEngagementControllerBound = true;
+        document.addEventListener('click', handleDocumentClick, { capture: true });
+        document.addEventListener('keydown', handleKeydown);
+        window.addEventListener('online', () => {
+            document.querySelectorAll<HTMLElement>('.engage[data-post-id], .tweet-post[data-blog-post-id]').forEach((surface) => {
+                const context = surface.matches('.engage')
+                    ? contextFromEngagementRoot(surface)
+                    : contextFromHomePost(surface);
+                if (context) void syncLike(context);
+            });
+        });
+        document.addEventListener('astro:page-load', initialize);
+    }
+
+    initialize();
 </script>
 
 <style is:global>
+    .portfolio-share-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 300;
+        padding: 18px;
+        display: grid;
+        place-items: center;
+        background: rgb(0 0 0 / 48%);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+    }
+
+    .portfolio-share-backdrop[hidden] { display: none; }
+
+    .portfolio-share-dialog {
+        width: min(520px, 100%);
+        max-height: min(560px, calc(100vh - 36px));
+        overflow: visible;
+        border: 1px solid var(--border-strong);
+        border-radius: 10px;
+        background: var(--bg);
+        box-shadow: 0 20px 70px rgb(0 0 0 / 24%);
+        color: var(--text);
+    }
+
+    .portfolio-share-dialog:focus { outline: none; }
+
+    .portfolio-share-header {
+        min-height: 58px;
+        padding: 10px 14px 10px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .portfolio-share-eyebrow {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--muted);
+        font-family: var(--font-mono);
+        font-size: 8px;
+        line-height: 1;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .portfolio-share-header h2 {
+        max-width: 390px;
+        margin: 0;
+        overflow: hidden;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 650;
+        line-height: 1.25;
+        letter-spacing: -.015em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .portfolio-share-close {
+        width: 32px;
+        height: 32px;
+        flex: none;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+    }
+
+    .portfolio-share-close:hover,
+    .portfolio-share-close:focus-visible {
+        background: var(--surface-2);
+        color: var(--text);
+        outline: none;
+    }
+
+    .portfolio-share-close svg {
+        width: 17px;
+        height: 17px;
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1.7;
+        stroke-linecap: round;
+    }
+
+    .portfolio-share-platforms {
+        padding: 22px 18px 18px;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(58px, 1fr));
+        gap: 10px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .portfolio-share-platform {
+        --brand: var(--text);
+        min-width: 0;
+        display: grid;
+        justify-items: center;
+        gap: 7px;
+        color: var(--muted);
+        font-family: var(--font-sans);
+        font-size: 10px;
+        line-height: 1.2;
+        text-decoration: none;
+    }
+
+    .portfolio-share-platform.whatsapp { --brand: #25d366; }
+    .portfolio-share-platform.linkedin { --brand: #0a66c2; }
+    .portfolio-share-platform.facebook { --brand: #1877f2; }
+    .portfolio-share-platform.telegram { --brand: #229ed9; }
+
+    .portfolio-share-platform-icon {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        background: var(--surface);
+        color: var(--muted);
+        filter: grayscale(1);
+        opacity: .72;
+        transition: color 150ms ease, border-color 150ms ease, background 150ms ease, filter 150ms ease, opacity 150ms ease, transform 150ms ease;
+    }
+
+    .portfolio-share-platform-icon svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+    }
+
+    .portfolio-share-platform:hover,
+    .portfolio-share-platform:focus-visible { color: var(--text); outline: none; }
+
+    .portfolio-share-platform:hover .portfolio-share-platform-icon,
+    .portfolio-share-platform:focus-visible .portfolio-share-platform-icon {
+        color: var(--brand);
+        border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+        background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+        filter: none;
+        opacity: 1;
+        transform: translateY(-2px);
+    }
+
+    .portfolio-share-copy-row {
+        padding: 14px 18px 18px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 8px;
+    }
+
+    .portfolio-share-copy-row input {
+        min-width: 0;
+        height: 38px;
+        padding: 0 11px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        outline: none;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 10px;
+    }
+
+    .portfolio-share-copy-row input:focus { border-color: var(--border-strong); }
+
+    .portfolio-share-copy-row button {
+        height: 38px;
+        min-width: 64px;
+        padding: 0 13px;
+        border: 1px solid var(--border-strong);
+        border-radius: 7px;
+        background: transparent;
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .portfolio-share-copy-row button:hover,
+    .portfolio-share-copy-row button:focus-visible { background: var(--surface-2); outline: none; }
+
+    .portfolio-engagement-toast {
+        position: fixed;
+        right: 16px;
+        bottom: 20px;
+        z-index: 320;
+        padding: 7px 10px;
+        border: 1px solid var(--border-strong);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--text);
+        font-family: var(--font-sans);
+        font-size: 11px;
+        opacity: 0;
+        transform: translateY(4px);
+        pointer-events: none;
+        transition: opacity 140ms ease, transform 140ms ease;
+    }
+
+    .portfolio-engagement-toast.visible { opacity: 1; transform: translateY(0); }
+
     .engage.feed .engage-item {
         min-width: 48px;
         height: 38px;
@@ -383,25 +800,12 @@
     }
 
     .engage.feed .engage-item > svg,
-    .engage.feed .heart-shell svg {
-        width: 19px;
-        height: 19px;
-    }
-
-    .engage.feed .heart-shell {
-        width: 20px;
-        height: 20px;
-    }
-
+    .engage.feed .heart-shell svg { width: 19px; height: 19px; }
+    .engage.feed .heart-shell { width: 20px; height: 20px; }
     .engage.feed .engage-action:hover,
-    .engage.feed .engage-action:focus-visible {
-        transform: translateY(-1px);
-    }
+    .engage.feed .engage-action:focus-visible { transform: translateY(-1px); }
 
-    .home-redesign .tweet-engagement {
-        gap: 8px;
-    }
-
+    .home-redesign .tweet-engagement { gap: 8px; }
     .home-redesign .tweet-metric {
         min-height: 24px;
         padding: 0 3px;
@@ -435,42 +839,104 @@
         outline: none;
     }
 
-    .home-redesign .tweet-like-action.is-liked {
-        color: #f91880;
+    .home-redesign .tweet-like-action .heart-shell {
+        position: relative;
+        width: 16px;
+        height: 16px;
+        display: grid;
+        place-items: center;
+        isolation: isolate;
     }
 
-    .home-redesign .tweet-like-action.is-liked svg {
-        fill: currentColor;
-        stroke: currentColor;
+    .home-redesign .tweet-like-action.liked { color: #f91880; }
+    .home-redesign .tweet-like-action.liked .heart-shell svg { fill: currentColor; stroke: currentColor; }
+    .home-redesign .tweet-like-action.bursting .heart-shell { animation: portfolio-heart-pop 430ms cubic-bezier(.2, .9, .25, 1.35); }
+
+    .home-redesign .tweet-like-action.bursting .heart-shell::before,
+    .home-redesign .tweet-like-action.bursting .heart-shell::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        pointer-events: none;
     }
 
-    .home-redesign .tweet-share-action.is-confirmed,
-    .engage.feed .share-action.is-confirmed {
-        color: var(--text);
+    .home-redesign .tweet-like-action.bursting .heart-shell::before {
+        width: 25px;
+        height: 25px;
+        border: 1.5px solid #f91880;
+        border-radius: 50%;
+        transform: translate(-50%, -50%) scale(.45);
+        animation: portfolio-heart-ring 430ms ease-out forwards;
+        z-index: -1;
+    }
+
+    .home-redesign .tweet-like-action.bursting .heart-shell::after {
+        width: 3px;
+        height: 3px;
+        border-radius: 50%;
+        background: #f91880;
+        box-shadow: 0 -12px #f91880, 10px -7px #f91880, 12px 4px #f91880, 6px 11px #f91880, -6px 11px #f91880, -12px 4px #f91880, -10px -7px #f91880;
+        transform: translate(-50%, -50%) scale(.35);
+        animation: portfolio-heart-particles 430ms ease-out forwards;
+        z-index: -1;
+    }
+
+    .article-dock .share-action strong {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+        clip: auto !important;
+        white-space: nowrap !important;
+    }
+
+    .article-dock .share-action { min-width: 52px !important; }
+
+    @keyframes portfolio-heart-pop {
+        0% { transform: scale(.78); }
+        45% { transform: scale(1.34); }
+        72% { transform: scale(.94); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes portfolio-heart-ring {
+        0% { opacity: .85; transform: translate(-50%, -50%) scale(.4); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.45); }
+    }
+
+    @keyframes portfolio-heart-particles {
+        0% { opacity: 1; transform: translate(-50%, -50%) scale(.25); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+    }
+
+    @media (max-width: 640px) {
+        .portfolio-share-backdrop { padding: 0; place-items: end center; }
+        .portfolio-share-dialog { border-radius: 12px 12px 0 0; }
+        .portfolio-share-platforms { grid-template-columns: repeat(3, 1fr); row-gap: 18px; }
     }
 
     @media (max-width: 520px) {
-        .engage.feed .engage-item {
-            min-width: 44px;
-            height: 36px;
-        }
-
+        .engage.feed .engage-item { min-width: 44px; height: 36px; }
         .engage.feed .engage-item > svg,
-        .engage.feed .heart-shell svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        .home-redesign .tweet-metric svg {
-            width: 14px !important;
-            height: 14px !important;
-        }
+        .engage.feed .heart-shell svg { width: 18px; height: 18px; }
+        .home-redesign .tweet-metric svg { width: 14px !important; height: 14px !important; }
+        .portfolio-share-copy-row,
+        .portfolio-share-platforms { padding-inline: 14px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
         .engage.feed .engage-action,
-        .home-redesign button.tweet-metric {
-            transition: none;
+        .home-redesign button.tweet-metric,
+        .portfolio-share-platform-icon,
+        .portfolio-engagement-toast,
+        .home-redesign .tweet-like-action.bursting .heart-shell,
+        .home-redesign .tweet-like-action.bursting .heart-shell::before,
+        .home-redesign .tweet-like-action.bursting .heart-shell::after {
+            animation: none !important;
+            transition: none !important;
             transform: none !important;
         }
     }

@@ -37,7 +37,7 @@
 
     <footer class="global-search-footer" aria-hidden="true">
       <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-      <span><kbd>Enter</kbd> open</span>
+      <span><kbd>Enter</kbd> open / visit</span>
       <span><kbd>Esc</kbd> close</span>
     </footer>
   </div>
@@ -68,6 +68,11 @@
       page: 'Pages',
       project: 'Projects',
       blog: 'Blog',
+    };
+    const actionLabels: Record<SearchKind, string> = {
+      page: 'open',
+      project: 'visit',
+      blog: 'read',
     };
 
     let entries: SearchEntry[] | null = null;
@@ -132,6 +137,7 @@
       link.href = entry.href;
       link.dataset.searchResult = 'true';
       link.dataset.active = 'false';
+      link.dataset.kind = entry.kind;
       link.setAttribute('role', 'option');
       link.setAttribute('aria-selected', 'false');
       if (entry.external) {
@@ -148,12 +154,24 @@
       const description = document.createElement('span');
       description.textContent = entry.description;
 
+      const side = document.createElement('span');
+      side.className = 'global-search-result-side';
+
       const kind = document.createElement('span');
       kind.className = 'global-search-result-kind';
       kind.textContent = entry.kind;
 
+      const action = document.createElement('span');
+      action.className = 'global-search-result-action';
+      const actionKey = document.createElement('kbd');
+      actionKey.textContent = 'Enter';
+      const actionText = document.createElement('span');
+      actionText.textContent = actionLabels[entry.kind];
+      action.append(actionKey, actionText);
+      side.append(kind, action);
+
       copy.append(title, description);
-      link.append(copy, kind);
+      link.append(copy, side);
       link.addEventListener('mouseenter', () => updateActive(index));
       link.addEventListener('focus', () => updateActive(index));
       link.addEventListener('click', () => dialog.close());
@@ -407,12 +425,15 @@
     color: inherit;
     text-decoration: none;
     background: transparent;
+    transition: background-color 90ms ease, color 90ms ease;
   }
 
   .global-search-group-block .global-search-result:last-child { border-bottom: 0; }
 
   .global-search-result[data-active='true'] {
-    background: color-mix(in srgb, var(--surface) 76%, transparent);
+    background: var(--text);
+    color: var(--bg);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--bg) 28%, transparent);
   }
 
   .global-search-result:focus-visible { outline: 0; }
@@ -444,12 +465,63 @@
     white-space: nowrap;
   }
 
+  .global-search-result[data-active='true'] .global-search-result-copy strong {
+    color: var(--bg);
+  }
+
+  .global-search-result[data-active='true'] .global-search-result-copy > span {
+    color: color-mix(in srgb, var(--bg) 72%, var(--text));
+  }
+
+  .global-search-result-side {
+    min-width: 80px;
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+  }
+
   .global-search-result-kind {
     color: color-mix(in srgb, var(--muted) 76%, transparent);
     font-family: var(--font-mono);
     font-size: 8px;
     line-height: 1;
     text-transform: uppercase;
+  }
+
+  .global-search-result-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    line-height: 1;
+    opacity: 0;
+    transform: translateX(3px);
+    transition: opacity 90ms ease, transform 90ms ease;
+  }
+
+  .global-search-result-action kbd {
+    min-width: 30px;
+    height: 17px;
+    padding: 0 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--bg) 34%, transparent);
+    border-radius: 3px;
+    background: color-mix(in srgb, var(--bg) 9%, transparent);
+    color: inherit;
+    font: inherit;
+  }
+
+  .global-search-result[data-active='true'] .global-search-result-kind {
+    color: color-mix(in srgb, var(--bg) 68%, var(--text));
+  }
+
+  .global-search-result[data-active='true'] .global-search-result-action {
+    opacity: 1;
+    transform: none;
   }
 
   .global-search-empty {
@@ -493,7 +565,16 @@
     .global-search { width: calc(100vw - 16px); margin-top: 8px; max-height: calc(100dvh - 16px); }
     .global-search-results { max-height: calc(100dvh - 184px); }
     .global-search-result { min-height: 54px; padding-inline: 11px; }
+    .global-search-result-side { min-width: 0; }
     .global-search-result-kind { display: none; }
+    .global-search-result-action span { display: none; }
     .global-search-footer { justify-content: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .global-search-result,
+    .global-search-result-action {
+      transition: none;
+    }
   }
 </style>
