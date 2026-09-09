@@ -167,6 +167,15 @@ const blogPath = '/blog/';
         visibility: visible;
     }
 
+    :global(.home-redesign .nr-song-credit) {
+        line-height: 1;
+    }
+
+    :global(.home-redesign .nr-song-credit::before) {
+        position: relative;
+        top: -0.5px;
+    }
+
     .design-reference {
         position: absolute;
         left: 50%;
@@ -185,7 +194,30 @@ const blogPath = '/blog/';
         transform: translate(-50%, -50%);
     }
 
-    .design-reference strong { color: var(--text); font: inherit; font-weight: 600; }
+    .design-reference strong {
+        --design-reference-shimmer: color-mix(in srgb, var(--text) 64%, #fff);
+
+        color: var(--text);
+        font: inherit;
+        font-weight: 600;
+        background: linear-gradient(
+            105deg,
+            var(--text) 0%,
+            var(--text) 38%,
+            var(--design-reference-shimmer) 47%,
+            #fff 50%,
+            var(--design-reference-shimmer) 53%,
+            var(--text) 62%,
+            var(--text) 100%
+        );
+        background-size: 240% 100%;
+        background-position: 140% 0;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: design-reference-shimmer 3.2s ease-in-out infinite;
+    }
+
     .design-reference-copy { color: var(--muted); }
     .design-reference-verified {
         width: 13px;
@@ -216,6 +248,18 @@ const blogPath = '/blog/';
     .design-reference:focus-visible .design-reference-tooltip {
         opacity: 1;
         transform: translate(-50%, 0);
+    }
+
+    @keyframes design-reference-shimmer {
+        0%,
+        18% {
+            background-position: 140% 0;
+        }
+
+        62%,
+        100% {
+            background-position: -40% 0;
+        }
     }
 
     .home-nav {
@@ -318,5 +362,13 @@ const blogPath = '/blog/';
         .home-nav { gap: 8px; }
         .home-nav-link { font-size: 9.5px; }
         .header-separator { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .design-reference strong {
+            animation: none;
+            background: none;
+            -webkit-text-fill-color: currentColor;
+        }
     }
 </style>
