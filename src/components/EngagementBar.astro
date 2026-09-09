@@ -1,24 +1,22 @@
 ---
 import Icon from './Icon.astro';
 import { getSiteContent } from '../data/siteContent';
+import { getMetricsApiBase } from '../lib/metrics';
 
 interface Props {
 	postId: string;
 	title: string;
-	variant?: 'inline' | 'floating' | 'feed';
+	variant: 'floating' | 'feed';
 	trackView?: boolean;
 }
 
 const {
 	postId,
 	title,
-	variant = 'inline',
+	variant,
 	trackView = true,
 } = Astro.props;
-const fallbackApiBase = import.meta.env.PROD
-	? 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev'
-	: '';
-const apiBase = import.meta.env.PUBLIC_ENGAGEMENT_API_BASE?.trim() || fallbackApiBase;
+const apiBase = getMetricsApiBase();
 const rootId = `engage-${postId}`;
 const dialogTitleId = `${rootId}-share-title`;
 const content = getSiteContent().engagement;

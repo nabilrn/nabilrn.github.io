@@ -75,7 +75,7 @@
     let resultNodes: HTMLAnchorElement[] = [];
     let activeIndex = -1;
 
-    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
     document.querySelectorAll('[data-global-search-shortcut]').forEach((node) => {
       node.textContent = isMac ? '⌘K' : 'Ctrl K';
     });

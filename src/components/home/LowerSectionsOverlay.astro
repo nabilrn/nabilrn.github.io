@@ -3,10 +3,11 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import avatar from '../../assets/profile-anime.webp';
 import { getSiteContent } from '../../data/siteContent';
+import { getMetricsApiBase } from '../../lib/metrics';
 import VerifiedIcon from './VerifiedIcon.astro';
 
 const content = getSiteContent();
-const METRICS_API = 'https://portfolio-metrics-api.nabilrizkinavisa.workers.dev';
+const METRICS_API = getMetricsApiBase();
 
 const cleanMarkdown = (value: string) => value
   .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
@@ -64,7 +65,7 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 
       <div class="analytics-top-page">
         <span class="analytics-label">top page</span>
-        <span class="analytics-page-path" data-analytics-top-page>/</span>
+        <span class="analytics-page-path" data-analytics-top-page>—</span>
       </div>
     </div>
   </section>
@@ -358,8 +359,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 
   const analyticsRegion = document.querySelector<HTMLElement>('.analytics-region');
   const blogRegion = document.querySelector<HTMLElement>('.latest-blog-region');
-  const apiBase = analyticsRegion?.dataset.analyticsApi ?? '';
-  const blogApiBase = blogRegion?.dataset.blogMetricsApi ?? apiBase;
+  const normalizeApiBase = (value?: string) => value?.trim().replace(/\/+$/, '') ?? '';
+  const apiBase = normalizeApiBase(analyticsRegion?.dataset.analyticsApi);
+  const blogApiBase = normalizeApiBase(blogRegion?.dataset.blogMetricsApi) || apiBase;
   const visitorsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-visitors]');
   const pageviewsEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-pageviews]');
   const topPageEl = analyticsRegion?.querySelector<HTMLElement>('[data-analytics-top-page]');
@@ -369,20 +371,6 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
   const exact = new Intl.NumberFormat('en-US');
   const hourFormat = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
   const dayFormat = new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short' });
-  const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-
-  const previewValues = [2,1,0,4,3,5,2,7,6,9,5,11,8,13,10,15,12,18,16,21,17,24,19,22];
-  const preview: Summary = {
-    generatedAt: new Date().toISOString(),
-    visitors: 48,
-    pageviews: previewValues.reduce((sum, value) => sum + value, 0),
-    topPage: { path: '/blog/linus-torvalds-and-linux/', views: 42 },
-    last24Hours: previewValues.map((views, index) => ({
-      hour: new Date(Date.now() - (23 - index) * 3_600_000).toISOString(),
-      views,
-      visitors: Math.round(views * .62),
-    })),
-  };
 
   const getVisitorId = () => {
     const key = 'portfolio:visitor-id';
@@ -414,22 +402,17 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
     tooltip.style.top = `${Math.max(tip.height + 12, rect.top)}px`;
   };
 
-  const hourlyPoints = (values?: HourPoint[]): ChartPoint[] => {
-    const safe: HourPoint[] = Array.isArray(values) && values.length === 24
-      ? values
-      : Array.from({ length: 24 }, (): HourPoint => ({ views: 0, visitors: 0 }));
-    return safe.map((item, index) => {
-      const fallback = new Date(Date.now() - (23 - index) * 3_600_000);
-      const parsed = item.hour ? new Date(item.hour) : fallback;
-      const start = Number.isNaN(parsed.getTime()) ? fallback : parsed;
-      const end = new Date(start.getTime() + 3_600_000);
-      return {
-        label: `${dayFormat.format(start)} · ${hourFormat.format(start)}–${hourFormat.format(end)}`,
-        views: Math.max(0, Number(item.views ?? 0)),
-        visitors: Math.max(0, Number(item.visitors ?? 0)),
-      };
-    });
-  };
+  const hourlyPoints = (values?: HourPoint[]): ChartPoint[] => (values ?? []).map((item, index) => {
+    const fallback = new Date(Date.now() - (23 - index) * 3_600_000);
+    const parsed = item.hour ? new Date(item.hour) : fallback;
+    const start = Number.isNaN(parsed.getTime()) ? fallback : parsed;
+    const end = new Date(start.getTime() + 3_600_000);
+    return {
+      label: `${dayFormat.format(start)} · ${hourFormat.format(start)}–${hourFormat.format(end)}`,
+      views: Math.max(0, Number(item.views ?? 0)),
+      visitors: Math.max(0, Number(item.visitors ?? 0)),
+    };
+  });
 
   const renderSpark = (points: ChartPoint[]) => {
     if (!sparkEl) return;
@@ -440,35 +423,49 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       const bar = document.createElement('span');
       bar.style.height = `${empty ? 0 : Math.max(12, (point.views / max) * 100)}%`;
       bar.dataset.empty = String(empty);
-      bar.tabIndex = 0;
+      bar.tabIndex = empty ? -1 : 0;
       bar.setAttribute('role', 'listitem');
       const label = `${point.label} · ${exact.format(point.views)} pageviews · ${exact.format(point.visitors)} visitors`;
       bar.setAttribute('aria-label', label);
       bar.dataset.analyticsTooltip = label;
-      bar.addEventListener('pointerenter', () => showTooltip(bar));
-      bar.addEventListener('pointerleave', hideTooltip);
-      bar.addEventListener('focus', () => showTooltip(bar));
-      bar.addEventListener('blur', hideTooltip);
+      if (!empty) {
+        bar.addEventListener('pointerenter', () => showTooltip(bar));
+        bar.addEventListener('pointerleave', hideTooltip);
+        bar.addEventListener('focus', () => showTooltip(bar));
+        bar.addEventListener('blur', hideTooltip);
+      }
       sparkEl.appendChild(bar);
     }
+  };
+
+  const renderUnavailable = () => {
+    if (visitorsEl) visitorsEl.textContent = '—';
+    if (pageviewsEl) pageviewsEl.textContent = '—';
+    if (topPageEl) topPageEl.textContent = '—';
+    renderSpark([]);
   };
 
   const renderSummary = (summary: Summary) => {
     const valid = typeof summary.generatedAt === 'string'
       && Array.isArray(summary.last24Hours)
       && summary.last24Hours.length === 24;
-    const data: Summary = valid ? summary : { visitors: 0, pageviews: 0, topPage: { path: '/' }, last24Hours: [] };
-    if (visitorsEl) visitorsEl.textContent = compact.format(Number(data.visitors ?? 0));
-    if (pageviewsEl) pageviewsEl.textContent = compact.format(Number(data.pageviews ?? 0));
-    if (topPageEl) topPageEl.textContent = data.topPage?.path || '/';
-    renderSpark(hourlyPoints(data.last24Hours));
+    if (!valid) {
+      renderUnavailable();
+      return;
+    }
+    if (visitorsEl) visitorsEl.textContent = compact.format(Number(summary.visitors ?? 0));
+    if (pageviewsEl) pageviewsEl.textContent = compact.format(Number(summary.pageviews ?? 0));
+    if (topPageEl) topPageEl.textContent = summary.topPage?.path || '/';
+    renderSpark(hourlyPoints(summary.last24Hours));
   };
 
-  renderSpark(hourlyPoints());
+  renderUnavailable();
 
   void (async () => {
     if (!apiBase) return;
-    if (!isLocal) {
+    const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+    if (!isLocalPreview) {
       try {
         await fetch(`${apiBase}/analytics/view`, {
           method: 'POST',
@@ -485,9 +482,9 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
       const response = await fetch(`${apiBase}/analytics/summary`, { headers: { Accept: 'application/json' }, cache: 'no-store' });
       if (!response.ok) throw new Error(`analytics summary ${response.status}`);
       const summary = await response.json() as Summary;
-      renderSummary(isLocal && !summary.generatedAt ? preview : summary);
+      renderSummary(summary);
     } catch {
-      renderSummary(isLocal ? preview : {});
+      renderUnavailable();
     }
   })();
 
@@ -505,8 +502,8 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
         if (views) views.textContent = compact.format(Number(metrics.views ?? 0));
         if (likes) likes.textContent = compact.format(Number(metrics.likes ?? 0));
       } catch {
-        if (views) views.textContent = '0';
-        if (likes) likes.textContent = '0';
+        if (views) views.textContent = '—';
+        if (likes) likes.textContent = '—';
       }
     })();
   });
