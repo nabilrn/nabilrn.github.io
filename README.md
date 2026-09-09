@@ -53,7 +53,7 @@ pnpm preview
 
 The Astro production output is static and is written to `dist/`.
 
-The portfolio can run without the metrics backend. When no metrics API is configured during local development, analytics and engagement values stay in an unavailable state instead of showing synthetic preview data. To use real metrics locally, configure the shared API base described below and allow `http://localhost:4321` in the Worker CORS allowlist.
+The portfolio can run without the metrics backend. When no metrics API is configured during local development, analytics and engagement values stay unavailable instead of showing synthetic preview data. To read real metrics locally, configure the shared API base described below. Homepage analytics does not record local preview visits.
 
 ## Routes
 
@@ -80,7 +80,6 @@ description: "Short summary"
 pubDate: 2026-03-15
 updatedDate: 2026-03-20 # optional
 tags: ["tag1", "tag2"]
-featured: false
 draft: false
 ```
 
@@ -102,7 +101,7 @@ Both use the `METRICS` Cloudflare Workers KV binding. The homepage analytics con
 - `visitors` is deduplicated across visitor keys from those 24 hours;
 - `topPage` is aggregated only from hourly page counters in the same 24-hour window.
 
-Hourly keys use TTLs and live in the same KV namespace. A separate database or KV migration is not required.
+Hourly analytics keys use TTLs and live in the same KV namespace. The Worker no longer maintains separate all-time site-analytics counters, so pageview tracking only writes the rolling-hour keys required by the current UI. Blog engagement counters remain independent and persistent.
 
 ### Set up your own Worker and KV namespace
 
@@ -140,7 +139,7 @@ pnpm dlx wrangler kv namespace create METRICS --config worker/wrangler.toml
 
 Wrangler returns a generated namespace ID. Put that ID in the `[[kv_namespaces]]` block as the `METRICS` binding.
 
-`ALLOWED_ORIGIN` is a comma-separated CORS allowlist. Include every frontend origin that should be allowed to send analytics/engagement writes. Add `http://localhost:4321` if you want the remote Worker to accept writes from the local Astro development server.
+`ALLOWED_ORIGIN` is a comma-separated CORS allowlist. Include every frontend origin that should be allowed to send metrics writes. Add `http://localhost:4321` only if you intentionally want local blog engagement actions to reach the remote Worker.
 
 Deploy the Worker manually:
 
@@ -170,9 +169,9 @@ Copy `.env.example` to `.env` and set the shared frontend metrics API base:
 PUBLIC_ENGAGEMENT_API_BASE=https://portfolio-metrics-api.<your-workers-subdomain>.workers.dev
 ```
 
-Despite the historical variable name, this single value now controls both homepage analytics and blog engagement. Production falls back to the original public Worker when the variable is unset; local development does not use that production fallback, so metrics remain unavailable until you opt in by setting the variable.
+This value controls both homepage analytics and blog engagement. Production falls back to the original public Worker when the variable is unset; local development does not use that production fallback, so metrics remain unavailable until you opt in by setting the variable.
 
-When this variable is configured locally, local page visits send real analytics writes to that Worker. Make sure the Worker's `ALLOWED_ORIGIN` includes `http://localhost:4321` if you want that behavior.
+The configured API base is normalized before homepage requests, so a trailing slash is safe. Local homepage previews may read the real rolling summary but do not call `/analytics/view`; this prevents development refreshes from inflating production site analytics. Blog engagement requests still use the configured Worker when you interact with blog UI locally, so only allow localhost in Worker CORS when that is intentional.
 
 Never commit Cloudflare API tokens or other credentials. The KV namespace ID and account ID are identifiers, not authentication secrets, but forks should still replace the original deployment identifiers with their own resources.
 
