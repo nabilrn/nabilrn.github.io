@@ -191,19 +191,32 @@ import ProjectCard from './ProjectCard.astro';
 
 <script>
     const TARGET_VELOCITY_PX_PER_SECOND = 32;
-    const template = document.querySelector<HTMLTemplateElement>('[data-project-carousel-template]');
-    const region = document.querySelector<HTMLElement>('.projects-region');
+    let carouselCleanup: (() => void) | null = null;
 
-    if (template && region && !region.querySelector('.project-carousel-panel')) {
-        region.replaceChildren(template.content.cloneNode(true));
-    }
+    const cleanupProjectCarousel = () => {
+        carouselCleanup?.();
+        carouselCleanup = null;
+    };
 
-    const panel = region?.querySelector<HTMLElement>('.project-carousel-panel');
-    const sourceGroup = panel?.querySelector<HTMLElement>('[data-project-carousel-source]');
-    const duplicateGroup = panel?.querySelector<HTMLElement>('.project-carousel-group--duplicate');
-    const viewport = panel?.querySelector<HTMLElement>('.project-carousel-viewport');
+    const initProjectCarousel = () => {
+        cleanupProjectCarousel();
 
-    if (panel && sourceGroup && viewport) {
+        const template = document.querySelector<HTMLTemplateElement>('[data-project-carousel-template]');
+        const region = document.querySelector<HTMLElement>('.projects-region');
+
+        if (template && region && !region.querySelector('.project-carousel-panel')) {
+            region.replaceChildren(template.content.cloneNode(true));
+        }
+
+        const panel = region?.querySelector<HTMLElement>('.project-carousel-panel');
+        const sourceGroup = panel?.querySelector<HTMLElement>('[data-project-carousel-source]');
+        const duplicateGroup = panel?.querySelector<HTMLElement>('.project-carousel-group--duplicate');
+        const viewport = panel?.querySelector<HTMLElement>('.project-carousel-viewport');
+
+        if (!panel || !sourceGroup || !viewport) return;
+
+        const controller = new AbortController();
+        const { signal } = controller;
         let scheduledFrame = 0;
         let previousDistance = 0;
 
@@ -242,26 +255,17 @@ import ProjectCard from './ProjectCard.astro';
                 return;
             }
 
-            /* Do not start the moving rail while clone surfaces are blank. The
-               desktop carousel promotes its source screenshots to eager/low
-               priority first, then starts only after the browser has decoded the
-               exact responsive currentSrc used to paint the duplicate rail. */
             if (!cloneRailReady()) {
                 panel.dataset.carouselReady = 'false';
                 return;
             }
 
-            /* The source group includes its trailing seam spacing. Travelling by
-               exactly this width places duplicate group #2 at group #1's initial
-               coordinates when the animation loops. */
             const distance = sourceGroup.getBoundingClientRect().width;
             if (!Number.isFinite(distance) || distance <= 0) {
                 panel.dataset.carouselReady = 'false';
                 return;
             }
 
-            /* Ignore tiny ResizeObserver noise so a sub-pixel fluctuation does
-               not restart the CSS animation. */
             if (Math.abs(distance - previousDistance) < 0.25 && panel.dataset.carouselReady === 'true') {
                 return;
             }
@@ -275,6 +279,7 @@ import ProjectCard from './ProjectCard.astro';
         };
 
         const scheduleMeasure = () => {
+            if (signal.aborted) return;
             if (scheduledFrame) cancelAnimationFrame(scheduledFrame);
             scheduledFrame = requestAnimationFrame(measure);
         };
@@ -298,18 +303,29 @@ import ProjectCard from './ProjectCard.astro';
             image.addEventListener('load', () => {
                 syncCloneSurface(image, index);
                 scheduleMeasure();
-            });
+            }, { signal });
         });
 
         const resizeObserver = new ResizeObserver(scheduleMeasure);
         resizeObserver.observe(sourceGroup);
         resizeObserver.observe(viewport);
 
-        motionQuery.addEventListener('change', configureImageLoading);
-        mobileQuery.addEventListener('change', configureImageLoading);
-        window.addEventListener('load', scheduleMeasure, { once: true });
+        motionQuery.addEventListener('change', configureImageLoading, { signal });
+        mobileQuery.addEventListener('change', configureImageLoading, { signal });
+        window.addEventListener('load', scheduleMeasure, { once: true, signal });
 
         configureImageLoading();
-        document.fonts?.ready.then(scheduleMeasure);
-    }
+        void document.fonts?.ready.then(() => {
+            if (!signal.aborted) scheduleMeasure();
+        });
+
+        carouselCleanup = () => {
+            controller.abort();
+            resizeObserver.disconnect();
+            if (scheduledFrame) cancelAnimationFrame(scheduledFrame);
+        };
+    };
+
+    document.addEventListener('astro:page-load', initProjectCarousel);
+    document.addEventListener('astro:before-swap', cleanupProjectCarousel);
 </script>
