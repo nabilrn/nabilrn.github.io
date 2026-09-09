@@ -8,9 +8,15 @@
         last24Hours?: HourPoint[];
     };
     type ChartPoint = { label: string; views: number; visitors: number };
+    type BeforeSwapEvent = Event & { newDocument?: Document };
+
+    const PADANG_TIME_ZONE = 'Asia/Jakarta';
+    const PADANG_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Padang%2C%20Sumatera%20Barat%2C%20Indonesia';
+    const DUOLINGO_PROFILE_URL = 'https://www.duolingo.com/profile/bilcikiwir?via=share_profile_link';
 
     let homeWasSeen = false;
-    let cleanupCurrentHome: (() => void) | null = null;
+    let blogWasSeen = false;
+    let cleanupCurrentPage: (() => void) | null = null;
 
     const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
     const exact = new Intl.NumberFormat('en-US');
@@ -28,9 +34,22 @@
         return id;
     };
 
-    const cleanupHomeLifecycle = () => {
-        cleanupCurrentHome?.();
-        cleanupCurrentHome = null;
+    const cleanupPageLifecycle = () => {
+        cleanupCurrentPage?.();
+        cleanupCurrentPage = null;
+    };
+
+    const renderHeaderGreeting = () => {
+        const target = document.querySelector<HTMLElement>('[data-local-greeting]');
+        if (!target) return;
+
+        const hour = new Date().getHours();
+        target.textContent = hour >= 5 && hour < 12
+            ? 'good morning'
+            : hour >= 12 && hour < 17
+                ? 'good afternoon'
+                : 'good evening';
+        target.dataset.ready = 'true';
     };
 
     const ensureEducationOverlay = () => {
@@ -39,6 +58,150 @@
         if (template && region && !region.querySelector('.education-panel')) {
             region.replaceChildren(template.content.cloneNode(true));
         }
+    };
+
+    const ensureProfileLinks = () => {
+        const locationPlace = document.querySelector<HTMLElement>('.location-place');
+        if (locationPlace && !locationPlace.querySelector('.profile-hit-link')) {
+            locationPlace.dataset.profileLink = 'maps';
+
+            const hitLink = document.createElement('a');
+            hitLink.className = 'profile-hit-link';
+            hitLink.href = PADANG_MAPS_URL;
+            hitLink.target = '_blank';
+            hitLink.rel = 'noopener';
+            hitLink.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+            locationPlace.append(hitLink);
+
+            const svgNamespace = 'http://www.w3.org/2000/svg';
+            const mapsIcon = document.createElementNS(svgNamespace, 'svg');
+            mapsIcon.classList.add('location-map-brand');
+            mapsIcon.setAttribute('viewBox', '0 0 24 24');
+            mapsIcon.setAttribute('aria-hidden', 'true');
+            mapsIcon.innerHTML = `
+                <path fill="#34A853" d="M12 2a8 8 0 0 0-8 8c0 5 8 12 8 12s8-7 8-12a8 8 0 0 0-8-8Z"></path>
+                <path fill="#FBBC04" d="M12 2a8 8 0 0 0-7.3 4.7L12 12l7.3-5.3A8 8 0 0 0 12 2Z"></path>
+                <path fill="#EA4335" d="M4 10c0 2.2 1.5 5 3.4 7.3L12 12 4.7 6.7A8 8 0 0 0 4 10Z"></path>
+                <circle cx="12" cy="10" r="2.8" fill="#4285F4"></circle>
+            `;
+            locationPlace.append(mapsIcon);
+
+            const tooltip = document.createElement('span');
+            tooltip.className = 'profile-link-tooltip';
+            tooltip.textContent = 'See Padang on Google Maps';
+            tooltip.setAttribute('role', 'tooltip');
+            locationPlace.append(tooltip);
+        }
+
+        const streakRegion = document.querySelector<HTMLElement>('.streak-region');
+        if (streakRegion && !streakRegion.querySelector('.profile-hit-link')) {
+            streakRegion.dataset.profileLink = 'duolingo';
+
+            const hitLink = document.createElement('a');
+            hitLink.className = 'profile-hit-link';
+            hitLink.href = DUOLINGO_PROFILE_URL;
+            hitLink.target = '_blank';
+            hitLink.rel = 'noopener';
+            hitLink.setAttribute(
+                'aria-label',
+                `${streakRegion.getAttribute('aria-label') ?? 'Duolingo streak'}, open @bilcikiwir profile`,
+            );
+            streakRegion.append(hitLink);
+        }
+    };
+
+    const initPadangClock = (controller: AbortController) => {
+        const timeTarget = document.querySelector<HTMLElement>('[data-padang-time]');
+        const dateTarget = document.querySelector<HTMLElement>('[data-padang-date]');
+        const diffTarget = document.querySelector<HTMLElement>('[data-padang-diff]');
+        const handsTarget = document.querySelector<SVGPathElement>('[data-padang-clock-hands]');
+        if (!timeTarget || !dateTarget || !diffTarget) return;
+
+        const timeFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: PADANG_TIME_ZONE,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
+        const dateFormatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone: PADANG_TIME_ZONE,
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+        const offsetFormatter = new Intl.DateTimeFormat('en-US', {
+            timeZone: PADANG_TIME_ZONE,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hourCycle: 'h23',
+        });
+
+        const getPadangOffset = (date: Date) => {
+            const parts = offsetFormatter.formatToParts(date);
+            const values = Object.fromEntries(
+                parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]),
+            );
+            const representedUtc = Date.UTC(
+                Number(values.year),
+                Number(values.month) - 1,
+                Number(values.day),
+                Number(values.hour),
+                Number(values.minute),
+                Number(values.second),
+            );
+            return Math.round((representedUtc - date.getTime()) / 60000);
+        };
+
+        const clockHandsPath = (hour: number, minute: number) => {
+            const h = hour % 12;
+            const round = (value: number) => Math.round(value * 1000) / 1000;
+            const minuteAngle = (minute / 60) * 2 * Math.PI;
+            const hourAngle = ((h + minute / 60) / 12) * 2 * Math.PI;
+            const hx = round(12 + 3.6 * Math.sin(hourAngle));
+            const hy = round(12 - 3.6 * Math.cos(hourAngle));
+            const mx = round(12 + 6 * Math.sin(minuteAngle));
+            const my = round(12 - 6 * Math.cos(minuteAngle));
+            return `M12 12 L${hx} ${hy} M12 12 L${mx} ${my}`;
+        };
+
+        const render = () => {
+            const now = new Date();
+            const timeParts = timeFormatter.formatToParts(now);
+            const hourPart = timeParts.find((part) => part.type === 'hour')?.value ?? '12';
+            const minutePart = timeParts.find((part) => part.type === 'minute')?.value ?? '00';
+            const dayPeriod = timeParts.find((part) => part.type === 'dayPeriod')?.value ?? '';
+
+            timeTarget.textContent = `${hourPart}:${minutePart}${dayPeriod ? ` ${dayPeriod}` : ''}`;
+            dateTarget.textContent = dateFormatter.format(now).toUpperCase();
+
+            const viewerOffset = -now.getTimezoneOffset();
+            const padangOffset = getPadangOffset(now);
+            const delta = padangOffset - viewerOffset;
+            const absDelta = Math.abs(delta);
+
+            let diffText = '// same time';
+            if (absDelta >= 1) {
+                const hours = Math.floor(absDelta / 60);
+                const minutes = absDelta % 60;
+                const pieces: string[] = [];
+                if (hours) pieces.push(`${hours}h`);
+                if (minutes) pieces.push(`${minutes}m`);
+                diffText = `// ${pieces.join(' ')} ${delta > 0 ? 'ahead' : 'behind'}`;
+            }
+            diffTarget.textContent = diffText;
+
+            if (handsTarget) {
+                handsTarget.setAttribute('d', clockHandsPath(Number.parseInt(hourPart, 10), Number.parseInt(minutePart, 10)));
+            }
+        };
+
+        render();
+        const timer = window.setInterval(render, 30000);
+        controller.signal.addEventListener('abort', () => window.clearInterval(timer), { once: true });
     };
 
     const initContributionTooltips = (controller: AbortController) => {
@@ -219,7 +382,9 @@
 
         void (async () => {
             if (!apiBase) return;
-            const isLocalPreview = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === '::1';
+            const isLocalPreview = location.hostname === 'localhost'
+                || location.hostname === '127.0.0.1'
+                || location.hostname === '::1';
 
             if (!isLocalPreview) {
                 try {
@@ -274,29 +439,79 @@
         });
     };
 
-    const initHomeLifecycle = () => {
-        cleanupHomeLifecycle();
+    const initBlogSearch = (controller: AbortController) => {
+        const root = document.querySelector<HTMLElement>('[data-blog-feed-root]');
+        if (!root) return;
 
-        const home = document.querySelector('.home-redesign');
-        if (!home) return;
+        const cards = Array.from(root.querySelectorAll<HTMLElement>('[data-post-search]'));
+        const emptyState = root.querySelector<HTMLElement>('[data-empty-state]');
+        const search = root.querySelector<HTMLInputElement>('[data-blog-search]');
+        if (!search) return;
+
+        const normalize = (value: string) => value
+            .normalize('NFKD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase();
+
+        const apply = () => {
+            const query = normalize(search.value.trim());
+            let visible = 0;
+            cards.forEach((card) => {
+                const haystack = card.dataset.postSearch ?? '';
+                const matches = !query || haystack.includes(query);
+                card.hidden = !matches;
+                if (matches) visible += 1;
+            });
+            if (emptyState) emptyState.hidden = visible > 0;
+        };
+
+        search.addEventListener('input', apply, { signal: controller.signal });
+        apply();
+    };
+
+    const initPageLifecycle = () => {
+        cleanupPageLifecycle();
+        renderHeaderGreeting();
 
         const controller = new AbortController();
-        ensureEducationOverlay();
-        initContributionTooltips(controller);
-        initLowerSections(controller);
+        const home = document.querySelector('.home-redesign');
+        const blog = document.querySelector('[data-blog-feed-root]');
 
-        if (homeWasSeen) {
-            initExperienceOverflow(controller);
+        if (home) {
+            ensureEducationOverlay();
+            ensureProfileLinks();
+            initContributionTooltips(controller);
+            initLowerSections(controller);
+
+            if (homeWasSeen) {
+                initPadangClock(controller);
+                initExperienceOverflow(controller);
+            }
+            homeWasSeen = true;
         }
-        homeWasSeen = true;
 
-        cleanupCurrentHome = () => {
+        if (blog) {
+            if (blogWasSeen) initBlogSearch(controller);
+            blogWasSeen = true;
+        }
+
+        cleanupCurrentPage = () => {
             controller.abort();
             document.querySelector('.analytics-floating-tooltip')?.remove();
             document.querySelector('.contribution-floating-tooltip')?.remove();
         };
     };
 
-    document.addEventListener('astro:page-load', initHomeLifecycle);
-    document.addEventListener('astro:before-swap', cleanupHomeLifecycle);
+    const prepareInlineEngagementScripts = (event: Event) => {
+        const nextDocument = (event as BeforeSwapEvent).newDocument;
+        nextDocument?.querySelectorAll<HTMLScriptElement>('script[data-root-id^="engage-"]').forEach((script) => {
+            script.setAttribute('data-astro-rerun', '');
+        });
+    };
+
+    document.addEventListener('astro:page-load', initPageLifecycle);
+    document.addEventListener('astro:before-swap', (event) => {
+        cleanupPageLifecycle();
+        prepareInlineEngagementScripts(event);
+    });
 </script>
