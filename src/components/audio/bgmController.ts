@@ -269,7 +269,9 @@ if (!portfolioWindow.__portfolioBgmControllerBound) {
 		if (state === 'playing') startVisualizer();
 	});
 
+	const initialAudio = getAudio();
+	audio = initialAudio;
 	bindAudio();
-	emitState(audio && !audio.paused ? 'playing' : 'paused');
+	emitState(initialAudio?.paused === false ? 'playing' : 'paused');
 	syncPresenters();
 }
