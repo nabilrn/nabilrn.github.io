@@ -53,7 +53,7 @@ pnpm preview
 
 The Astro production output is static and is written to `dist/`.
 
-The portfolio itself can run without deploying the metrics backend. In that case the pages still render, but production engagement/analytics data requires a reachable Metrics Worker.
+The portfolio can run without the metrics backend. When no metrics API is configured during local development, analytics and engagement values stay in an unavailable state instead of showing synthetic preview data. To use real metrics locally, configure the shared API base described below and allow `http://localhost:4321` in the Worker CORS allowlist.
 
 ## Routes
 
@@ -164,13 +164,15 @@ A current Worker response contains `generatedAt`, `visitors`, `pageviews`, `topP
 
 ### Point a fork at its own Worker
 
-Copy `.env.example` to `.env` and set the public engagement API base:
+Copy `.env.example` to `.env` and set the shared frontend metrics API base:
 
 ```bash
 PUBLIC_ENGAGEMENT_API_BASE=https://portfolio-metrics-api.<your-workers-subdomain>.workers.dev
 ```
 
-`EngagementBar.astro` reads this variable for blog engagement. The homepage analytics section currently has its production Worker default in `src/components/home/LowerSectionsOverlay.astro`; forks using another Worker should replace that `METRICS_API` value with their deployed Worker URL as well.
+Despite the historical variable name, this single value now controls both homepage analytics and blog engagement. Production falls back to the original public Worker when the variable is unset; local development does not use that production fallback, so metrics remain unavailable until you opt in by setting the variable.
+
+When this variable is configured locally, local page visits send real analytics writes to that Worker. Make sure the Worker's `ALLOWED_ORIGIN` includes `http://localhost:4321` if you want that behavior.
 
 Never commit Cloudflare API tokens or other credentials. The KV namespace ID and account ID are identifiers, not authentication secrets, but forks should still replace the original deployment identifiers with their own resources.
 
