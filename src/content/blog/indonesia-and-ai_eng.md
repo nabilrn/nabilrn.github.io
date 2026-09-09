@@ -3,7 +3,6 @@ title: "Indonesia and AI: Adoption Is the Easy Part"
 description: "Indonesia is adopting AI quickly. The harder question is whether we are building the judgment, skills, and institutions needed to use it well."
 pubDate: 2026-04-21
 tags: ["ai", "indonesia", "technology", "society"]
-featured: false
 draft: false
 ---
 
