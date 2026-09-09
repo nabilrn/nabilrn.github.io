@@ -9,8 +9,6 @@ const escapeXml = (value: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
 
-const staticLastmod = '2026-09-08T00:00:00.000Z';
-
 const renderUrl = ({
   path,
   lastmod,
@@ -28,8 +26,8 @@ const renderUrl = ({
 
 export async function GET() {
   const pages = [
-    { path: '/', priority: 1.0, changefreq: 'monthly', lastmod: staticLastmod },
-    { path: '/blog/', priority: 0.8, changefreq: 'weekly', lastmod: staticLastmod },
+    { path: '/', priority: 1.0, changefreq: 'monthly' },
+    { path: '/blog/', priority: 0.8, changefreq: 'weekly' },
   ];
 
   const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
