@@ -164,17 +164,10 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
 
   const hour = utcHourKey();
   const encodedPath = encodeURIComponent(path);
-  const allTimeVisitorKey = `${ANALYTICS_PREFIX}visitor:${visitorId}`;
   const hourlyVisitorKey = `${ANALYTICS_PREFIX}hour:${hour}:visitor:${visitorId}`;
-
-  const [knownVisitor, knownThisHour] = await Promise.all([
-    kv.get(allTimeVisitorKey),
-    kv.get(hourlyVisitorKey),
-  ]);
+  const knownThisHour = await kv.get(hourlyVisitorKey);
 
   await Promise.all([
-    increment(kv, `${ANALYTICS_PREFIX}pageviews`),
-    increment(kv, `${ANALYTICS_PREFIX}page:${encodedPath}:views`),
     increment(
       kv,
       `${ANALYTICS_PREFIX}hour:${hour}:views`,
@@ -189,15 +182,8 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
     ),
   ]);
 
-  const uniqueWrites: Promise<unknown>[] = [];
-  if (!knownVisitor) {
-    uniqueWrites.push(
-      kv.put(allTimeVisitorKey, '1'),
-      increment(kv, `${ANALYTICS_PREFIX}visitors`),
-    );
-  }
   if (!knownThisHour) {
-    uniqueWrites.push(
+    await Promise.all([
       kv.put(hourlyVisitorKey, '1', { expirationTtl: HOURLY_VISITOR_TTL_SECONDS }),
       increment(
         kv,
@@ -205,9 +191,8 @@ async function trackSiteView(kv: KVNamespace, pathInput: string | undefined, vis
         1,
         { expirationTtl: HOURLY_COUNTER_TTL_SECONDS },
       ),
-    );
+    ]);
   }
-  if (uniqueWrites.length) await Promise.all(uniqueWrites);
 
   return { path };
 }
