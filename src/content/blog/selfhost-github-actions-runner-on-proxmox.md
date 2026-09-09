@@ -3,7 +3,6 @@ title: "Running a Self-Hosted GitHub Actions Runner on Proxmox"
 description: "A practical guide to running a GitHub Actions self-hosted runner inside a dedicated Proxmox VM, with the parts that matter most: registration, service mode, labels, Docker, networking, updates, and security."
 pubDate: 2026-04-04
 tags: ["github-actions", "ci-cd", "proxmox", "devops"]
-featured: true
 draft: false
 ---
 
