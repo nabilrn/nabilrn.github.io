@@ -610,7 +610,7 @@ const socialLinks = [
 </style>
 
 <script>
-    const PADANG_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Padang%2C%20Sumatera%20Barat%2C%20Indonesia';
+    const JAKARTA_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Jakarta%2C%20Indonesia';
     const DUOLINGO_PROFILE_URL = 'https://www.duolingo.com/profile/bilcikiwir?via=share_profile_link';
 
     const locationPlace = document.querySelector<HTMLElement>('.location-place');
@@ -619,10 +619,10 @@ const socialLinks = [
 
         const hitLink = document.createElement('a');
         hitLink.className = 'profile-hit-link';
-        hitLink.href = PADANG_MAPS_URL;
+        hitLink.href = JAKARTA_MAPS_URL;
         hitLink.target = '_blank';
         hitLink.rel = 'noopener';
-        hitLink.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+        hitLink.setAttribute('aria-label', 'See Jakarta, Indonesia on Google Maps');
         locationPlace.append(hitLink);
 
         const svgNamespace = 'http://www.w3.org/2000/svg';
@@ -640,7 +640,7 @@ const socialLinks = [
 
         const tooltip = document.createElement('span');
         tooltip.className = 'profile-link-tooltip';
-        tooltip.textContent = 'See Padang on Google Maps';
+        tooltip.textContent = 'See Jakarta on Google Maps';
         tooltip.setAttribute('role', 'tooltip');
         locationPlace.append(tooltip);
     }

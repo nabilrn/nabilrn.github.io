@@ -82,22 +82,22 @@ try {
                         <GitHubContributionGrid username="nabilrn" />
                     </div>
 
-                    <div class="location-region compact-region" aria-label="Padang local time and timezone comparison">
+                    <div class="location-region compact-region" aria-label="Jakarta local time and timezone comparison">
                         <div class="location-place">
                             <UiIcon name="map-pin" size={11} strokeWidth={1.5} />
-                            <span>Padang, Indonesia</span>
+                            <span>Jakarta, Indonesia</span>
                         </div>
                         <div class="location-time">
                             <span class="status-clock-icon" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="9"></circle>
-                                    <path data-padang-clock-hands d="M12 12 L12 8 M12 12 L15 12"></path>
+                                    <path data-jakarta-clock-hands d="M12 12 L12 8 M12 12 L15 12"></path>
                                 </svg>
                             </span>
-                            <span data-padang-time>--:-- --</span>
+                            <span data-jakarta-time>--:-- --</span>
                         </div>
-                        <div class="location-date" data-padang-date>-- --- ----</div>
-                        <div class="location-diff" data-padang-diff>// comparing time</div>
+                        <div class="location-date" data-jakarta-date>-- --- ----</div>
+                        <div class="location-diff" data-jakarta-diff>// comparing time</div>
                     </div>
 
                     <div class="streak-region compact-region" aria-label={`Duolingo streak: ${duolingoStreak} days`}>
@@ -195,27 +195,27 @@ try {
 
 <script is:inline>
     (() => {
-        const PADANG_TIME_ZONE = 'Asia/Jakarta';
-        const timeTarget = document.querySelector('[data-padang-time]');
-        const dateTarget = document.querySelector('[data-padang-date]');
-        const diffTarget = document.querySelector('[data-padang-diff]');
-        const handsTarget = document.querySelector('[data-padang-clock-hands]');
+        const JAKARTA_TIME_ZONE = 'Asia/Jakarta';
+        const timeTarget = document.querySelector('[data-jakarta-time]');
+        const dateTarget = document.querySelector('[data-jakarta-date]');
+        const diffTarget = document.querySelector('[data-jakarta-diff]');
+        const handsTarget = document.querySelector('[data-jakarta-clock-hands]');
         if (!timeTarget || !dateTarget || !diffTarget) return;
 
         const timeFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             hour: '2-digit',
             minute: '2-digit',
             hour12: true,
         });
         const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             day: '2-digit',
             month: 'short',
             year: 'numeric',
         });
         const offsetFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -225,7 +225,7 @@ try {
             hourCycle: 'h23',
         });
 
-        const getPadangOffset = (date) => {
+        const getJakartaOffset = (date) => {
             const parts = offsetFormatter.formatToParts(date);
             const values = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
             const representedUtc = Date.UTC(
@@ -262,8 +262,8 @@ try {
             dateTarget.textContent = dateFormatter.format(now).toUpperCase();
 
             const viewerOffset = -now.getTimezoneOffset();
-            const padangOffset = getPadangOffset(now);
-            const delta = padangOffset - viewerOffset;
+            const jakartaOffset = getJakartaOffset(now);
+            const delta = jakartaOffset - viewerOffset;
             const absDelta = Math.abs(delta);
 
             let diffText = '// same time';
