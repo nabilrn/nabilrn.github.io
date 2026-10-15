@@ -10,8 +10,8 @@
     type ChartPoint = { label: string; views: number; visitors: number };
     type BeforeSwapEvent = Event & { newDocument?: Document };
 
-    const PADANG_TIME_ZONE = 'Asia/Jakarta';
-    const PADANG_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Padang%2C%20Sumatera%20Barat%2C%20Indonesia';
+    const JAKARTA_TIME_ZONE = 'Asia/Jakarta';
+    const JAKARTA_MAPS_URL = 'https://www.google.com/maps/search/?api=1&query=Jakarta%2C%20Indonesia';
     const DUOLINGO_PROFILE_URL = 'https://www.duolingo.com/profile/bilcikiwir?via=share_profile_link';
 
     let homeWasSeen = false;
@@ -67,10 +67,10 @@
 
             const hitLink = document.createElement('a');
             hitLink.className = 'profile-hit-link';
-            hitLink.href = PADANG_MAPS_URL;
+            hitLink.href = JAKARTA_MAPS_URL;
             hitLink.target = '_blank';
             hitLink.rel = 'noopener';
-            hitLink.setAttribute('aria-label', 'See Padang, Indonesia on Google Maps');
+            hitLink.setAttribute('aria-label', 'See Jakarta, Indonesia on Google Maps');
             locationPlace.append(hitLink);
 
             const svgNamespace = 'http://www.w3.org/2000/svg';
@@ -88,7 +88,7 @@
 
             const tooltip = document.createElement('span');
             tooltip.className = 'profile-link-tooltip';
-            tooltip.textContent = 'See Padang on Google Maps';
+            tooltip.textContent = 'See Jakarta on Google Maps';
             tooltip.setAttribute('role', 'tooltip');
             locationPlace.append(tooltip);
         }
@@ -110,27 +110,27 @@
         }
     };
 
-    const initPadangClock = (controller: AbortController) => {
-        const timeTarget = document.querySelector<HTMLElement>('[data-padang-time]');
-        const dateTarget = document.querySelector<HTMLElement>('[data-padang-date]');
-        const diffTarget = document.querySelector<HTMLElement>('[data-padang-diff]');
-        const handsTarget = document.querySelector<SVGPathElement>('[data-padang-clock-hands]');
+    const initJakartaClock = (controller: AbortController) => {
+        const timeTarget = document.querySelector<HTMLElement>('[data-jakarta-time]');
+        const dateTarget = document.querySelector<HTMLElement>('[data-jakarta-date]');
+        const diffTarget = document.querySelector<HTMLElement>('[data-jakarta-diff]');
+        const handsTarget = document.querySelector<SVGPathElement>('[data-jakarta-clock-hands]');
         if (!timeTarget || !dateTarget || !diffTarget) return;
 
         const timeFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             hour: '2-digit',
             minute: '2-digit',
             hour12: true,
         });
         const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             day: '2-digit',
             month: 'short',
             year: 'numeric',
         });
         const offsetFormatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: PADANG_TIME_ZONE,
+            timeZone: JAKARTA_TIME_ZONE,
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
@@ -140,7 +140,7 @@
             hourCycle: 'h23',
         });
 
-        const getPadangOffset = (date: Date) => {
+        const getJakartaOffset = (date: Date) => {
             const parts = offsetFormatter.formatToParts(date);
             const values = Object.fromEntries(
                 parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]),
@@ -179,8 +179,8 @@
             dateTarget.textContent = dateFormatter.format(now).toUpperCase();
 
             const viewerOffset = -now.getTimezoneOffset();
-            const padangOffset = getPadangOffset(now);
-            const delta = padangOffset - viewerOffset;
+            const jakartaOffset = getJakartaOffset(now);
+            const delta = jakartaOffset - viewerOffset;
             const absDelta = Math.abs(delta);
 
             let diffText = '// same time';
@@ -484,7 +484,7 @@
             initLowerSections(controller);
 
             if (homeWasSeen) {
-                initPadangClock(controller);
+                initJakartaClock(controller);
                 initExperienceOverflow(controller);
             }
             homeWasSeen = true;

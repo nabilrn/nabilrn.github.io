@@ -41,7 +41,7 @@ const commonSchema = {
 const commonSeo = {
     siteAlternateName: ['nabilrn', 'Nabil Portfolio'],
     keywords:
-        'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, Information Systems Graduate, Universitas Andalas, AI Agent, Web Developer, Mobile Developer, Backend Developer, DevOps, IT Infrastructure, Proxmox, Docker, Indonesia',
+        'Nabil Rizki Navisa, Nabil Navisa, Nabil Rizki, nabilrn, nabilrizkinavisa, Software Engineer, Information Systems Graduate, Universitas Andalas, AI Agent, Web Developer, Mobile Developer, Backend Developer, DevOps, IT Infrastructure, Proxmox, Docker, Jakarta, Indonesia',
     ogSiteName: authorName,
     themeColor: '#0a0a0a',
 };
@@ -55,18 +55,19 @@ const siteContent = {
         ...commonSeo,
         defaultTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
         defaultDescription:
-            'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
+            'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71, based in Jakarta, Indonesia. Focused on AI agents, web, mobile, and IT infrastructure.',
     },
     schema: {
         ...commonSchema,
         personDescription:
-            'Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Based in Indonesia and focused on web development, mobile development, AI agent workflows, DevOps, and IT infrastructure.',
+            'Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Based in Jakarta, Indonesia, and focused on web development, mobile development, AI agent workflows, DevOps, and IT infrastructure.',
         degreeName: 'Bachelor of Information Systems',
         credentialCategory: 'Bachelor degree',
         educationalLevel: 'Undergraduate degree',
         graduationDate: 'June 2026',
         worksFor: 'Freelance / Open for Opportunities',
         nationality: 'Indonesia',
+        homeLocation: 'Jakarta, Indonesia',
     },
     nav: {
         ariaPageNavigation: 'Page navigation',
@@ -78,7 +79,7 @@ const siteContent = {
     home: {
         seoTitle: 'Nabil Rizki Navisa | Software Engineer & Information Systems Graduate',
         seoDescription:
-            'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71. Focused on AI agents, web, mobile, and IT infrastructure.',
+            'Portfolio of Nabil Rizki Navisa - Software Engineer and Information Systems graduate from Universitas Andalas with GPA 3.71, based in Jakarta, Indonesia. Focused on AI agents, web, mobile, and IT infrastructure.',
         education: {
             heading: 'Education',
             degree: 'Bachelor of Information Systems',
