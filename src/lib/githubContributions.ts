@@ -1,4 +1,4 @@
-import savedSnapshot from '../data/githubContributionsSnapshot.json';
+import savedSnapshot from '../data/githubContributionsSnapshot.json' with { type: 'json' };
 
 export type GitHubContributionActivity = {
     date: string;
