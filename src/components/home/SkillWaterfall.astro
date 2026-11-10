@@ -16,6 +16,10 @@ type SkillTrack = {
 
 const SIMPLE_ICONS_COMMIT = '7f18aaa676087b8240b6f4ff58a6720be282da59';
 const LOBE_ICONS_COMMIT = 'c450bacad7a78b13470ab78da2d4d034cbb0c880';
+// Repeat enough complete sequences to fill tall desktop panels while keeping
+// every loop offset equal to exactly one sequence (not half the whole track).
+const REPEAT_COUNT = 8;
+const LOOP_SHIFT = `-${100 / REPEAT_COUNT}%`;
 const TARGET_SPEED = 14;
 const ICON_PITCH = 42;
 
@@ -100,11 +104,11 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
     {tracks.map((track) => (
         <div
             class:list={['skill-column', `is-${track.direction}`]}
-            style={`--track-duration:${durationFor(track.items.length)}`}
+            style={`--track-duration:${durationFor(track.items.length)};--loop-shift:${LOOP_SHIFT}`}
             aria-label={track.label}
         >
             <div class="skill-track">
-                {[0, 1].map(() => (
+                {Array.from({ length: REPEAT_COUNT }, () => (
                     <div class="skill-sequence" aria-hidden="true">
                         {track.items.map((item) => {
                             const coloredAsset = colorUrl(item);
@@ -229,11 +233,11 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
 
     @keyframes waterfall-up {
         from { transform: translateY(0); }
-        to { transform: translateY(-50%); }
+        to { transform: translateY(var(--loop-shift)); }
     }
 
     @keyframes waterfall-down {
-        from { transform: translateY(-50%); }
+        from { transform: translateY(var(--loop-shift)); }
         to { transform: translateY(0); }
     }
 
@@ -282,7 +286,6 @@ const durationFor = (itemCount: number) => `${Math.round((itemCount * ICON_PITCH
             transform: none !important;
         }
 
-        .skill-sequence:nth-child(2) { display: none; }
     }
 </style>
 

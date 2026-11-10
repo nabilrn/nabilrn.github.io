@@ -409,6 +409,16 @@ const socialLinks = [
         overflow: hidden;
     }
 
+    /* The fixed waterfall height left a dead zone beneath the skill icons on
+       full-screen desktop boards. Let it use the remaining profile height;
+       keep the fixed-height mobile/stacked layouts unchanged. */
+    @media (min-width: 1280px) and (min-height: 760px) and (min-aspect-ratio: 1.34) {
+        .waterfall-wrap {
+            flex: 1 1 var(--waterfall-height);
+            height: auto;
+        }
+    }
+
     :global(.home-redesign .location-region) {
         position: relative;
         z-index: 8;
