@@ -20,40 +20,101 @@ const isActivity = (value: unknown): value is GitHubContributionActivity => {
     );
 };
 
+
+const MIN_DAYS = 300;
+const FETCH_TIMEOUT_MS = 8000;
+
+function validCalendar(days: GitHubContributionActivity[]): GitHubContributionActivity[] {
+    const valid = days.filter((day) =>
+        isActivity(day) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(day.date) &&
+        Number.isSafeInteger(day.count) && day.count >= 0 &&
+        Number.isInteger(day.level) && day.level >= 0 && day.level <= 4
+    );
+    const unique = new Map(valid.map((day) => [day.date, day]));
+    if (valid.length < MIN_DAYS || unique.size !== valid.length) return [];
+    return [...unique.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function htmlAttribute(attributes: string, key: string): string | undefined {
+    const match = attributes.match(new RegExp('(?:^|\\s)' + key + '\\s*=\\s*["\\x27]([^"\\x27]*)["\\x27]', 'i'));
+    return match?.[1];
+}
+
 /**
- * Fetches one rolling year of GitHub contribution activity at build time.
- * Fails soft to an empty dataset when the public API is unavailable.
+ * Read the public contribution calendar directly from GitHub.
+ * Each calendar cell is joined to its exact count by the linked tool-tip.
+ * Reject incomplete markup instead of inventing contribution counts.
+ */
+export function parseGitHubContributionHtml(html: string): GitHubContributionActivity[] {
+    const counts = new Map<string, number>();
+    for (const match of html.matchAll(/<tool-tip\b([^>]*)>([\s\S]*?)<\/tool-tip>/gi)) {
+        const id = htmlAttribute(match[1], 'for');
+        const label = match[2].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        const numeric = label.match(/^([\d,]+)\s+contributions?\b/i);
+        const count = /^No contributions?\b/i.test(label) ? 0 :
+            numeric ? Number(numeric[1].replace(/,/g, '')) : NaN;
+        if (id && Number.isSafeInteger(count) && count >= 0) counts.set(id, count);
+    }
+
+    const days: GitHubContributionActivity[] = [];
+    for (const match of html.matchAll(/<td\b([^>]*)>/gi)) {
+        const attributes = match[1];
+        const date = htmlAttribute(attributes, 'data-date');
+        const levelText = htmlAttribute(attributes, 'data-level');
+        if (!date || levelText === undefined) continue;
+        const level = Number(levelText);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isInteger(level) || level < 0 || level > 4) continue;
+
+        const id = htmlAttribute(attributes, 'id');
+        const countText = htmlAttribute(attributes, 'data-count');
+        const count = countText && /^\d+$/.test(countText) ? Number(countText) : (id ? counts.get(id) : undefined);
+        if (count === undefined && level > 0) return [];
+        days.push({ date, level, count: count ?? 0 });
+    }
+    return validCalendar(days);
+}
+
+async function getResponse(url: string, accept: string): Promise<Response> {
+    const response = await fetch(url, {
+        headers: { accept, 'user-agent': 'nabilrn-portfolio/1.0' },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response;
+}
+
+/**
+ * Fetch a complete rolling-year calendar at build time without requiring a token.
+ * The official GitHub calendar is primary; the previous public JSON API is a fallback.
+ * Error logs distinguish an unreachable source from a genuinely empty contribution day.
  */
 export async function getGitHubContributions(
     username: string,
     apiBase = DEFAULT_API_BASE,
 ): Promise<GitHubContributionActivity[]> {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000);
+    const user = encodeURIComponent(username);
 
     try {
-        const response = await fetch(`${apiBase}/${encodeURIComponent(username)}?y=last`, {
-            headers: {
-                accept: 'application/json',
-                'user-agent': 'portfolio.nabilrn.space static build',
-            },
-            signal: controller.signal,
-        });
-
-        if (!response.ok) return [];
-
-        const payload = (await response.json()) as GitHubContributionsResponse;
-        return (payload.contributions ?? [])
-            .filter(isActivity)
-            .map((activity) => ({
-                date: activity.date,
-                count: Math.max(0, activity.count),
-                level: Math.max(0, Math.min(4, activity.level)),
-            }))
-            .sort((a, b) => a.date.localeCompare(b.date));
-    } catch {
-        return [];
-    } finally {
-        clearTimeout(timeout);
+        const response = await getResponse('https://github.com/users/' + user + '/contributions', 'text/html');
+        const days = parseGitHubContributionHtml(await response.text());
+        if (days.length > 0) return days;
+        console.warn('[GitHub Activity] GitHub calendar returned incomplete data');
+    } catch (error) {
+        console.warn('[GitHub Activity] GitHub calendar failed:', error);
     }
+
+    try {
+        const url = apiBase.replace(/\/+$/, '') + '/' + user + '?y=last';
+        const response = await getResponse(url, 'application/json');
+        const payload = (await response.json()) as GitHubContributionsResponse;
+        const days = validCalendar(Array.isArray(payload?.contributions) ? payload.contributions : []);
+        if (days.length > 0) return days;
+        console.warn('[GitHub Activity] JSON API returned incomplete data');
+    } catch (error) {
+        console.warn('[GitHub Activity] JSON API failed:', error);
+    }
+
+    console.error('[GitHub Activity] All sources unavailable during static build');
+    return [];
 }

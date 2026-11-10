@@ -42,6 +42,9 @@ jobs:
       - name: Astro check
         run: pnpm exec astro check
 
+      - name: Contribution data regression tests
+        run: node --experimental-strip-types --test tests/githubContributions.test.mjs
+
       - name: Production build
         env:
           # Never let CI/preview builds fall back to the live Cloudflare metrics Worker.
