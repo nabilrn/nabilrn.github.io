@@ -1,3 +1,5 @@
+import savedSnapshot from '../data/githubContributionsSnapshot.json' with { type: 'json' };
+
 export type GitHubContributionActivity = {
     date: string;
     count: number;
@@ -93,6 +95,13 @@ export async function getGitHubContributions(
     username: string,
     apiBase = DEFAULT_API_BASE,
 ): Promise<GitHubContributionActivity[]> {
+    // MyPaaS builds must be deterministic: use the last verified GitHub Actions snapshot.
+    // Network fetching is only a bootstrap fallback until the first refresh succeeds.
+    if (savedSnapshot.username === username) {
+        const cached = validCalendar(savedSnapshot.contributions);
+        if (cached.length > 0) return cached;
+    }
+
     const user = encodeURIComponent(username);
 
     try {
