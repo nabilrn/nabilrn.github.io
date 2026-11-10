@@ -41,6 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Refresh GitHub contribution snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/refresh-github-contributions.mjs
+
       - name: Astro check
         run: pnpm exec astro check
 
@@ -50,7 +55,7 @@ jobs:
           PUBLIC_ENGAGEMENT_API_BASE: /__ci-disabled-engagement__
         run: pnpm build
 
-      - name: Trigger MyPaaS redeploy via GitHub webhook
+      - name: Publish verified snapshot and trigger MyPaaS redeploy
         shell: bash
         run: |
           set -euo pipefail
